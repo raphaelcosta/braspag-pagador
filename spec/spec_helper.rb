@@ -3,7 +3,8 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'braspag'
 require 'spec'
 require 'spec/autorun'
+require 'ruby-debug'
 
 Spec::Runner.configure do |config|
-  
+
 end
