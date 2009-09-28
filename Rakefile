@@ -5,11 +5,11 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "braspag"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
-    gem.email = "ricardo.almeida@gonow.com.br"
-    gem.homepage = "http://github.com/ricardo.almeida/braspag"
-    gem.authors = ["Ricardo Almeida"]
+    gem.summary = %Q{Access the Braspag webservices using Ruby}
+    gem.description = %Q{Access the Braspag webservices using Ruby}
+    gem.email = "labs@gonow.com.br"
+    gem.homepage = "http://github.com/gonow/braspag"
+    gem.authors = ["GoNow"]
     gem.add_development_dependency "rspec"
     gem.add_dependency "curb", ">= 0.5.4.0"
     gem.add_dependency "nokogiri", ">= 1.3.3"

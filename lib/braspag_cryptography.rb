@@ -1,4 +1,3 @@
-require 'rubygems'
 require 'handsoap'
 
 class BraspagCryptography < Handsoap::Service
@@ -16,41 +15,39 @@ class BraspagCryptography < Handsoap::Service
 
   def on_create_document(doc)
     # register namespaces for the request
-    doc.alias 'tns', "#{@base_action_url}"
+    doc.alias 'tns', @base_action_url
   end
 
   def on_response_document(doc)
     # register namespaces for the response
-    doc.add_namespace 'ns', "#{@base_action_url}"
+    doc.add_namespace 'ns', @base_action_url
   end
 
-  # public methods
-
-  def encrypt_request!
-    soap_action = "#{@base_action_url}/EncryptRequest"
-    response = invoke('tns:EncryptRequest', soap_action) do |message|
-      message.add("merchantId", @merchant_id)
-      message.add("request", "nome=ricardo")
+  def encrypt_request!(plain_text)
+    invoke_and_parse('EncryptRequest') do |message|
+      message.add("tns:merchantId", @merchant_id)
+      message.add("tns:request", plain_text)
     end
-    node = response.document.xpath('//ns:EncryptRequestResult').first
-    node.to_s
   end
 
-  def decrypt_request!
-    soap_action = "#{@base_action_url}/DecryptRequest"
-    response = invoke('tns:DecryptRequest', soap_action) do |message|
-      #raise "TODO"
+  def decrypt_request!(encripted_text)
+    invoke_and_parse('DecryptRequest') do |message|
+      message.add("tns:merchantId", @merchant_id)
+      message.add("tns:request", encripted_text)
     end
   end
 
   def clear_cache_for_merchant!
-    soap_action = "#{@base_action_url}/ClearCacheForMerchant"
-    response = invoke('tns:ClearCacheForMerchant', soap_action) do |message|
-      #raise "TODO"
+    invoke_and_parse('ClearCacheForMerchant') do |message|
     end
   end
 
   private
-  # helpers
-  # TODO
+    def invoke_and_parse(method_name, &block)
+      soap_action = "#{@base_action_url}/#{method_name}"
+      response = invoke("tns:#{method_name}", soap_action) do |message|
+        block.call(message)
+      end
+      response.document.xpath("//ns:#{method_name}Result").first.to_s
+    end
 end
