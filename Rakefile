@@ -11,6 +11,9 @@ begin
     gem.homepage = "http://github.com/ricardo.almeida/braspag"
     gem.authors = ["Ricardo Almeida"]
     gem.add_development_dependency "rspec"
+    gem.add_dependency "curb", ">= 0.5.4.0"
+    gem.add_dependency "nokogiri", ">= 1.3.3"
+    gem.add_dependency "troelskn-handsoap", ">= 0.5.7"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
 rescue LoadError
