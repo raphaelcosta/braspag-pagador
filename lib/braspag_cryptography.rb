@@ -27,14 +27,15 @@ class BraspagCryptography < Handsoap::Service
     invoke_and_parse('EncryptRequest') do |message|
       message.add("tns:merchantId", @merchant_id)
       message.add("tns:request", plain_text)
-    end
+    end.first
   end
 
   def decrypt_request!(encripted_text)
     invoke_and_parse('DecryptRequest') do |message|
       message.add("tns:merchantId", @merchant_id)
-      message.add("tns:request", encripted_text)
-    end
+      message.add("tns:cryptString", encripted_text)
+      message.add("tns:customFields", [])
+    end.first
   end
 
   def clear_cache_for_merchant!
@@ -48,6 +49,6 @@ class BraspagCryptography < Handsoap::Service
       response = invoke("tns:#{method_name}", soap_action) do |message|
         block.call(message)
       end
-      response.document.xpath("//ns:#{method_name}Result").first.to_s
+      response.document.xpath("//ns:#{method_name}Result").map {|result| result.to_s}
     end
 end
