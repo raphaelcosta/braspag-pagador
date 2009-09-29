@@ -34,7 +34,9 @@ class BraspagCryptography < Handsoap::Service
     invoke_and_parse('DecryptRequest') do |message|
       message.add("tns:merchantId", @merchant_id)
       message.add("tns:cryptString", encripted_text)
-      message.add("tns:customFields", [])
+      message.add("tns:customFields") do |sub_message|
+        sub_message.add('aaaaa')
+      end
     end.first
   end
 
