@@ -1,10 +1,10 @@
 require 'rubygems'
-require 'braspag_cryptography'
-require 'braspag_layout'
+require 'braspag/cryptography'
+require 'braspag/layout'
 
-class Braspag
-  def self.layout(:identifier, :min_length, :max_length, params = {})
-    BraspagLayout.new(:identifier, :min_length, :max_length, params)
+module Braspag
+  def self.layout(identifier, min_length, max_length, params = {})
+    Braspag::Layout.new(identifier, min_length, max_length, params)
   end
 
   @@model = {
