@@ -1,8 +1,8 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Braspag::Service do
+describe Braspag::Connection do
   before :each do
-    @clazz = Braspag::Service
+    @clazz = Braspag::Connection
   end
 
   it "deve inicializar dado um ambiente e o id da loja" do

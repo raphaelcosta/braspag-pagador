@@ -2,7 +2,7 @@ require 'rubygems'
 require 'braspag/payment_types'
 require 'braspag/cryptography'
 require 'braspag/layout'
-require 'braspag/service'
+require 'braspag/connection'
 
 module Braspag
   class Production
