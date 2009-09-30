@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'braspag/payment_types'
 require 'braspag/cryptography'
 require 'braspag/layout'
 
