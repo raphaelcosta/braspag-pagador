@@ -2,8 +2,17 @@ require 'rubygems'
 require 'braspag/payment_types'
 require 'braspag/cryptography'
 require 'braspag/layout'
+require 'braspag/service'
 
 module Braspag
+  class Production
+    BASE_URL = 'https://www.pagador.com.br'
+  end
+
+  class Test
+    BASE_URL = 'https://homologacao.pagador.com.br'
+  end
+
   def self.layout(identifier, min_length, max_length, params = {})
     Braspag::Layout.new(identifier, min_length, max_length, params)
   end
