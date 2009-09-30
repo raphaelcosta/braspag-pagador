@@ -39,7 +39,7 @@ module Braspag
 
       :financiamento_bbpag                => 32, # [Brasil] Financiamento BBPag
       :financiamento_bradesco             => 34, # [Brasil] Financiamento Bradesco
-      :financiamento_netcredit_cetelem    => 54, # [Brasil]Financiamento NetCredit/Cetelem
+      :financiamento_netcredit_cetelem    => 54, # [Brasil] Financiamento NetCredit/Cetelem
 
       :real_pague                         => 16, # [Brasil] RealPague
       :redecard_webservice                => 20, # [Brasil] Webservice Redecard
