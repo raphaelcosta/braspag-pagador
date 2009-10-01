@@ -1,11 +1,9 @@
-require 'handsoap'
-
 module Braspag
   class Cryptography < Handsoap::Service
 
-    def initialize(base_url, merchant_id)
-      @base_url = base_url
-      @merchant_id = merchant_id
+    def initialize(connection)
+      @base_url = connection.base_url
+      @merchant_id = connection.merchant_id
       @base_action_url = "https://www.pagador.com.br/webservice/BraspagGeneralService"
       params = {
         :uri => "#{@base_url}/BraspagGeneralService/BraspagGeneralService.asmx",
@@ -15,12 +13,10 @@ module Braspag
     end
 
     def on_create_document(doc)
-      # register namespaces for the request
       doc.alias 'tns', @base_action_url
     end
 
     def on_response_document(doc)
-      # register namespaces for the response
       doc.add_namespace 'ns', @base_action_url
     end
 
