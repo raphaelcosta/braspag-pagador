@@ -1,19 +1,24 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Braspag::Cryptography do
-  before do
-    @merchant_id = "{84BE7E7F-698A-6C74-F820-AE359C2A07C2}"
+  before :each do
+    @merchant_id = "{84BE9T9T-75FC-6C74-7K4B-AE469C2A07C3}"
     @connection = Braspag::Connection.new(@merchant_id, :test)
     @cryptography = Braspag::Cryptography.new(@connection)
-    @fields_to_encrypt = ["nome=ricardo", "cpf=321654987"]
+  end
+
+  it "deve reconhecer a base_url da conexão" do
+    @cryptography.class.uri.should be_start_with(@connection.base_url)
   end
 
   context "ao encriptar dados" do
     before :each do
-      xml = '<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><EncryptRequestResponse xmlns="https://www.pagador.com.br/webservice/BraspagGeneralService"><EncryptRequestResult>RblletYGBHp6oH9Y/bu8Mg==</EncryptRequestResult></EncryptRequestResponse></soap:Body></soap:Envelope>'
-      document = Handsoap::XmlQueryFront.parse_string(xml, :nokogiri)
+      @key = "j23hn34jkb34n"
+      response = "<?xml version='1.0' encoding='utf-8'?><soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'><soap:Body><EncryptRequestResponse xmlns='https://www.pagador.com.br/webservice/BraspagGeneralService'><EncryptRequestResult>#{@key}</EncryptRequestResult></EncryptRequestResponse></soap:Body></soap:Envelope>"
+      document = @cryptography.parse_soap_response_document(response)
       @cryptography.on_response_document document
       @response = Handsoap::SoapResponse.new(document, mock(Object))
+      @cryptography.stub!(:dispatch).and_return(@response)
     end
 
     it "deve enviar dados a partir de um mapa de chaves e valores" do
@@ -23,8 +28,11 @@ describe Braspag::Cryptography do
   <env:Header />
   <env:Body>
     <tns:EncryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
-      <tns:merchantId>{84BE7E7F-698A-6C74-F820-AE359C2A07C2}</tns:merchantId>
-      <tns:request>nome=pedro</tns:request>
+      <tns:merchantId>#{@merchant_id}</tns:merchantId>
+      <tns:request>
+        <tns:nome>Chapulin</tns:nome>
+        <tns:sobrenome>Colorado</tns:sobrenome>
+      </tns:request>
     </tns:EncryptRequest>
   </env:Body>
 </env:Envelope>
@@ -33,15 +41,11 @@ STRING
         Handsoap::XmlMason::TextNode.new(document.to_s + "\n").to_s.should eql(Handsoap::XmlMason::TextNode.new(expected).to_s)
         @response
       end
-      @cryptography.encrypt_request!("nome=pedro")
+      @cryptography.encrypt_request(:nome => "Chapulin", :sobrenome => "Colorado")
     end
 
-    it "deve especificar https://www.pagador.com.br/webservice/BraspagGeneralService/EncryptRequest como a action de pagamento" do
-      @cryptography.should_receive(:dispatch) do |document, url|
-        url.should eql("https://www.pagador.com.br/webservice/BraspagGeneralService/EncryptRequest")
-        @response
-      end
-      @cryptography.encrypt_request!(:nome => "pedro")
+    it "deve devolver a encriptação" do
+      @cryptography.encrypt_request(:key => "value").should eql(@key)
     end
   end
 end
