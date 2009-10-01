@@ -30,8 +30,8 @@ describe Braspag::Cryptography do
     <tns:EncryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
       <tns:merchantId>#{@merchant_id}</tns:merchantId>
       <tns:request>
-        <tns:nome>Chapulin</tns:nome>
-        <tns:sobrenome>Colorado</tns:sobrenome>
+        <tns:string>nome=Chapulin</tns:string>
+        <tns:string>sobrenome=Colorado</tns:string>
       </tns:request>
     </tns:EncryptRequest>
   </env:Body>

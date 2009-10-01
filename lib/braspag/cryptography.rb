@@ -19,7 +19,7 @@ module Braspag
       invoke_and_parse('Encrypt') do |message|
         message.add("tns:request") do |sub_message|
           map.each do |key, value|
-            sub_message.add("tns:#{key}", value)
+            sub_message.add("tns:string", "#{key}=#{value}")
           end
         end
       end
