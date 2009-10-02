@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'handsoap'
-require 'braspag/payment_types'
 require 'braspag/cryptography'
 require 'braspag/connection'
 
