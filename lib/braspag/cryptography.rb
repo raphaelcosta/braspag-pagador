@@ -15,23 +15,21 @@ module Braspag
       doc.add_namespace 'ns', BASE_ACTION_URL
     end
 
-    def encrypt_request(map)
+    def encrypt(map)
       invoke_and_parse('Encrypt') do |message|
         message.add("tns:request") do |sub_message|
           map.each do |key, value|
             sub_message.add("tns:string", "#{key}=#{value}")
           end
         end
-      end
+      end.to_s
     end
 
-    def decrypt_request!(encripted_text)
-      invoke_and_parse('Decrypt') do |message|
+    def decrypt(encripted_text)
+      document = invoke_and_parse('Decrypt') do |message|
         message.add("tns:cryptString", encripted_text)
-        message.add("tns:customFields") do |sub_message|
-          sub_message.add('aaaaa')
-        end
       end
+      convert_to_map document
     end
 
     private
@@ -41,12 +39,21 @@ module Braspag
         message.add("tns:merchantId", @connection.merchant_id)
         block.call(message)
       end
-      response.document.xpath("//ns:#{method_name}RequestResult").first.to_s
+      response.document.xpath("//ns:#{method_name}RequestResult").first
     end
 
     def configure_endpoint
       self.class.endpoint :uri => "#{@connection.base_url}/BraspagGeneralService/BraspagGeneralService.asmx",
                           :version => 2
+    end
+
+    def convert_to_map(document)
+      map = {}
+      document.xpath("//ns:string").each do |text|
+        values = text.to_s.split("=")
+        map[values[0].downcase.to_sym] = values[1]
+      end
+      map
     end
   end
 end
