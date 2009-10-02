@@ -1,46 +1,59 @@
-require 'hpricot'
-require 'serviceproxy'
-
 module Braspag
-  class Cryptography < ServiceProxy::Base
-    def initialize(base_url, merchant_id)
-      @base_url = base_url
-      @merchant_id = merchant_id
-      @base_action_url = "https://www.pagador.com.br/webservice/BraspagGeneralService"
-      params = {
-        :uri => "#{@base_url}/BraspagGeneralService/BraspagGeneralService.asmx",
-        :version => 2
-      }
-      self.class.endpoint params
+  class Cryptography < Handsoap::Service
+    BASE_ACTION_URL = "https://www.pagador.com.br/webservice/BraspagGeneralService"
+
+    def initialize(connection)
+      @connection = connection
+      configure_endpoint
     end
 
-    def build_encrypt_request(options)
-      soap_envelope(options) do |xml|
-        xml.merchantId options[:merchant_id]
-        xml.request do |request|
-          options[:request].each {|r| request.string r }
+    def on_create_document(doc)
+      doc.alias 'tns', BASE_ACTION_URL
+    end
+
+    def on_response_document(doc)
+      doc.add_namespace 'ns', BASE_ACTION_URL
+    end
+
+    def encrypt(map)
+      invoke_and_parse('Encrypt') do |message|
+        message.add("tns:request") do |sub_message|
+          map.each do |key, value|
+            sub_message.add("tns:string", "#{key}=#{value}")
+          end
         end
+      end.to_s
+    end
+
+    def decrypt(encripted_text)
+      document = invoke_and_parse('Decrypt') do |message|
+        message.add("tns:cryptString", encripted_text)
       end
+      convert_to_map document
     end
 
-    def parse_encrypt_request(response)
-      xml = Hpricot.XML(response.body)
-      xml.inner_text
-    end
+    private
 
-    def build_decrypt_request(options)
-      soap_envelope(options) do |xml|
-        xml.merchantId options[:merchant_id]
-        xml.cryptString options[:crypt]
-        xml.customFields do |fields|
-          fields.string ''
-        end
+    def invoke_and_parse(method_name, &block)
+      response = invoke("tns:#{method_name}Request") do |message|
+        message.add("tns:merchantId", @connection.merchant_id)
+        block.call(message)
       end
+      response.document.xpath("//ns:#{method_name}RequestResult").first
     end
 
-    def parse_decrypt_request(response)
-      xml = Hpricot.XML(response.body)
-      xml.at('DecryptRequestResult').children.map {|node| node.inner_text}
+    def configure_endpoint
+      self.class.endpoint :uri => "#{@connection.base_url}/BraspagGeneralService/BraspagGeneralService.asmx",
+                          :version => 2
+    end
+
+    def convert_to_map(document)
+      map = {}
+      document.xpath("//ns:string").each do |text|
+        values = text.to_s.split("=")
+        map[values[0].downcase.to_sym] = values[1]
+      end
+      map
     end
   end
 end
