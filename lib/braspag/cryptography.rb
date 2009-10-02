@@ -1,8 +1,8 @@
-require 'handsoap'
+require 'hpricot'
+require 'serviceproxy'
 
 module Braspag
-  class Cryptography < Handsoap::Service
-
+  class Cryptography < ServiceProxy::Base
     def initialize(base_url, merchant_id)
       @base_url = base_url
       @merchant_id = merchant_id
@@ -14,45 +14,33 @@ module Braspag
       self.class.endpoint params
     end
 
-    def on_create_document(doc)
-      # register namespaces for the request
-      doc.alias 'tns', @base_action_url
-    end
-
-    def on_response_document(doc)
-      # register namespaces for the response
-      doc.add_namespace 'ns', @base_action_url
-    end
-
-    def encrypt_request!(plain_text)
-      invoke_and_parse('EncryptRequest') do |message|
-        message.add("tns:merchantId", @merchant_id)
-        message.add("tns:request", plain_text)
-      end.first
-    end
-
-    def decrypt_request!(encripted_text)
-      invoke_and_parse('DecryptRequest') do |message|
-        message.add("tns:merchantId", @merchant_id)
-        message.add("tns:cryptString", encripted_text)
-        message.add("tns:customFields") do |sub_message|
-          sub_message.add('aaaaa')
+    def build_encrypt_request(options)
+      soap_envelope(options) do |xml|
+        xml.merchantId options[:merchant_id]
+        xml.request do |request|
+          options[:request].each {|r| request.string r }
         end
-      end.first
-    end
-
-    def clear_cache_for_merchant!
-      invoke_and_parse('ClearCacheForMerchant') do |message|
       end
     end
 
-    private
-      def invoke_and_parse(method_name, &block)
-        soap_action = "#{@base_action_url}/#{method_name}"
-        response = invoke("tns:#{method_name}", soap_action) do |message|
-          block.call(message)
+    def parse_encrypt_request(response)
+      xml = Hpricot.XML(response.body)
+      xml.inner_text
+    end
+
+    def build_decrypt_request(options)
+      soap_envelope(options) do |xml|
+        xml.merchantId options[:merchant_id]
+        xml.cryptString options[:crypt]
+        xml.customFields do |fields|
+          fields.string ''
         end
-        response.document.xpath("//ns:#{method_name}Result").map {|result| result.to_s}
       end
+    end
+
+    def parse_decrypt_request(response)
+      xml = Hpricot.XML(response.body)
+      xml.at('DecryptRequestResult').children.map {|node| node.inner_text}
+    end
   end
 end

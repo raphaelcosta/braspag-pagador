@@ -68,27 +68,3 @@ module Braspag
               #,:extra => {}
             }
 end
-
-=begin
-
-                   Descrição do objeto financiado. Obs.: No caso de carrinho de
-Extrafinanciamento                                                               1 512 Não
-                      compras utilizar a descrição do produto de maior valor.
-                    Moeda utilizada na venda seguindo o ISO 4217 (USD, GBP,
-      MOEDA        JPY, CAD, AUD, EUR) Campo Obrigatório apenas para o meio      3   3 Não
-                         de pagamento PayPal e não necessário para outros.
-                   Informação adicional que a loja deseje associar à transação.
- EXTRA[nome que      Este parâmetro nunca é retornado, ele somente pode ser
-você deseja dar ao    acessado pelo ambiente Administrativo (backoffice). Se     1 768 Não
-      campo]          enviado parâmetro com nome “ExtraInfo“, no backoffice
-                                            aparecerá “Info”
-
-
-CODPAGAMENTO  Identificação da forma de pagamento (Tabela 3)  2    3     Sim
-              número de parcelas em que o valor total será
-   PARCELAS                                                   1    2     Não
-              dividido (padrão = 1)
-TIPOPARCELADO Com juros enviar “1”. Sem juros enviar “0”      1    1     Não
-
-
-=end
