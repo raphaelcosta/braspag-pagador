@@ -4,23 +4,12 @@ require 'rake'
 require 'rake/gempackagetask'
 require 'spec/rake/spectask'
 
-begin
-  require 'jeweler'
-  Jeweler::Tasks.new do |gem|
-    gem.name = "braspag"
-    gem.summary = %Q{Access the Braspag webservices using Ruby}
-    gem.description = %Q{Access the Braspag webservices using Ruby}
-    gem.email = "labs@gonow.com.br"
-    gem.homepage = "http://github.com/gonow/braspag"
-    gem.authors = ["GoNow"]
-    gem.add_development_dependency "rspec"
-    gem.add_dependency "hpricot", ">= 0.8.1"
-    gem.add_dependency "jeremydurham-serviceproxy", ">= 0.1.4"
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
-  end
-rescue LoadError
-  puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
-end
+GEM = "braspag"
+GEM_VERSION = "0.1.0"
+SUMMARY = "Access the Braspag webservices using Ruby"
+AUTHOR = "Gonow"
+EMAIL = "labs@gonow.com.br"
+HOMEPAGE = "http://www.gonow.com.br"
 
 spec = Gem::Specification.new do |s|
   s.name = GEM
@@ -39,7 +28,7 @@ end
 
 Spec::Rake::SpecTask.new do |t|
   t.spec_files = FileList['spec/**/*_spec.rb']
-  t.spec_opts = %w(-fh:doc/specs.html --color)
+  t.spec_opts = %w(-fh:doc/specs.html --color -fs)
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
