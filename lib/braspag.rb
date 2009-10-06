@@ -12,4 +12,8 @@ module Braspag
   class Test
     BASE_URL = 'https://homologacao.pagador.com.br'
   end
+
+  class Development
+    BASE_URL = 'https://homologacao.pagador.com.br'
+  end
 end
