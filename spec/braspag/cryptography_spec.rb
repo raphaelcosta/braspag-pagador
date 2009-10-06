@@ -30,8 +30,8 @@ describe Braspag::Cryptography do
     <tns:EncryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
       <tns:merchantId>#{@merchant_id}</tns:merchantId>
       <tns:request>
-        <tns:string>sobrenome=Colorado</tns:string>
         <tns:string>nome=Chapulin</tns:string>
+        <tns:string>sobrenome=Colorado</tns:string>
       </tns:request>
     </tns:EncryptRequest>
   </env:Body>
@@ -80,7 +80,7 @@ STRING
     end
 
     it "deve retornar o resultado como um mapa de valores" do
-      @cryptography.decrypt("{sdfsdf34543534}")[:vendaid].should eql("teste123")
+      @cryptography.decrypt("{sdfsdf34543534}")[:parcelas].should eql("1")
     end
   end
 end
