@@ -17,6 +17,10 @@ describe Braspag::Connection do
     @clazz.new("fwefewfewfew").environment.should eql(Braspag::Production)
   end
 
+   it "deve entender que o ambiente é teste quando for especificado stagign" do
+    @clazz.new("fwefewfewfew", :staging).environment.should eql(Braspag::Test)
+  end
+
   it "deve reconhecer a url do ambiente de teste" do
     @clazz.new("wegwegwe", :test).base_url.should eql(Braspag::Test::BASE_URL)
   end
