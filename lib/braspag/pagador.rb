@@ -15,6 +15,14 @@ module Braspag
       doc.add_namespace 'ns', BASE_ACTION_URL
     end
 
+    def autorizar(map)
+      invoke_and_parse('Authorize') do |message|
+        map.each do |key, value|
+          message.add("tns:#{key}", "#{value}")
+        end
+      end.to_s
+    end
+
     private
     def configure_endpoint
       self.class.endpoint :uri => "#{@connection.base_url}/webservice/pagador.asmx",

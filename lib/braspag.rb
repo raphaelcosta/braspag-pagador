@@ -24,11 +24,11 @@ module Handsoap
 
     private
     def invoke_and_parse(method_name, &block)
-      response = invoke("tns:#{method_name}Request") do |message|
+      response = invoke("tns:#{method_name}") do |message|
         message.add("tns:merchantId", @connection.merchant_id)
         block.call(message)
       end
-      response.document.xpath("//ns:#{method_name}RequestResult").first
+      response.document.xpath("//ns:#{method_name}Result").first
     end
 
     def convert_to_map(document)

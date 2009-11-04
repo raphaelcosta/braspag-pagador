@@ -15,7 +15,7 @@ describe Braspag::Cryptography do
     before :each do
       @key = "j23hn34jkb34n"
       response = "<?xml version='1.0' encoding='utf-8'?><soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'><soap:Body><EncryptRequestResponse xmlns='https://www.pagador.com.br/webservice/BraspagGeneralService'><EncryptRequestResult>#{@key}</EncryptRequestResult></EncryptRequestResponse></soap:Body></soap:Envelope>"
-      mock_response response
+      mock_response @cryptography, response
     end
 
     it "deve realiza-lo a partir de um mapa de chaves e valores" do
@@ -27,17 +27,14 @@ describe Braspag::Cryptography do
     <tns:EncryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
       <tns:merchantId>#{@merchant_id}</tns:merchantId>
       <tns:request>
-        <tns:string>sobrenome=Colorado</tns:string>
         <tns:string>nome=Chapulin</tns:string>
+        <tns:string>sobrenome=Colorado</tns:string>
       </tns:request>
     </tns:EncryptRequest>
   </env:Body>
 </env:Envelope>
 STRING
-      @driver.should_receive(:send_http_request) do |document|
-        Handsoap::XmlMason::TextNode.new(document.body + "\n").to_s.should eql(Handsoap::XmlMason::TextNode.new(expected).to_s)
-        @response
-      end
+      response_should_contain(expected)
       @cryptography.encrypt(:nome => "Chapulin", :sobrenome => "Colorado")
     end
 
@@ -49,7 +46,7 @@ STRING
   context "ao decriptar os dados" do
     before :each do
       response = "<?xml version='1.0' encoding='utf-8'?><soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'><soap:Body><DecryptRequestResponse xmlns='https://www.pagador.com.br/webservice/BraspagGeneralService'><DecryptRequestResult><string>CODPAGAMENTO=18</string><string>VENDAID=teste123</string><string>VALOR=100</string><string>PARCELAS=1</string><string>NOME=comprador</string></DecryptRequestResult></DecryptRequestResponse></soap:Body></soap:Envelope>"
-      mock_response response
+      mock_response @cryptography, response
     end
 
 
@@ -66,10 +63,7 @@ STRING
   </env:Body>
 </env:Envelope>
 STRING
-      @driver.should_receive(:send_http_request) do |document|
-        Handsoap::XmlMason::TextNode.new(document.body + "\n").to_s.should eql(Handsoap::XmlMason::TextNode.new(expected).to_s)
-        @response
-      end
+      response_should_contain(expected)
       @cryptography.decrypt("{sdfsdf}")
     end
 
@@ -77,17 +71,4 @@ STRING
       @cryptography.decrypt("{sdfsdf34543534}")[:parcelas].should eql("1")
     end
   end
-
-  private
-    def headers
-      headers = {"content-type" => ["application/soap+xml; charset=utf-8"] }
-    end
-    def mock_response(response)
-      document = @cryptography.parse_soap_response_document(response)
-      @cryptography.on_response_document document
-      @response = Handsoap::Http::Response.new(200, headers, response, nil)
-      @driver = mock(Object)
-      @cryptography.stub!(:http_driver_instance).and_return(@driver)
-      @driver.stub!(:send_http_request).with(anything).and_return(@response)
-    end
 end
