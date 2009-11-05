@@ -29,13 +29,22 @@ module Braspag
       document = invoke_and_parse('DecryptRequest') do |message|
         message.add("tns:cryptString", encripted_text)
       end
-      convert_to_map document
+      convert_request_to_map document
     end
 
     private
     def configure_endpoint
       self.class.endpoint :uri => "#{@connection.base_url}/BraspagGeneralService/BraspagGeneralService.asmx",
                           :version => 2
+    end
+
+    def convert_request_to_map(document)
+      map = {}
+      document.xpath("//ns:string").each do |text|
+        values = text.to_s.split("=")
+        map[values[0].downcase.to_sym] = values[1]
+      end
+      map
     end
   end
 end

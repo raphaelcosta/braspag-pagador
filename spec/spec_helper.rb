@@ -21,7 +21,7 @@ end
 def response_should_contain(expected)
   @driver.should_receive(:send_http_request) do |document|
     document.body.lines.to_a.each do |line|
-      expected.include?(line).should be_true
+      expected.should include(line)
     end
   end
 end

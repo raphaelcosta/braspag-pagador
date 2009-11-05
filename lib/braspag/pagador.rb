@@ -15,12 +15,13 @@ module Braspag
       doc.add_namespace 'ns', BASE_ACTION_URL
     end
 
-    def autorizar(map)
-      invoke_and_parse('Authorize') do |message|
+    def authorize(map)
+      document = invoke_and_parse('Authorize') do |message|
         map.each do |key, value|
           message.add("tns:#{key}", "#{value}")
         end
-      end.to_s
+      end
+      convert_to_map document
     end
 
     private
@@ -28,5 +29,16 @@ module Braspag
       self.class.endpoint :uri => "#{@connection.base_url}/webservice/pagador.asmx",
                           :version => 2
     end
+
+    def convert_to_map(document)
+      map = {"amount" => "", "authorisationNumber" => "", "message" => "", "returnCode" => "", "status" => "", "transactionId" => ""}
+      map.each_key do |key|
+        document.xpath("//ns:#{key}").each do |text|
+          map[key] = text.to_s
+        end
+      end
+      map
+    end
+
   end
 end

@@ -30,14 +30,5 @@ module Handsoap
       end
       response.document.xpath("//ns:#{method_name}Result").first
     end
-
-    def convert_to_map(document)
-      map = {}
-      document.xpath("//ns:string").each do |text|
-        values = text.to_s.split("=")
-        map[values[0].downcase.to_sym] = values[1]
-      end
-      map
-    end
   end
 end

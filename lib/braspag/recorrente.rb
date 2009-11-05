@@ -15,10 +15,30 @@ module Braspag
       doc.add_namespace 'ns', BASE_ACTION_URL
     end
 
+    def create_creditcard_order(map)
+      document = invoke_and_parse('CreateCreditCardOrder') do |message|
+        map.each do |key, value|
+          message.add("tns:#{key}", "#{value}")
+        end
+      end
+      convert_to_map document
+    end
+
     private
     def configure_endpoint
       self.class.endpoint :uri => "#{@connection.base_url}/webservice/recorrente.asmx",
                           :version => 2
     end
+
+    def convert_to_map(document)
+      map = {"code" => "", "description" => ""}
+      map.each_key do |key|
+        document.xpath("//ns:#{key}").each do |text|
+          map[key] = text.to_s
+        end
+      end
+      map
+    end
+
   end
 end
