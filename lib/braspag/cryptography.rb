@@ -16,7 +16,8 @@ module Braspag
     end
 
     def encrypt(map)
-      invoke_and_parse('EncryptRequest') do |message|
+      soap_action = "#{BASE_ACTION_URL}/EncryptRequest"
+      invoke_and_parse('EncryptRequest', soap_action) do |message|
         message.add("tns:request") do |sub_message|
           map.each do |key, value|
             sub_message.add("tns:string", "#{key}=#{value}")
@@ -26,7 +27,8 @@ module Braspag
     end
 
     def decrypt(encripted_text)
-      document = invoke_and_parse('DecryptRequest') do |message|
+      soap_action = "#{BASE_ACTION_URL}/DecryptRequest"
+      document = invoke_and_parse('DecryptRequest', soap_action) do |message|
         message.add("tns:cryptString", encripted_text)
       end
       convert_request_to_map document

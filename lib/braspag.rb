@@ -23,8 +23,8 @@ module Handsoap
   class Service
 
     private
-    def invoke_and_parse(method_name, &block)
-      response = invoke("tns:#{method_name}") do |message|
+    def invoke_and_parse(method_name, soap_action, &block)
+      response = invoke("tns:#{method_name}", soap_action) do |message|
         message.add("tns:merchantId", @connection.merchant_id)
         block.call(message)
       end

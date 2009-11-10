@@ -16,7 +16,8 @@ module Braspag
     end
 
     def create_creditcard_order(map)
-      document = invoke_and_parse('CreateCreditCardOrder') do |message|
+      soap_action = "#{BASE_ACTION_URL}/CreateCreditCardOrder"
+      document = invoke_and_parse('CreateCreditCardOrder', soap_action) do |message|
         map.each do |key, value|
           message.add("tns:#{key}", "#{value}")
         end

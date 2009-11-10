@@ -16,7 +16,7 @@ module Braspag
     end
 
     def authorize(map)
-      document = invoke_and_parse('Authorize') do |message|
+      document = invoke_and_parse('Authorize', "#{BASE_ACTION_URL}/Authorize") do |message|
         map.each do |key, value|
           message.add("tns:#{key}", "#{value}")
         end
@@ -26,7 +26,7 @@ module Braspag
 
     private
     def configure_endpoint
-      self.class.endpoint :uri => "#{@connection.base_url}/webservice/pagador.asmx",
+      self.class.endpoint :uri => "https://homologacao.pagador.com.br/webservices/pagador/Pagador.asmx",
                           :version => 2
     end
 
