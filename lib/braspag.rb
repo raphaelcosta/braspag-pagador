@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'handsoap'
+require 'braspag/service'
 require 'braspag/cryptography'
 require 'braspag/connection'
 require 'braspag/pagador'
@@ -11,10 +12,6 @@ module Braspag
   end
 
   class Test
-    BASE_URL = 'https://homologacao.pagador.com.br'
-  end
-
-  class Development
     BASE_URL = 'https://homologacao.pagador.com.br'
   end
 end

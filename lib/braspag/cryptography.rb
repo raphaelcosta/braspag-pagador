@@ -1,22 +1,9 @@
 module Braspag
   class Cryptography < Handsoap::Service
-    BASE_ACTION_URL = "https://www.pagador.com.br/webservice/BraspagGeneralService"
-
-    def initialize(connection)
-      @connection = connection
-      configure_endpoint
-    end
-
-    def on_create_document(doc)
-      doc.alias 'tns', BASE_ACTION_URL
-    end
-
-    def on_response_document(doc)
-      doc.add_namespace 'ns', BASE_ACTION_URL
-    end
+    include Braspag::Service
 
     def encrypt(map)
-      soap_action = "#{BASE_ACTION_URL}/EncryptRequest"
+      soap_action = "#{base_action_url}/EncryptRequest"
       invoke_and_parse('EncryptRequest', soap_action) do |message|
         message.add("tns:request") do |sub_message|
           map.each do |key, value|
@@ -27,19 +14,22 @@ module Braspag
     end
 
     def decrypt(encripted_text)
-      soap_action = "#{BASE_ACTION_URL}/DecryptRequest"
+      soap_action = "#{base_action_url}/DecryptRequest"
       document = invoke_and_parse('DecryptRequest', soap_action) do |message|
         message.add("tns:cryptString", encripted_text)
       end
       convert_request_to_map document
     end
 
-    private
-    def configure_endpoint
-      self.class.endpoint :uri => "#{@connection.base_url}/BraspagGeneralService/BraspagGeneralService.asmx",
-                          :version => 2
+    def base_action_url
+      "https://www.pagador.com.br/webservice/BraspagGeneralService"
     end
 
+    def uri
+      "#{@connection.base_url}/BraspagGeneralService/BraspagGeneralService.asmx"
+    end
+
+    private
     def convert_request_to_map(document)
       map = {}
       document.xpath("//ns:string").each do |text|

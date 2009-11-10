@@ -2,10 +2,10 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Braspag::Pagador do
   before do
-    @merchant_id = "{12312312-123123-123-123123}"
+    @merchant_id = "{84BE7E7F-698A-6C74-F820-AE359C2A07C2}"
     @connection = Braspag::Connection.new(@merchant_id, :test)
     @pagador = Braspag::Pagador.new(@connection)
-    response = "<?xml version='1.0' encoding='utf-8'?><soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'><soap:Body><AuthorizeResponse xmlns='https://www.pagador.com.br/webservice/pagador'><AuthorizeResult><amount>1</amount><authorisationNumber>418270</authorisationNumber><message>Transaction Sucessful</message><returnCode>0</returnCode><status>1</status><transactionId>128199</transactionId></AuthorizeResult></AuthorizeResponse></soap:Body></soap:Envelope>"
+    response = "<?xml version='1.0' encoding='utf-8'?><soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'><soap:Body><AuthorizeResponse xmlns='https://www.pagador.com.br/webservice/pagador'><AuthorizeResult><amount>1</amount><authorisationNumber>418270</authorisationNumber><message>Transaction Successful</message><returnCode>0</returnCode><status>1</status><transactionId>128199</transactionId></AuthorizeResult></AuthorizeResponse></soap:Body></soap:Envelope>"
     mock_response @pagador, response
   end
 
@@ -29,7 +29,7 @@ STRING
   end
 
   it "deve devolver o resoltado em um mapa" do
-    map = {"amount" =>"1", "authorisationNumber" => "418270", "message" => "Transaction Sucessful", "returnCode" => "0", "status" => "1", "transactionId" => "128199"}
+    map = {"amount" =>"1", "authorisationNumber" => "418270", "message" => "Transaction Successful", "returnCode" => "0", "status" => "1", "transactionId" => "128199"}
     @pagador.authorize(:orderId => "teste564", :customerName => "comprador de teste", :amount => "1,00").should == map
   end
 end
