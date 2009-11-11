@@ -25,11 +25,11 @@ describe Braspag::Buyer do
 </env:Envelope>
 STRING
     response_should_contain(expected)
-    @pagador.buy(:orderId => "teste564", :customerName => "comprador de teste", :amount => "1,00")
+    @pagador.buy!(:orderId => "teste564", :customerName => "comprador de teste", :amount => "1,00")
   end
 
   it "deve devolver o resoltado em um mapa" do
     map = {"amount" =>"1", "authorisationNumber" => "418270", "message" => "Transaction Successful", "returnCode" => "0", "status" => "1", "transactionId" => "128199"}
-    @pagador.buy(:orderId => "teste564", :customerName => "comprador de teste", :amount => "1,00").should == map
+    @pagador.buy!(:orderId => "teste564", :customerName => "comprador de teste", :amount => "1,00").should == map
   end
 end
