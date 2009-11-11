@@ -3,7 +3,7 @@ require 'handsoap'
 require 'braspag/service'
 require 'braspag/cryptography'
 require 'braspag/connection'
-require 'braspag/pagador'
+require 'braspag/buyer'
 require 'braspag/recorrente'
 
 module Braspag
