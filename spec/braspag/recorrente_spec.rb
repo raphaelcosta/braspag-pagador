@@ -5,8 +5,7 @@ describe Braspag::Recorrente do
     @merchant_id = "{234234-234234-234234}"
     @connection = Braspag::Connection.new(@merchant_id, :test)
     @recorrente = Braspag::Recorrente.new(@connection)
-    response = "<?xml version='1.0' encoding='utf-8'?><soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'><soap:Body><CreateCreditCardOrderResponse xmlns='https://www.pagador.com.br/webservice/recorrente'><CreateCreditCardOrderResult><code>1</code><description>teste</description></CreateCreditCardOrderResult></CreateCreditCardOrderResponse></soap:Body></soap:Envelope>"
-    mock_response @recorrente, response
+    respond_with "<?xml version='1.0' encoding='utf-8'?><soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'><soap:Body><CreateCreditCardOrderResponse xmlns='https://www.pagador.com.br/webservice/recorrente'><CreateCreditCardOrderResult><code>1</code><description>teste</description></CreateCreditCardOrderResult></CreateCreditCardOrderResponse></soap:Body></soap:Envelope>"
   end
 
   it "deve enviar dados para o webservice de cartao de credito" do
@@ -24,7 +23,7 @@ describe Braspag::Recorrente do
   </env:Body>
 </env:Envelope>
 STRING
-    response_should_contain(expected)
+    request_should_contain expected
     @recorrente.create_creditcard_order(:orderId => "123", :startDate => "12/11/2009", :endDate => "12/12/2009")
   end
 

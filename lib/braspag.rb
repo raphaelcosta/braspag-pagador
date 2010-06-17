@@ -2,7 +2,7 @@ require 'handsoap'
 require 'braspag/service'
 require 'braspag/cryptography'
 require 'braspag/connection'
-require 'braspag/buyer'
+require 'braspag/gateway'
 require 'braspag/recorrente'
 
 module Braspag
@@ -17,7 +17,6 @@ end
 
 module Handsoap
   class Service
-
     private
     def invoke_and_parse(method_name, soap_action, &block)
       response = invoke("tns:#{method_name}", soap_action) do |message|

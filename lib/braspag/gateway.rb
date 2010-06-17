@@ -1,8 +1,8 @@
 module Braspag
-  class Buyer < Handsoap::Service
+  class Gateway < Handsoap::Service
     include Braspag::Service
 
-    def buy!(map)
+    def authorize!(map)
       document = invoke_and_parse('Authorize', "#{base_action_url}/Authorize") do |message|
         map.each do |key, value|
           message.add("tns:#{key}", "#{value}")
@@ -28,6 +28,5 @@ module Braspag
       end
       map
     end
-
   end
 end

@@ -5,8 +5,8 @@ h2. INSTALLATION
 h2. USAGE
 
 <pre><code>connection = Braspag::Connection.new '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}'
-buyer = Braspag::Buyer.new connection
-buyer.buy! :orderId => 'test001', :customerName => 'Walter Bishop', :amount => '1000000,00', ...</code></pre>
+gateway = Braspag::Gateway.new connection
+gateway.authorize! :orderId => 'test001', :customerName => 'Walter Bishop', :amount => '1000000,00', ...</code></pre>
 
 h2. LICENSE:
 
