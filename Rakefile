@@ -5,7 +5,7 @@ require 'rake/gempackagetask'
 require 'spec/rake/spectask'
 
 GEM = "braspag"
-GEM_VERSION = "0.2.0"
+GEM_VERSION = "0.3.0"
 SUMMARY = "Access the Braspag webservices using Ruby"
 AUTHOR = "Gonow"
 EMAIL = "labs@gonow.com.br"
