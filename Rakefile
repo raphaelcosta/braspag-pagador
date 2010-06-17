@@ -20,6 +20,10 @@ spec = Gem::Specification.new do |s|
   s.files = FileList['lib/**/*.rb', '[A-Z]*'].to_a
 
   s.add_dependency(%q<rubigen>, [">= 1.3.4"])
+  s.add_dependency 'handsoap', '>=1.1.7'
+
+  s.add_development_dependency 'rspec'
+  s.add_development_dependency 'nokogiri'
 
   s.author = AUTHOR
   s.email = EMAIL
