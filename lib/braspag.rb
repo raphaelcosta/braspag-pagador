@@ -1,4 +1,3 @@
-require 'rubygems'
 require 'handsoap'
 require 'braspag/service'
 require 'braspag/cryptography'
