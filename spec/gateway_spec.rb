@@ -24,7 +24,24 @@ describe Braspag::Gateway do
 </env:Envelope>
 STRING
     request_should_contain(expected)
-    @gateway.authorize!(:orderId => "teste564", :customerName => "comprador de teste", :amount => "1,00")
+    @gateway.authorize! :orderId => "teste564", :customerName => "comprador de teste", :amount => "1,00"
+  end
+  
+  it "deve enviar dados para webservice de captura" do
+    expected = <<STRING
+<?xml version='1.0' ?>
+<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+  <env:Header />
+  <env:Body>
+    <tns:Capture xmlns:tns="https://www.pagador.com.br/webservice/pagador">
+      <tns:merchantId>#{@merchant_id}</tns:merchantId>
+      <tns:orderId>teste564</tns:orderId>
+    </tns:Capture>
+  </env:Body>
+</env:Envelope>
+STRING
+    request_should_contain(expected)
+    @gateway.capture! :orderId => "teste564"
   end
 
   it "deve devolver o resultado em um mapa" do
