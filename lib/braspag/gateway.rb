@@ -2,17 +2,18 @@ module Braspag
   class Gateway < Handsoap::Service
     include Braspag::Service
 
-    def authorize!(map)
-      document = invoke_and_parse('Authorize', "#{base_action_url}/Authorize") do |message|
-        map.each do |key, value|
-          message.add("tns:#{key}", "#{value}")
+    %w(authorize capture).each do |method|
+      eval <<-METHOD
+        def #{method}!(map)
+          invoke! "#{method.capitalize}", map
         end
-      end
-      convert_to_map document
+      METHOD
     end
 
-    def capture!(map)
-      document = invoke_and_parse('Capture', "#{base_action_url}/Capture") do |message|
+    protected
+
+    def invoke!(method, map)
+      document = invoke_and_parse(method, "#{base_action_url}/#{method}") do |message|
         map.each do |key, value|
           message.add("tns:#{key}", "#{value}")
         end
