@@ -17,6 +17,7 @@ module Braspag
           message.add("tns:#{key}", "#{value}")
         end
       end
+      convert_to_map document
     end
 
     def base_action_url
