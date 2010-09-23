@@ -1,3 +1,6 @@
+require 'rubygems'
+require 'bundler/setup'
+
 require 'handsoap'
 require 'braspag/service'
 require 'braspag/cryptography'
