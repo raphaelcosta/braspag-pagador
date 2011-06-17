@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.authors = ["Concrete/Gonow"]
   s.date = %q{2011-06-17}
   s.email = %q{lucabastos@gmail.com;renato.elias@gmail.com}
-  s.files = ["lib/braspag/recorrente.rb", "lib/braspag/service.rb", "lib/braspag/gateway.rb", "lib/braspag/connection.rb", "lib/braspag/cryptography.rb", "lib/braspag.rb", "Rakefile", "Gemfile", "README.textile", "Gemfile.lock"]
+  s.files = ["lib/braspag/service.rb", "lib/braspag/credit_card.rb", "lib/braspag/connection.rb", "lib/braspag.rb", "Rakefile", "Gemfile", "README.textile", "Gemfile.lock"]
   s.homepage = %q{http://www.concretesolutions.com.br}
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.6.2}

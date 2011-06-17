@@ -5,7 +5,7 @@ require 'bundler/setup'
 require 'braspag/service'
 
 require 'braspag/connection'
-require 'braspag/gateway'
+require 'braspag/credit_card'
 
 
 module Braspag

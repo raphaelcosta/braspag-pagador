@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rubygems/specification'
 require 'rake'
 require 'rake/gempackagetask'
-require 'spec/rake/spectask'
+require 'rspec/core/rake_task'
 
 GEM = "braspag"
 GEM_VERSION = "0.0.1"
@@ -29,14 +29,9 @@ spec = Gem::Specification.new do |s|
   s.homepage = HOMEPAGE
 end
 
-Spec::Rake::SpecTask.new do |t|
-  t.spec_files = FileList['spec/**/*_spec.rb']
-  t.spec_opts = %w(-fs -fh:doc/specs.html --color)
-end
 
-Rake::GemPackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
-end
+RSpec::Core::RakeTask.new(:spec)
+
 
 desc "Install the gem locally"
 task :install => [:package] do
