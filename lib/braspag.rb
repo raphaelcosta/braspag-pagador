@@ -1,12 +1,12 @@
 require 'rubygems'
 require 'bundler/setup'
 
-require 'handsoap'
+
 require 'braspag/service'
-require 'braspag/cryptography'
+
 require 'braspag/connection'
 require 'braspag/gateway'
-require 'braspag/recorrente'
+
 
 module Braspag
   class Production

@@ -1,14 +1,23 @@
+GIT
+  remote: https://github.com/tinogomes/httpi.git
+  revision: ef0044156ba5e3a3ae1d3bb8765531038f4c913c
+  specs:
+    httpi (0.9.4)
+      pyu-ntlm-http (>= 0.1.3.1)
+      rack
+
 GEM
   remote: http://rubygems.org/
   specs:
-    handsoap (1.1.7)
     nokogiri (1.4.3.1)
+    pyu-ntlm-http (0.1.3.1)
+    rack (1.3.0)
     rspec (1.3.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  handsoap
+  httpi!
   nokogiri
   rspec

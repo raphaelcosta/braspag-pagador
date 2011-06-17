@@ -5,11 +5,11 @@ require 'rake/gempackagetask'
 require 'spec/rake/spectask'
 
 GEM = "braspag"
-GEM_VERSION = "0.4.0"
+GEM_VERSION = "0.0.1"
 SUMMARY = "Access the Braspag webservices using Ruby"
-AUTHOR = "Gonow"
-EMAIL = "labs@gonow.com.br"
-HOMEPAGE = "http://www.gonow.com.br"
+AUTHOR = "Concrete/Gonow"
+EMAIL = "lucabastos@gmail.com;renato.elias@gmail.com"
+HOMEPAGE = "http://www.concretesolutions.com.br"
 
 spec = Gem::Specification.new do |s|
   s.name = GEM
@@ -19,7 +19,7 @@ spec = Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.files = FileList['lib/**/*.rb', '[A-Z]*'].to_a
 
-  s.add_dependency 'handsoap', '=1.1.7'
+  s.add_dependency 'httpi',  '>=0.9.4'
 
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'nokogiri'

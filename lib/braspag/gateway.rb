@@ -1,5 +1,5 @@
 module Braspag
-  class Gateway < Handsoap::Service
+  class Gateway
     include Braspag::Service
 
     %w(authorize capture).each do |method|
