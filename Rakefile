@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'rubygems/specification'
 require 'rake'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 require 'rspec/core/rake_task'
 
 GEM = "braspag"
