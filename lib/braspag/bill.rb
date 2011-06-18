@@ -4,36 +4,65 @@ module Braspag
     class InvalidOrderId < Exception ; end
     class InvalidAmount < Exception ; end
     class InvalidPaymentMethod < Exception ; end
+    class InvalidCustomerName < Exception ; end
 
     def initialize(connection, hash = {})
       @connection = connection
-      @orderId = hash[:orderId]
-      @amount = hash[:amount]
-      @paymentMethod = hash[:paymentMethod]
-
       raise InvalidConnection unless connection.instance_of?(Braspag::Connection)
-      raise InvalidOrderId unless (@orderId.instance_of?(String) || @orderId.instance_of?(Fixnum))
-      raise InvalidAmount unless (@amount.instance_of?(String) || @amount.instance_of?(Fixnum))
-      raise InvalidPaymentMethod unless (@paymentMethod.instance_of?(String) || @paymentMethod.instance_of?(Fixnum))
+
+      @params = hash
+      @params[:merchantId] = @connection.merchant_id
+
+      raise InvalidOrderId unless (@params[:orderId].instance_of?(String) || @params[:orderId].instance_of?(Fixnum))
+      raise InvalidAmount unless (@params[:amount].instance_of?(String) || @params[:amount].instance_of?(Fixnum))
+      raise InvalidPaymentMethod unless (@params[:paymentMethod].instance_of?(String) || @params[:paymentMethod].instance_of?(Fixnum))
+
+
 
     end
 
     def generate
-      {
-
-        :url => "url_do_boleto",
-        :status => "0",
-        :returnCode => "0",
-        :amount => "3",
-        :number => "125",
-        :expirationDate => "2001"
-
+      request = HTTPI::Request.new uri
+      request.body = {
+        :merchantId => @params[:merchantId],
+        :orderId => @params[:orderId],
+        :amount => @params[:amount],
+        :paymentMethod => @params[:paymentMethod],
+        :customerName => @params[:customerName],
+        :customerIdNumber => @params[:customerIdNumber],
+        :boletoNumber => @params[:boletoNumber],
+        :instructions => @params[:instructions],
+        :expirationDate => @params[:expirationDate],
+        :emails => @params[:emails]
       }
+      convert_to_map (HTTPI.post request).body
     end
 
     protected
     def uri
       "#{@connection.base_url}/webservices/pagador/Boleto.asmx/CreateBoleto"
     end
+
+    def convert_to_map(document)
+      document = Nokogiri::XML(document)
+
+      map = {
+        :url => nil,
+        :amount => nil,
+        :number => "boletoNumber",
+        :expirationDate => nil,
+        :returnCode => nil,
+        :status => nil
+      }
+
+
+      map.each do |key , value|
+        map[key] = document.search(key.to_s).first.content.to_s if value.nil?
+        map[key] = document.search(value).first.content.to_s if value.instance_of?(String)
+      end
+
+      map
+    end
+
   end
 end

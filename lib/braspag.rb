@@ -1,7 +1,8 @@
 require 'rubygems'
 require 'bundler/setup'
 
-
+require 'nokogiri'
+require 'httpi'
 require 'braspag/connection'
 require 'braspag/bill'
 require 'braspag/credit_card'
