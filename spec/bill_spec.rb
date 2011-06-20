@@ -38,10 +38,9 @@ describe Braspag::Bill do
           })
       }.to raise_error(Braspag::Bill::InvalidPaymentMethod)
     end
-
   end
 
-  context "com dados corretos ao gerar um boleto" do
+  context "ao gerar um boleto com dados corretos" do
     before do
       FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<PagadorBoletoReturn xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"https://www.pagador.com.br/webservice/pagador\">\r\n  <amount>3</amount>\r\n  <boletoNumber>70031</boletoNumber>\r\n  <expirationDate>2011-06-27T00:00:00-03:00</expirationDate>\r\n  <url>https://homologacao.pagador.com.br/pagador/reenvia.asp?Id_Transacao=34ae7d96-aa65-425a-b893-55791cb6a4df</url>\r\n  <returnCode>0</returnCode>\r\n  <status>0</status>\r\n</PagadorBoletoReturn>")
       @bill =  Braspag::Bill.new(@connection , {
@@ -81,17 +80,23 @@ describe Braspag::Bill do
     it "deverá retornar data de expiração do boleto" do
       @response[:expirationDate].should == "2011-06-27T00:00:00-03:00"
     end
-
   end
 
+  context "ao gerar um boleto com dados incorretos" do
+    it "para merchant_id" do
+      
+    end
 
-  context "com dados incorretos ao gerar um boleto" do
-    pending "para merchant_id"
-    pending "para order_id"
-    pending "para paymentMethod"
-    pending "para amount"
+    it "para order_id" do
+
+    end
+
+    it "para paymentMethod" do
+
+    end
+    
+    it "para amount" do
+
+    end
   end
-
-
-
 end

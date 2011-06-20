@@ -17,8 +17,6 @@ module Braspag
       raise InvalidAmount unless (@params[:amount].instance_of?(String) || @params[:amount].instance_of?(Fixnum))
       raise InvalidPaymentMethod unless (@params[:paymentMethod].instance_of?(String) || @params[:paymentMethod].instance_of?(Fixnum))
 
-
-
     end
 
     def generate
