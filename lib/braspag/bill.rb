@@ -1,10 +1,10 @@
 module Braspag
   class Bill
-    class InvalidConnection < Exception ; end
     class InvalidOrderId < Exception ; end
     class InvalidAmount < Exception ; end
     class InvalidPaymentMethod < Exception ; end
-    class InvalidCustomerName < Exception ; end
+    class InvalidStringFormat < Exception ; end
+    class InvalidPost < Exception ; end
 
     def initialize(connection, hash = {})
       @connection = connection
@@ -33,7 +33,17 @@ module Braspag
         :expirationDate => @params[:expirationDate],
         :emails => @params[:emails]
       }
-      convert_to_map (HTTPI.post request).body
+
+      response = HTTPI.post request
+      response = convert_to_map response.body
+      
+      raise InvalidAmount if response[:message] == "Invalid purchase amount"
+      raise InvalidMerchantId if response[:message] == "Invalid merchantId"
+      raise InvalidPaymentMethod if response[:message] == "Invalid payment method"
+      raise InvalidStringFormat if response[:message] == "Input string was not in a correct format."
+      raise InvalidPost if response[:status].nil?
+
+      response
     end
 
     protected
@@ -50,13 +60,20 @@ module Braspag
         :number => "boletoNumber",
         :expirationDate => nil,
         :returnCode => nil,
-        :status => nil
+        :status => nil,
+        :message => nil
       }
 
 
-      map.each do |key , value|
-        map[key] = document.search(key.to_s).first.content.to_s if value.nil?
-        map[key] = document.search(value).first.content.to_s if value.instance_of?(String)
+      map.each do |keyForMap , keyValue|
+        keyValue = keyForMap if keyValue.nil?
+
+        value = document.search(keyValue).first
+        if !value.nil?
+          value = value.content.to_s
+          map[keyForMap] = value unless value == ""
+        end
+        map[keyForMap]
       end
 
       map

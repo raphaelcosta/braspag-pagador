@@ -1,5 +1,5 @@
 GIT
-  remote: https://github.com/tinogomes/httpi.git
+  remote: https://github.com/concretesolutions/httpi.git
   revision: ef0044156ba5e3a3ae1d3bb8765531038f4c913c
   specs:
     httpi (0.9.4)

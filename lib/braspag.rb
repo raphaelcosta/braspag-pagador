@@ -9,6 +9,10 @@ require 'braspag/credit_card'
 
 
 module Braspag
+
+  class InvalidConnection < Exception ; end
+  class InvalidMerchantId < Exception ; end
+
   class Production
     BASE_URL = 'https://www.pagador.com.br'
   end
