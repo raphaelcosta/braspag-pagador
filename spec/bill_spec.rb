@@ -23,11 +23,77 @@ describe Braspag::Bill do
       }.to raise_error(Braspag::InvalidConnection)
     end
 
+    [{
+      :field => :orderId,
+      :min => 1,
+      :max => 50,
+      :exception => Braspag::Bill::InvalidOrderId
+    }, {
+      :field => :customerName,
+      :min => 1,
+      :max => 255,
+      :exception => Braspag::Bill::InvalidCustomerName
+    }, {
+      :field => :customerIdNumber,
+      :min => 11,
+      :max => 18,
+      :exception => Braspag::Bill::InvalidCustomerId
+    }, {
+      :field => :boletoNumber,
+      :min => 1,
+      :max => 255,
+      :exception => Braspag::Bill::InvalidBillNumber
+    }, {
+      :field => :instructions,
+      :min => 1,
+      :max => 512,
+      :exception => Braspag::Bill::InvalidInstruction
+    }, {
+      :field => :expirationDate,
+      :min => 8,
+      :max => 8,
+      :exception => Braspag::Bill::InvalidExpirationDate
+    }]
 
     it "para orderId" do
       expect {
         Braspag::Bill.new(@connection)
       }.to raise_error(Braspag::Bill::InvalidOrderId)
+
+      expect {
+        Braspag::Bill.new(@connection, {
+          :orderId => ""
+        })
+      }.to raise_error(Braspag::Bill::InvalidOrderId)
+
+      expect {
+        Braspag::Bill.new(@connection, {
+          :orderId => (1..51).collect{"1"}.join
+        })
+      }.to raise_error(Braspag::Bill::InvalidOrderId)
+
+      expect {
+        Braspag::Bill.new(@connection, {
+          :orderId => (1..50).collect{"1"}.join
+        })
+      }.to_not raise_error
+    end
+
+    it "para customerName" do
+      expect {
+        Braspag::Bill.new(@connection, {
+          :orderId => 1,
+          :customerName => ""
+        })
+      }.to raise_error(Braspag::Bill::InvalidCustomerName)
+
+      expect {
+        Braspag::Bill.new(@connection, {
+          :orderId => 1,
+          :customerName => (1..256).collect{"A"}.join
+        })
+      }.to raise_error(Braspag::Bill::InvalidCustomerName)
+
     end
 
     it "para amount" do
