@@ -96,7 +96,7 @@ describe Braspag::Bill do
 
     it "para merchant_id deverá gerar uma exeção" do
       FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<PagadorBoletoReturn xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"https://www.pagador.com.br/webservice/pagador\">\r\n  <amount xsi:nil=\"true\" />\r\n  <expirationDate xsi:nil=\"true\" />\r\n  <returnCode>1</returnCode>\r\n  <message>Invalid merchantId</message>\r\n  <status xsi:nil=\"true\" />\r\n</PagadorBoletoReturn>")
-      connection = Braspag::Connection.new("X-YX:7", :test)
+      connection = Braspag::Connection.new("{12345678-1234-1234-1234-123456789000}", :test)
       expect {
         bill =  Braspag::Bill.new(connection , {
             :orderId => 1,
