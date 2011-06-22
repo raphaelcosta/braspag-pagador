@@ -6,6 +6,27 @@ describe Braspag::Connection do
     @clazz = Braspag::Connection
   end
 
+  it "deve gerar uma exceção quando :merchantId for maior que 38 caracteres" do
+    merchant_id = (1..100).collect{"A"}.join
+    lambda { @clazz.new(merchant_id) }.should raise_error
+  end
+
+  it "deve gerar uma exceção quando :merchantId for menor que 38 caracteres" do
+    merchant_id = (1..37).collect{"B"}.join
+    lambda { @clazz.new(merchant_id) }.should raise_error
+  end
+
+  it "deve gerar uma exceção quando :merchantId não seguir o formato '00000000-0000-0000-0000-000000000000}'" do
+    merchant_id = "0000000-0000-0000-0000-000000000000"
+    lambda { @clazz.new(merchant_id) }.should raise_error
+
+    merchant_id = "{000000000000000000000000000000000000}"
+    lambda { @clazz.new(merchant_id) }.should raise_error
+
+    valid_merchant_id = "{12345678-1234-1234-1234-123456789000}"
+    lambda { @clazz.new(valid_merchant_id) }.should_not raise_error
+  end
+
   it "deve inicializar dado um ambiente e o id da loja" do
     lambda { @clazz.new("gfwehj53h2njk", :test) }.should_not raise_error
   end
@@ -34,4 +55,5 @@ describe Braspag::Connection do
     merchant_id = "fwefwefjkwe"
     @clazz.new(merchant_id).merchant_id.should eql(merchant_id)
   end
+
 end
