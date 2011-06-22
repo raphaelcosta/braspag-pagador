@@ -9,17 +9,17 @@ describe Braspag::Connection do
 
   it "deve gerar uma exceção quando :merchantId for maior que 38 caracteres" do
     merchant_id = (1..100).collect{"A"}.join
-    lambda { @clazz.new(merchant_id) }.should raise_error
+    lambda { @clazz.new(merchant_id) }.should raise_error(Braspag::Connection::InvalidMerchantId)
   end
 
   it "deve gerar uma exceção quando :merchantId for menor que 38 caracteres" do
     merchant_id = (1..37).collect{"B"}.join
-    lambda { @clazz.new(merchant_id) }.should raise_error
+    lambda { @clazz.new(merchant_id) }.should raise_error(Braspag::Connection::InvalidMerchantId)
   end
 
   it "deve gerar uma exceção quando :merchantId não seguir o formato {00000000-0000-0000-0000-000000000000}" do
-    lambda { @clazz.new("0000000-0000-0000-0000-000000000000") }.should raise_error
-    lambda { @clazz.new("{000000000000000000000000000000000000}") }.should raise_error
+    lambda { @clazz.new("0000000-0000-0000-0000-000000000000") }.should raise_error(Braspag::Connection::InvalidMerchantId)
+    lambda { @clazz.new("{000000000000000000000000000000000000}") }.should raise_error(Braspag::Connection::InvalidMerchantId)
 
     lambda { @clazz.new(@valid_merchant_id) }.should_not raise_error
   end
