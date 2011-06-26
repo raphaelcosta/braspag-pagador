@@ -182,7 +182,7 @@ describe Braspag::Bill do
 
   describe ".generate" do
 
-    context "when generate an invoice with correct data" do
+    context "with correct data" do
 
       before do
         xml = <<-EOXML
@@ -194,13 +194,12 @@ describe Braspag::Bill do
           <boletoNumber>70031</boletoNumber>
           <expirationDate>2011-06-27T00:00:00-03:00</expirationDate>
           <url>https://homologacao.pagador.com.br/pagador/reenvia.asp?Id_Transacao=34ae7d96-aa65-425a-b893-55791cb6a4df</url>
-          <returnCode>0</returnCode>
+          <returnCode>0</returnCode>)
           <status>0</status>
         </PagadorBoletoReturn>
         EOXML
 
-        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto",
-          :body => xml)
+        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
 
         @bill =  Braspag::Bill.new(@connection , {
           :orderId => 1,
@@ -240,81 +239,153 @@ describe Braspag::Bill do
 
     end
 
-  end
+    context "with incorrect data" do
 
-  context "ao gerar um boleto com dados incorretos" do
+      it "should raise an error for invalid :merchantId" do
+        xml = <<-EOXML
+        <?xml version="1.0" encoding="utf-8"?>
+        <PagadorBoletoReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                             xmlns="https://www.pagador.com.br/webservice/pagador">
+          <amount xsi:nil="true" />
+          <expirationDate xsi:nil="true" />
+          <returnCode>1</returnCode>
+          <message>Invalid merchantId</message>
+          <status xsi:nil="true" />
+        </PagadorBoletoReturn>
+        EOXML
 
-    it "para merchant_id deverá gerar uma exeção" do
-      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<PagadorBoletoReturn xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"https://www.pagador.com.br/webservice/pagador\">\r\n  <amount xsi:nil=\"true\" />\r\n  <expirationDate xsi:nil=\"true\" />\r\n  <returnCode>1</returnCode>\r\n  <message>Invalid merchantId</message>\r\n  <status xsi:nil=\"true\" />\r\n</PagadorBoletoReturn>")
-      connection = Braspag::Connection.new("{12345678-1234-1234-1234-123456789000}", :test)
-      expect {
-        bill =  Braspag::Bill.new(connection , {
+        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
+
+        connection = Braspag::Connection.new("{12345678-1234-1234-1234-123456789000}", :test)
+
+        expect {
+          bill = Braspag::Bill.new(connection, {
             :orderId => 1,
             :amount => 3,
             :paymentMethod => 10
           })
-        bill.generate
-      }.to raise_error(Braspag::InvalidMerchantId)
-      FakeWeb.clean_registry
-    end
+          bill.generate
+        }.to raise_error(Braspag::InvalidMerchantId)
 
+        FakeWeb.clean_registry
+      end
 
-    it "para :boletoNumber deverá gerar uma exeção" do
-      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => "<?xml version=\"1.0\" encoding=\"utf-8\"?><PagadorBoletoReturn xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"https://www.pagador.com.br/webservice/pagador\"><amount xsi:nil=\"true\" /><expirationDate xsi:nil=\"true\" /><returnCode>1</returnCode><message>Input string was not in a correct format.</message><status xsi:nil=\"true\" /></PagadorBoletoReturn>")
-      expect {
-        bill =  Braspag::Bill.new(@connection , {
+      it "should raise an error for invalid :boletoNumber" do
+        xml = <<-EOXML
+        <?xml version="1.0" encoding="utf-8"?>
+        <PagadorBoletoReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                             xmlns="https://www.pagador.com.br/webservice/pagador">
+          <amount xsi:nil="true" />
+          <expirationDate xsi:nil="true" />
+          <returnCode>1</returnCode>
+          <message>Input string was not in a correct format.</message>
+          <status xsi:nil="true" />
+        </PagadorBoletoReturn>
+        EOXML
+
+        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
+
+        expect {
+          bill = Braspag::Bill.new(@connection, {
             :boletoNumber => "A" * 50,
             :orderId => "x",
             :amount => 3,
             :paymentMethod => 10
           })
-        bill.generate
-      }.to raise_error(Braspag::Bill::InvalidStringFormat)
-      FakeWeb.clean_registry
-    end
+          bill.generate
+        }.to raise_error(Braspag::Bill::InvalidStringFormat)
 
-    it "para paymentMethod deverá gerar uma exeção" do
-      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => "<?xml version=\"1.0\" encoding=\"utf-8\"?><PagadorBoletoReturn xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"https://www.pagador.com.br/webservice/pagador\"><amount xsi:nil=\"true\" /><expirationDate xsi:nil=\"true\" /><returnCode>3</returnCode><message>Invalid payment method</message><status xsi:nil=\"true\" /></PagadorBoletoReturn>")
+        FakeWeb.clean_registry
+      end
 
-      expect {
-        bill =  Braspag::Bill.new(@connection , {
+      it "should raise an error for invalid :paymentMethod" do
+        xml = <<-EOXML
+        <?xml version="1.0" encoding="utf-8"?>
+        <PagadorBoletoReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                             xmlns="https://www.pagador.com.br/webservice/pagador">
+          <amount xsi:nil="true" />
+          <expirationDate xsi:nil="true" />
+          <returnCode>3</returnCode>
+          <message>Invalid payment method</message>
+          <status xsi:nil="true" />
+        </PagadorBoletoReturn>
+        EOXML
+
+        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
+
+        expect {
+          bill = Braspag::Bill.new(@connection, {
             :orderId => 1,
             :amount => "0000",
             :paymentMethod => 10
           })
-        bill.generate
-      }.to raise_error(Braspag::Bill::InvalidPaymentMethod)
-      FakeWeb.clean_registry
+          bill.generate
+        }.to raise_error(Braspag::Bill::InvalidPaymentMethod)
 
-    end
-    
-    it "para amount deverá gerar uma exeção" do
-      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => "<?xml version=\"1.0\" encoding=\"utf-8\"?><PagadorBoletoReturn xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"https://www.pagador.com.br/webservice/pagador\"><amount xsi:nil=\"true\" /><expirationDate xsi:nil=\"true\" /><returnCode>1</returnCode><message>Invalid purchase amount</message><status xsi:nil=\"true\" /></PagadorBoletoReturn>")
-      expect {
-        bill =  Braspag::Bill.new(@connection , {
+        FakeWeb.clean_registry
+      end
+
+      it "should raise an error for invalid :amount" do
+        xml = <<-EOXML
+        <?xml version="1.0" encoding="utf-8"?>
+        <PagadorBoletoReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                             xmlns="https://www.pagador.com.br/webservice/pagador">
+          <amount xsi:nil="true" />
+          <expirationDate xsi:nil="true" />
+          <returnCode>1</returnCode>
+          <message>Invalid purchase amount</message>
+          <status xsi:nil="true" />
+        </PagadorBoletoReturn>
+        EOXML
+
+        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
+
+        expect {
+          bill = Braspag::Bill.new(@connection, {
             :orderId => 1,
-            :amount => 3,
-            :paymentMethod => "-99"
+            :amount => -33,
+            :paymentMethod => 10
           })
-        bill.generate
-      }.to raise_error(Braspag::Bill::InvalidAmount)
-      FakeWeb.clean_registry
+          bill.generate
+        }.to raise_error(Braspag::Bill::InvalidAmount)
 
-    end
+        FakeWeb.clean_registry
+      end
 
+      it "should raise an error for unknown problems" do
+        xml = <<-EOXML
+        <?xml version="1.0" encoding="utf-8"?>
+        <PagadorBoletoReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                             xmlns="https://www.pagador.com.br/webservice/pagador">
+          <amount xsi:nil="true" />
+          <expirationDate xsi:nil="true" />
+          <returnCode>1</returnCode>
+          <message>Invalid server</message>
+          <status xsi:nil="true" />
+        </PagadorBoletoReturn>
+        EOXML
 
-    it "para qualquer erro desconhecido deverá gerar uma exeção" do
-      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => "<?xml version=\"1.0\" encoding=\"utf-8\"?><PagadorBoletoReturn xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"https://www.pagador.com.br/webservice/pagador\"><amount xsi:nil=\"true\" /><expirationDate xsi:nil=\"true\" /><returnCode>1</returnCode><message>Invalid server</message><status xsi:nil=\"true\" /></PagadorBoletoReturn>")
-      expect {
-        bill =  Braspag::Bill.new(@connection , {
+        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
+
+        expect {
+          bill = Braspag::Bill.new(@connection, {
             :orderId => 1,
             :amount => 3,
             :paymentMethod => "10"
           })
-        bill.generate
-      }.to raise_error(Braspag::Bill::InvalidPost)
-      FakeWeb.clean_registry
+          bill.generate
+        }.to raise_error(Braspag::Bill::UnknownError)
+
+        FakeWeb.clean_registry
+      end
+
     end
 
   end
+
 end

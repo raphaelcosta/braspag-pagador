@@ -13,6 +13,7 @@ module Braspag
     class InvalidPost < Exception ; end
     class InvalidPaymentMethod < Exception ; end
     class InvalidAmount < Exception ; end
+    class UnknownError < Exception ; end
 
     def initialize(connection, params)
 
@@ -66,12 +67,12 @@ module Braspag
 
       response = HTTPI.post request
       response = convert_to_map response.body
-      
+
       raise InvalidAmount if response[:message] == "Invalid purchase amount"
       raise InvalidMerchantId if response[:message] == "Invalid merchantId"
       raise InvalidPaymentMethod if response[:message] == "Invalid payment method"
       raise InvalidStringFormat if response[:message] == "Input string was not in a correct format."
-      raise InvalidPost if response[:status].nil?
+      raise UnknownError if response[:status].nil?
 
       response
     end
