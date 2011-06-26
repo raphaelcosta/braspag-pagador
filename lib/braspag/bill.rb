@@ -1,22 +1,52 @@
 module Braspag
   class Bill
+
+    class InvalidConnection < Exception ; end
+    class IncompleteParams < Exception ; end
     class InvalidOrderId < Exception ; end
-    class InvalidAmount < Exception ; end
-    class InvalidPaymentMethod < Exception ; end
+    class InvalidCustomerName < Exception ; end
+    class InvalidCustomerId < Exception ; end
+    class InvalidBoletoNumber < Exception ; end
+    class InvalidInstructions < Exception ; end
+    class InvalidExpirationDate < Exception ; end
     class InvalidStringFormat < Exception ; end
     class InvalidPost < Exception ; end
+    class InvalidPaymentMethod < Exception ; end
+    class InvalidAmount < Exception ; end
 
-    def initialize(connection, hash = {})
+    def initialize(connection, params)
+
+      raise InvalidConnection unless connection.is_a?(Braspag::Connection)
+
+      params[:merchantId] = connection.merchant_id
+
+      raise IncompleteParams if params[:orderId].nil? || params[:amount].nil? || params[:paymentMethod].nil?
+
+      raise InvalidOrderId unless params[:orderId].is_a?(String) || params[:orderId].is_a?(Fixnum)
+      raise InvalidOrderId unless (1..50).include?(params[:orderId].to_s.size)
+
+      unless params[:customerName].nil?
+        raise InvalidCustomerName unless (1..255).include?(params[:customerName].to_s.size)
+      end
+
+      unless params[:customerIdNumber].nil?
+        raise InvalidCustomerId unless (11..18).include?(params[:customerIdNumber].to_s.size)
+      end
+
+      unless params[:boletoNumber].nil?
+        raise InvalidBoletoNumber unless (1..255).include?(params[:boletoNumber].to_s.size)
+      end
+
+      unless params[:instructions].nil?
+        raise InvalidInstructions unless (1..512).include?(params[:instructions].to_s.size)
+      end
+
+      unless params[:expirationDate].nil?
+        raise InvalidExpirationDate unless params[:expirationDate].to_s.size == 8
+      end
+
       @connection = connection
-      raise InvalidConnection unless connection.instance_of?(Braspag::Connection)
-
-      @params = hash
-      @params[:merchantId] = @connection.merchant_id
-
-      raise InvalidOrderId unless (@params[:orderId].instance_of?(String) || @params[:orderId].instance_of?(Fixnum))
-      raise InvalidAmount unless (@params[:amount].instance_of?(String) || @params[:amount].instance_of?(Fixnum))
-      raise InvalidPaymentMethod unless (@params[:paymentMethod].instance_of?(String) || @params[:paymentMethod].instance_of?(Fixnum))
-
+      @params = params
     end
 
     def generate
@@ -80,4 +110,6 @@ module Braspag
     end
 
   end
+
 end
+
