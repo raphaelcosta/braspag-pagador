@@ -3,9 +3,6 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe Braspag::Bill do
 
-  #TODO Checkar Tamanhos segundo tabela do braspag
-  #TODO Melhorar conexao
-  #TODO Refatorar nomes dos testes para ingles
   #TODO Sugar Syntax p/ aceitar objetos data no expirtaionDate
   #TODO Parser objeto de retorno no expirtionDate deve retornar um objeto DateTime
   #TODO Transformar numeros magicos em symbols, por exemplo metodo de pagamento pode ser :real ao inves de 10
