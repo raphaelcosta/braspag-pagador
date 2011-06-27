@@ -23,11 +23,11 @@ describe Braspag::Bill do
       }.to raise_error(Braspag::Bill::InvalidConnection)
     end
 
-    it "should raise an error when :orderId is not present" do
+    it "should raise an error when :order_id is not present" do
       expect {
         Braspag::Bill.new(@connection, {
           :amount => "100,00",
-          :paymentMethod => "06"
+          :payment_method => "06"
         })
       }.to raise_error(Braspag::Bill::IncompleteParams)
     end
@@ -35,113 +35,113 @@ describe Braspag::Bill do
     it "should raise an error when :amount is not present" do
        expect {
          Braspag::Bill.new(@connection, {
-           :orderId => "12",
-           :paymentMethod => "06"
+           :order_id => "12",
+           :payment_method => "06"
          })
        }.to raise_error(Braspag::Bill::IncompleteParams)
     end
 
-    it "should raise an error when :paymentMethod is not present" do
+    it "should raise an error when :payment_method is not present" do
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "13",
+          :order_id => "13",
           :amount => "120,00"
         })
       }.to raise_error(Braspag::Bill::IncompleteParams)
     end
 
-    it "should raise an error when :orderId is less than 1 character" do
+    it "should raise an error when :order_id is less than 1 character" do
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "",
+          :order_id => "",
           :amount => "123,00",
-          :paymentMethod => "06"
+          :payment_method => "06"
         })
       }.to raise_error(Braspag::Bill::InvalidOrderId)
     end
 
-    it "should raise an error when :orderId is more than 50 characters" do
+    it "should raise an error when :order_id is more than 50 characters" do
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "1" * 51,
+          :order_id => "1" * 51,
           :amount => "12,00",
-          :paymentMethod => "06"
+          :payment_method => "06"
         })
       }.to raise_error(Braspag::Bill::InvalidOrderId)
     end
 
-    it "should raise an error when :customerName is less than 1 character" do
+    it "should raise an error when :customer_name is less than 1 character" do
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "102",
+          :order_id => "102",
           :amount => "42,00",
-          :paymentMethod => "06",
-          :customerName => ""
+          :payment_method => "06",
+          :customer_name => ""
         })
       }.to raise_error(Braspag::Bill::InvalidCustomerName)
     end
 
-    it "should raise an error when :customerName is more than 255 characters" do
+    it "should raise an error when :customer_name is more than 255 characters" do
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "112",
+          :order_id => "112",
           :amount => "121,00",
-          :paymentMethod => "06",
-          :customerName => "A" * 256
+          :payment_method => "06",
+          :customer_name => "A" * 256
         })
       }.to raise_error(Braspag::Bill::InvalidCustomerName)
     end
 
-    it "should raise an error when :customerIdNumber is less than 11 characters" do
+    it "should raise an error when :customer_id is less than 11 characters" do
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "23",
+          :order_id => "23",
           :amount => "251,00",
-          :paymentMethod => "06",
-          :customerIdNumber => "2" * 10
+          :payment_method => "06",
+          :customer_id => "2" * 10
         })
       }.to raise_error(Braspag::Bill::InvalidCustomerId)
     end
 
-    it "should raise an error when :customerIdNumber is more than 18 characters" do
+    it "should raise an error when :customer_id is more than 18 characters" do
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "90",
+          :order_id => "90",
           :amount => "90,00",
-          :paymentMethod => "06",
-          :customerIdNumber => "3" * 19
+          :payment_method => "06",
+          :customer_id => "3" * 19
         })
       }.to raise_error(Braspag::Bill::InvalidCustomerId)
     end
 
-    it "should raise an error when :boletoNumber is less than 1 character" do
+    it "should raise an error when :number is less than 1 character" do
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "900",
+          :order_id => "900",
           :amount => "92,00",
-          :paymentMethod => "06",
-          :boletoNumber => ""
+          :payment_method => "06",
+          :number => ""
         })
-      }.to raise_error(Braspag::Bill::InvalidBoletoNumber)
+      }.to raise_error(Braspag::Bill::InvalidNumber)
     end
 
-    it "should raise an error when :boletoNumber is more than 255 characters" do
+    it "should raise an error when :number is more than 255 characters" do
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "91",
+          :order_id => "91",
           :amount => "80,00",
-          :paymentMethod => "06",
-          :boletoNumber => "5" * 256
+          :payment_method => "06",
+          :number => "5" * 256
         })
-      }.to raise_error(Braspag::Bill::InvalidBoletoNumber)
+      }.to raise_error(Braspag::Bill::InvalidNumber)
     end
 
     it "should raise an error when :instructions is less than 1 character" do
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "76",
+          :order_id => "76",
           :amount => "50,00",
-          :paymentMethod => "06",
+          :payment_method => "06",
           :instructions => ""
         })
       }.to raise_error(Braspag::Bill::InvalidInstructions)
@@ -150,30 +150,30 @@ describe Braspag::Bill do
     it "should raise an error when :instructions is more than 512 characters" do
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "65",
+          :order_id => "65",
           :amount => "210,00",
-          :paymentMethod => "06",
+          :payment_method => "06",
           :instructions => "O" * 513
         })
       }.to raise_error(Braspag::Bill::InvalidInstructions)
     end
 
-    it "should raise an error when :expirationDate is more or less than 8 characters" do
+    it "should raise an error when :expiration_date is more or less than 8 characters" do
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "34",
+          :order_id => "34",
           :amount => "245,00",
-          :paymentMethod => "06",
-          :expirationDate => "1" * 7
+          :payment_method => "06",
+          :expiration_date => "1" * 7
         })
       }.to raise_error(Braspag::Bill::InvalidExpirationDate)
 
       expect {
         Braspag::Bill.new(@connection, {
-          :orderId => "67",
+          :order_id => "67",
           :amount => "321,00",
-          :paymentMethod => "06",
-          :expirationDate => "2" * 9
+          :payment_method => "06",
+          :expiration_date => "2" * 9
         })
       }.to raise_error(Braspag::Bill::InvalidExpirationDate)
     end
@@ -202,9 +202,9 @@ describe Braspag::Bill do
         FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
 
         @bill =  Braspag::Bill.new(@connection , {
-          :orderId => 1,
+          :order_id => 1,
           :amount => 3,
-          :paymentMethod => 10
+          :payment_method => 10
         })
         @response = @bill.generate
       end
@@ -221,8 +221,8 @@ describe Braspag::Bill do
         @response[:status].should == "0"
       end
 
-      it "should return 0 (success) as the returnCode" do
-        @response[:returnCode].should == "0"
+      it "should return 0 (success) as the return_code" do
+        @response[:return_code].should == "0"
       end
 
       it "should return 3 as the amount" do
@@ -234,7 +234,7 @@ describe Braspag::Bill do
       end
 
       it "should return the expiration date of the invoice" do
-        @response[:expirationDate].should == "2011-06-27T00:00:00-03:00"
+        @response[:expiration_date].should == "2011-06-27T00:00:00-03:00"
       end
 
     end
@@ -261,9 +261,9 @@ describe Braspag::Bill do
 
         expect {
           bill = Braspag::Bill.new(connection, {
-            :orderId => 1,
+            :order_id => 1,
             :amount => 3,
-            :paymentMethod => 10
+            :payment_method => 10
           })
           bill.generate
         }.to raise_error(Braspag::InvalidMerchantId)
@@ -271,7 +271,7 @@ describe Braspag::Bill do
         FakeWeb.clean_registry
       end
 
-      it "should raise an error for invalid :boletoNumber" do
+      it "should raise an error for invalid :number" do
         xml = <<-EOXML
         <?xml version="1.0" encoding="utf-8"?>
         <PagadorBoletoReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -289,10 +289,10 @@ describe Braspag::Bill do
 
         expect {
           bill = Braspag::Bill.new(@connection, {
-            :boletoNumber => "A" * 50,
-            :orderId => "x",
+            :number => "A" * 50,
+            :order_id => "x",
             :amount => 3,
-            :paymentMethod => 10
+            :payment_method => 10
           })
           bill.generate
         }.to raise_error(Braspag::Bill::InvalidStringFormat)
@@ -300,7 +300,7 @@ describe Braspag::Bill do
         FakeWeb.clean_registry
       end
 
-      it "should raise an error for invalid :paymentMethod" do
+      it "should raise an error for invalid :payment_method" do
         xml = <<-EOXML
         <?xml version="1.0" encoding="utf-8"?>
         <PagadorBoletoReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -318,9 +318,9 @@ describe Braspag::Bill do
 
         expect {
           bill = Braspag::Bill.new(@connection, {
-            :orderId => 1,
+            :order_id => 1,
             :amount => "0000",
-            :paymentMethod => 10
+            :payment_method => 10
           })
           bill.generate
         }.to raise_error(Braspag::Bill::InvalidPaymentMethod)
@@ -346,9 +346,9 @@ describe Braspag::Bill do
 
         expect {
           bill = Braspag::Bill.new(@connection, {
-            :orderId => 1,
+            :order_id => 1,
             :amount => -33,
-            :paymentMethod => 10
+            :payment_method => 10
           })
           bill.generate
         }.to raise_error(Braspag::Bill::InvalidAmount)
@@ -374,9 +374,9 @@ describe Braspag::Bill do
 
         expect {
           bill = Braspag::Bill.new(@connection, {
-            :orderId => 1,
+            :order_id => 1,
             :amount => 3,
-            :paymentMethod => "10"
+            :payment_method => "10"
           })
           bill.generate
         }.to raise_error(Braspag::Bill::UnknownError)

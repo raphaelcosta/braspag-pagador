@@ -9,7 +9,7 @@ module Braspag
     class InvalidOrderId < Exception ; end
     class InvalidCustomerName < Exception ; end
     class InvalidCustomerId < Exception ; end
-    class InvalidBoletoNumber < Exception ; end
+    class InvalidNumber < Exception ; end
     class InvalidInstructions < Exception ; end
     class InvalidExpirationDate < Exception ; end
     class InvalidStringFormat < Exception ; end
