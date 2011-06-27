@@ -3,7 +3,6 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe Braspag::Bill do
 
-  #TODO Sugar Syntax p/ aceitar objetos data no expirtaionDate
   #TODO Parser objeto de retorno no expirtionDate deve retornar um objeto DateTime
   #TODO Transformar numeros magicos em symbols, por exemplo metodo de pagamento pode ser :real ao inves de 10
 
@@ -175,6 +174,15 @@ describe Braspag::Bill do
       }.to raise_error(Braspag::Bill::InvalidExpirationDate)
     end
 
+    it "should accept :expiration_date with Date Object" do
+        Braspag::Bill.new(@connection, {
+          :order_id => "67",
+          :amount => "321,00",
+          :payment_method => "06",
+          :expiration_date => Date.today + 2
+        }).should be_ok
+    end
+
   end
 
   describe ".generate" do
@@ -210,7 +218,7 @@ describe Braspag::Bill do
         FakeWeb.clean_registry
       end
 
-      it "should return a public url for the invoice" do
+      it "should return a public url" do
         @response[:url].should == "https://homologacao.pagador.com.br/pagador/reenvia.asp?Id_Transacao=34ae7d96-aa65-425a-b893-55791cb6a4df"
       end
 
@@ -226,12 +234,13 @@ describe Braspag::Bill do
         @response[:amount].should == "3"
       end
 
-      it "should return the invoice number" do
+      it "should return the bill number" do
         @response[:number].should == "70031"
       end
 
-      it "should return the expiration date of the invoice" do
-        @response[:expiration_date].should == "2011-06-27T00:00:00-03:00"
+      it "should return the expiration date" do
+        @response[:expiration_date].should be_kind_of Date
+        @response[:expiration_date].to_s.should == "2011-06-27"
       end
 
     end
