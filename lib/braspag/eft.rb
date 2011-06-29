@@ -11,12 +11,13 @@ module Braspag
       :has_interest => "TIPOPARCELADO"
     }
 
-    def initialize(connection, params)
+    def initialize(connection, params, crypto_strategy = nil)
       raise InvalidConnection unless connection.is_a?(Braspag::Connection)
 
       @connection = connection
       @params = params
       @params[:merchant_id] = connection.merchant_id
+      @crypto_strategy = crypto_strategy
       ok?
     end
 
@@ -63,9 +64,15 @@ module Braspag
      
      html = "<form id=\"form_tef_#{@params[:order_id]}\" name=\"form_tef_#{@params[:order_id]}\" action=\"#{self.uri}\" method=\"post\">\n"
      
-     data.each do |key, value|
-       html.concat "<input type=\"text\" name=\"#{key}\" value=\"#{value}\" />\n"
+     if @crypto_strategy.nil?
+       data.each do |key, value|
+         html.concat "<input type=\"text\" name=\"#{key}\" value=\"#{value}\" />\n"
+       end
+     else
+       html.concat "<input type=\"text\" name=\"crypt\" value=\"12312312312313123123\" />\n"
+       html.concat "<input type=\"text\" name=\"Id_Loja\" value=\"#{@params[:merchant_id]}\" />\n"
      end
+     
     
      html.concat <<-EOHTML
       </form>

@@ -4,8 +4,8 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 describe Braspag::Eft do
 
   let!(:merchant_id) {"{84BE7E7F-698A-6C74-F820-AE359C2A07C2}"}
-  let!(:crypto_key) {"{84BE7E7F-698A-6C74-F820-AE359C2A07C2}"}
-  let!(:connection) {Braspag::Connection.new(merchant_id, :test, crypto_key)}
+  let!(:connection) {Braspag::Connection.new(merchant_id, :test)}
+  
   
   describe ".new" do
 
@@ -152,8 +152,12 @@ describe Braspag::Eft do
    end
 
   describe ".generate" do
-    context "with correct data" do
-      it {
+    let!(:crypto_key) {"{84BE7E7F-698A-6C74-F820-AE359C2A07C2}"}
+    let!(:braspag_crypto_jar_webservice) {Braspag::Crypto::JarWebservice.new(crypto_key, "http://localhost:9292")}
+    let!(:braspag_crypto_webservice) {Braspag::Crypto::Webservice.new(connection)}
+    
+    
+      it "should return form fields in strategy without crypto" do
         html = <<-EOHTML
 <form id="form_tef_1234123125" name="form_tef_1234123125" action="https://homologacao.pagador.com.br/pagador/passthru.asp" method="post">
 <input type="text" name="VendaId" value="1234123125" />
@@ -171,8 +175,45 @@ describe Braspag::Eft do
           :amount => "12300",
           :payment_method => "11"
         }).generate.should == html
-     }
-    end
+     end
+     
+      it "should return form fields in strategy with braspag.jar crypto service" do
+          html = <<-EOHTML
+<form id="form_tef_1234123125" name="form_tef_1234123125" action="https://homologacao.pagador.com.br/pagador/passthru.asp" method="post">
+<input type="text" name="crypt" value="12312312312313123123" />
+<input type="text" name="Id_Loja" value="{84BE7E7F-698A-6C74-F820-AE359C2A07C2}" />
+      </form>
+       <script type="text/javascript" charset="utf-8">
+         document.forms["form_tef_1234123125"].submit();
+       </script>
+        EOHTML
+
+         Braspag::Eft.new(connection , {
+           :order_id => "1234123125",
+           :amount => "12300",
+           :payment_method => "11"
+         } , braspag_crypto_jar_webservice ).generate.should == html
+      end
+      
+      it "should return form fields in strategy with braspag crypto webservice" do
+         html = <<-EOHTML
+<form id="form_tef_1234123125" name="form_tef_1234123125" action="https://homologacao.pagador.com.br/pagador/passthru.asp" method="post">
+<input type="text" name="crypt" value="12312312312313123123" />
+<input type="text" name="Id_Loja" value="{84BE7E7F-698A-6C74-F820-AE359C2A07C2}" />
+      </form>
+       <script type="text/javascript" charset="utf-8">
+         document.forms["form_tef_1234123125"].submit();
+       </script>
+        EOHTML
+
+         Braspag::Eft.new(connection , {
+           :order_id => "1234123125",
+           :amount => "12300",
+           :payment_method => "11"
+         } , braspag_crypto_webservice ).generate.should == html
+      end
+      
+
    end
 
 end

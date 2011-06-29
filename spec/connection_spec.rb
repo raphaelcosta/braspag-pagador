@@ -4,7 +4,6 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 describe Braspag::Connection do
   let!(:connection) { Braspag::Connection }
   let!(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
-  let!(:crypto_key) { "123457890" }
 
   it "deve gerar uma exceção quando :merchantId for maior que 38 caracteres" do
     merchant_id = (1..100).collect{"A"}.join
@@ -51,8 +50,5 @@ describe Braspag::Connection do
     connection.new(merchant_id).merchant_id.should eql(merchant_id)
   end
   
-  it "deve devolver a chave de criptografia utilizado na conexão" do
-     connection.new(merchant_id, nil , crypto_key).crypto_key.should eql(crypto_key)
-   end
 
 end
