@@ -6,6 +6,7 @@ require 'httpi'
 require 'braspag/connection'
 require 'braspag/bill'
 require 'braspag/credit_card'
+require 'braspag/eft'
 require 'braspag/errors'
 
 module Braspag
