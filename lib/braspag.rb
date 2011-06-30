@@ -1,8 +1,11 @@
-require 'rubygems'
-require 'bundler/setup'
+ENV["RACK_ENV"] ||= "development"
 
-require 'nokogiri'
-require 'httpi'
+require 'bundler'
+
+Bundler.setup
+
+Bundler.require(:default, ENV["RACK_ENV"].to_sym)
+
 require 'braspag/connection'
 require 'braspag/crypto/jar_webservice'
 require 'braspag/crypto/webservice'

@@ -18,6 +18,7 @@ GEM
       thor (~> 0.14.6)
     guard-rspec (0.4.0)
       guard (>= 0.4.0)
+    json (1.5.3)
     linecache19 (0.5.12)
       ruby_core_source (>= 0.1.4)
     nokogiri (1.4.5)
@@ -53,6 +54,7 @@ DEPENDENCIES
   growl
   guard-rspec
   httpi!
+  json
   nokogiri
   rb-fsevent
   rspec

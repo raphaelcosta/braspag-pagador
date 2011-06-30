@@ -178,9 +178,16 @@ describe Braspag::Eft do
      end
      
       it "should return form fields in strategy with braspag.jar crypto service" do
-          html = <<-EOHTML
+            FakeWeb.register_uri(:post, 
+            "http://localhost:9292/v1/encrypt.json", 
+            :body => <<-EOJSON
+            {"encrypt":"5u0ZN5qk8eQNuuGPHrcsk0rfi7YclF6s+ZXCE+G4uG4ztfRJrrOALlf81ra7k7p7"}
+            EOJSON
+            )
+
+         html = <<-EOHTML
 <form id="form_tef_1234123125" name="form_tef_1234123125" action="https://homologacao.pagador.com.br/pagador/passthru.asp" method="post">
-<input type="text" name="crypt" value="12312312312313123123" />
+<input type="text" name="crypt" value="5u0ZN5qk8eQNuuGPHrcsk0rfi7YclF6s+ZXCE+G4uG4ztfRJrrOALlf81ra7k7p7" />
 <input type="text" name="Id_Loja" value="{84BE7E7F-698A-6C74-F820-AE359C2A07C2}" />
       </form>
        <script type="text/javascript" charset="utf-8">
@@ -193,12 +200,22 @@ describe Braspag::Eft do
            :amount => "12300",
            :payment_method => "11"
          } , braspag_crypto_jar_webservice ).generate.should == html
+         
+         FakeWeb.clean_registry
+         
       end
-      
+
+      let!(:key) { "12312312312313123123" }
       it "should return form fields in strategy with braspag crypto webservice" do
+        
+          FakeWeb.register_uri(:post, 
+          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx", 
+          :body => "<?xml version='1.0' encoding='utf-8'?><soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'><soap:Body><EncryptRequestResponse xmlns='https://www.pagador.com.br/webservice/BraspagGeneralService'><EncryptRequestResult>#{key}</EncryptRequestResult></EncryptRequestResponse></soap:Body></soap:Envelope>" )
+
+        
          html = <<-EOHTML
 <form id="form_tef_1234123125" name="form_tef_1234123125" action="https://homologacao.pagador.com.br/pagador/passthru.asp" method="post">
-<input type="text" name="crypt" value="12312312312313123123" />
+<input type="text" name="crypt" value="#{key}" />
 <input type="text" name="Id_Loja" value="{84BE7E7F-698A-6C74-F820-AE359C2A07C2}" />
       </form>
        <script type="text/javascript" charset="utf-8">
@@ -211,6 +228,9 @@ describe Braspag::Eft do
            :amount => "12300",
            :payment_method => "11"
          } , braspag_crypto_webservice ).generate.should == html
+         
+         FakeWeb.clean_registry
+         
       end
       
 

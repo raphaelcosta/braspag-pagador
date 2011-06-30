@@ -18,10 +18,6 @@ describe Braspag::Crypto::Webservice do
       after(:each) do
         FakeWeb.clean_registry
       end
-      
-      it "deve realiza-lo a partir de um mapa de chaves e valores" do
-        crypt.encrypt(:nome => "Chapulin", :sobrenome => "Colorado").should == key
-      end
 
       it "deve devolver o resultado como uma string" do
         crypt.encrypt(:key => "value").should == key
@@ -37,10 +33,6 @@ describe Braspag::Crypto::Webservice do
 
       after(:each) do
         FakeWeb.clean_registry
-      end
-
-      it "deve realiza-lo a partir de uma string criptografada" do
-        crypt.decrypt("{sdfsdf}")
       end
 
       it "deve retornar o resultado como um mapa de valores" do

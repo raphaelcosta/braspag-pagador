@@ -18,18 +18,18 @@ module Braspag
 
 
             request.body = <<-STRING
-    <?xml version="1.0" encoding="utf-8"?>
-    <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
-      <env:Header />
-      <env:Body>
-        <tns:EncryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
-          <tns:merchantId>#{@connection.merchant_id}</tns:merchantId>
-          <tns:request>
-            #{fields}
-          </tns:request>
-        </tns:EncryptRequest>
-      </env:Body>
-    </env:Envelope>
+<?xml version="1.0" encoding="utf-8"?>
+<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+  <env:Header />
+  <env:Body>
+    <tns:EncryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
+      <tns:merchantId>#{@connection.merchant_id}</tns:merchantId>
+      <tns:request>
+        #{fields}
+      </tns:request>
+    </tns:EncryptRequest>
+  </env:Body>
+</env:Envelope>
       STRING
 
             request.headers["Content-Type"] = "text/xml"
@@ -50,17 +50,17 @@ module Braspag
                    request = HTTPI::Request.new uri
 
                     request.body = <<-STRING
-          <?xml version="1.0" encoding="utf-8"?>
-          <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
-            <env:Header />
-            <env:Body>
-              <tns:DecryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
-                <tns:merchantId>#{@connection.merchant_id}</tns:merchantId>
-                <tns:cryptString>#{encripted_text}</tns:cryptString>
-              </tns:DecryptRequest>
-            </env:Body>
-          </env:Envelope>
-              STRING
+<?xml version="1.0" encoding="utf-8"?>
+<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+  <env:Header />
+  <env:Body>
+    <tns:DecryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
+      <tns:merchantId>#{@connection.merchant_id}</tns:merchantId>
+      <tns:cryptString>#{encripted_text}</tns:cryptString>
+    </tns:DecryptRequest>
+  </env:Body>
+</env:Envelope>
+    STRING
 
                     request.headers["Content-Type"] = "text/xml"
 
@@ -72,6 +72,7 @@ module Braspag
           raise UnknownError
         end
       end
+      
 
       protected
       def uri
