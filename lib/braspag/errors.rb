@@ -15,5 +15,8 @@ module Braspag
   class InvalidAmount < Exception ; end
   class InvalidInstallments < Exception ; end
   class InvalidHasInterest < Exception ; end
+  class InvalidIP < Exception; end
+  class InvalidCryptKey < Exception; end
+  class InvalidEncryptedKey < Exception; end
   class UnknownError < Exception ; end
 end

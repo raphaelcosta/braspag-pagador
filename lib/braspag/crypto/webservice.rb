@@ -8,16 +8,17 @@ module Braspag
       #TODO: MELHORAR OS TRATAMENTOS DE EXECOES
       
       def encrypt(map)
-        begin
-           request = HTTPI::Request.new uri
+        raise Braspag::IncompleteParams if map.nil?
+        raise Braspag::IncompleteParams unless map.is_a?(Hash)
 
-            fields = "\n"
-            map.each do |key, value|
-              fields.concat("        <tns:string>#{key}=#{value}</tns:string>\n")
-            end
+        request = HTTPI::Request.new uri
 
+        fields = "\n"
+        map.each do |key, value|
+          fields.concat("        <tns:string>#{key}=#{value}</tns:string>\n")
+        end
 
-            request.body = <<-STRING
+        request.body = <<-STRING
 <?xml version="1.0" encoding="utf-8"?>
 <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
   <env:Header />
@@ -30,26 +31,33 @@ module Braspag
     </tns:EncryptRequest>
   </env:Body>
 </env:Envelope>
-      STRING
+STRING
 
-            request.headers["Content-Type"] = "text/xml"
+        request.headers["Content-Type"] = "text/xml"
 
+        response = HTTPI.post request
 
-            response = HTTPI.post request
+        document = Nokogiri::XML(response.body)
 
-            document = Nokogiri::XML(response.body)
-            #melhorar este parser cof cof
-            document.children.children.children.children.children.to_s          
-        rescue Exception => e
-          raise UnknownError
-        end
+        raise Braspag::UnknownError if document.children.empty?
+
+        #melhorar este parser cof cof
+        response = document.children.children.children.children.children.to_s
+
+        raise Braspag::InvalidMerchantId if (response == 'Erro BP 011' || response == 'Erro BP 012')
+        raise Braspag::InvalidIP if (response == 'Erro BP 067' || response == 'Erro BP 068')
+
+        response
       end
 
       def decrypt(encripted_text)
-        begin
-                   request = HTTPI::Request.new uri
 
-                    request.body = <<-STRING
+        raise Braspag::IncompleteParams if encripted_text.nil?
+        raise Braspag::IncompleteParams unless encripted_text.is_a?(String)
+
+        request = HTTPI::Request.new uri
+
+        request.body = <<-STRING
 <?xml version="1.0" encoding="utf-8"?>
 <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
   <env:Header />
@@ -60,17 +68,21 @@ module Braspag
     </tns:DecryptRequest>
   </env:Body>
 </env:Envelope>
-    STRING
+STRING
 
-                    request.headers["Content-Type"] = "text/xml"
+        request.headers["Content-Type"] = "text/xml"
 
-                    response = HTTPI.post request
+        response = HTTPI.post request
 
-                   document = Nokogiri::XML(response.body)
-                  convert_request_to_map document          
-        rescue Exception => e
-          raise UnknownError
-        end
+        document = Nokogiri::XML(response.body)
+        raise Braspag::UnknownError if document.children.empty?
+
+        result_error = document.children.children.children.children.children.first.content.to_s
+
+        raise Braspag::InvalidMerchantId if (result_error == 'Erro BP 011' || result_error == 'Erro BP 012')
+        raise Braspag::InvalidIP if (result_error == 'Erro BP 067' || result_error == 'Erro BP 068')
+
+        convert_request_to_map document          
       end
       
 

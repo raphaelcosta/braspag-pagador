@@ -8,6 +8,8 @@ module Braspag
       end
       
       def encrypt(map)
+        raise Braspag::IncompleteParams if map.nil?
+        raise Braspag::IncompleteParams unless map.is_a?(Hash)
         
         request = HTTPI::Request.new encrypt_uri
         
@@ -18,13 +20,32 @@ module Braspag
         request.body = data.to_json
         
         response = HTTPI.post request
-
-        response = JSON.parse(response.body)
+        
+        begin
+          response = JSON.parse(response.body)
+        rescue Exception => e
+          raise UnknownError
+        end
+        
+        raise IncompleteParams if (
+          response["msg"] == "INVALID FORMAT" || 
+          response["msg"] == "INVALID FIELDS" 
+        )
+        
+        raise InvalidEncryptedKey if response["msg"] == "INVALID ENCRYPTED STRING"
+        raise InvalidCryptKey if response["msg"] == "INVALID KEY"
         
         response["encrypt"]
       end
 
       def decrypt(encrypted, fields)
+        raise Braspag::InvalidEncryptedKey if encrypted.nil?
+        raise Braspag::InvalidEncryptedKey unless encrypted.is_a?(String)
+        
+        raise Braspag::IncompleteParams if fields.nil?
+        raise Braspag::IncompleteParams unless fields.is_a?(Array)
+        
+        
         request = HTTPI::Request.new decrypt_uri
         request.body = {
         	"key" => @crypto_key,
@@ -36,8 +57,21 @@ module Braspag
 
         response = HTTPI.post request
 
-        response = JSON.parse(response.body)
+        begin
+          response = JSON.parse(response.body)
+        rescue Exception => e
+          raise UnknownError
+        end
         
+        raise IncompleteParams if (
+          response["msg"] == "INVALID FORMAT" || 
+          response["msg"] == "INVALID FIELDS" 
+        )
+        
+        raise InvalidEncryptedKey if response["msg"] == "INVALID ENCRYPTED STRING"
+
+        raise InvalidCryptKey if response["msg"] == "INVALID KEY"
+                
         map = {}
         response["fields"].each do |key,value|
           map[key.downcase.to_sym] = value

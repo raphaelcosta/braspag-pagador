@@ -69,8 +69,8 @@ module Braspag
          html.concat "<input type=\"text\" name=\"#{key}\" value=\"#{value}\" />\n"
        end
      else
-       data_to_encrypt = data
-       html.concat "<input type=\"text\" name=\"crypt\" value=\"#{@crypto_strategy.encrypt(data_to_encrypt)}\" />\n"
+       data.delete("Id_Loja")
+       html.concat "<input type=\"text\" name=\"crypt\" value=\"#{@crypto_strategy.encrypt(data)}\" />\n"
        html.concat "<input type=\"text\" name=\"Id_Loja\" value=\"#{@params[:merchant_id]}\" />\n"
      end
      
