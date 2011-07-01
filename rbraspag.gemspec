@@ -18,9 +18,9 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_dependency "cs-httpi", "0.9.5.2"
-  s.add_dependency "json"
-  s.add_dependency "nokogiri"
+  s.add_dependency 'cs-httpi', '>= 0.9.5.2'
+  s.add_dependency 'json'
+  s.add_dependency 'nokogiri'
 
   s.add_development_dependency "rspec"
   s.add_development_dependency "fakeweb"
