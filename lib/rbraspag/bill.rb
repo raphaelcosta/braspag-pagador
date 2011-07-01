@@ -66,10 +66,10 @@ module Braspag
         end
       }
 
-      request = HTTPI::Request.new uri
+      request = ::HTTPI::Request.new uri
       request.body = data
 
-      response = HTTPI.post request
+      response = ::HTTPI.post request
       response = convert_to_map response.body
 
       raise InvalidAmount if response[:message] == "Invalid purchase amount"

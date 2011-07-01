@@ -5,13 +5,11 @@ module Braspag
         @connection = connection
       end
       
-      #TODO: MELHORAR OS TRATAMENTOS DE EXECOES
-      
       def encrypt(map)
         raise Braspag::IncompleteParams if map.nil?
         raise Braspag::IncompleteParams unless map.is_a?(Hash)
 
-        request = HTTPI::Request.new uri
+        request = ::HTTPI::Request.new uri
 
         fields = "\n"
         map.each do |key, value|
@@ -35,7 +33,7 @@ STRING
 
         request.headers["Content-Type"] = "text/xml"
 
-        response = HTTPI.post request
+        response = ::HTTPI.post request
 
         document = Nokogiri::XML(response.body)
 
@@ -55,7 +53,7 @@ STRING
         raise Braspag::IncompleteParams if encripted_text.nil?
         raise Braspag::IncompleteParams unless encripted_text.is_a?(String)
 
-        request = HTTPI::Request.new uri
+        request = ::HTTPI::Request.new uri
 
         request.body = <<-STRING
 <?xml version="1.0" encoding="utf-8"?>
@@ -72,7 +70,7 @@ STRING
 
         request.headers["Content-Type"] = "text/xml"
 
-        response = HTTPI.post request
+        response = ::HTTPI.post request
 
         document = Nokogiri::XML(response.body)
         raise Braspag::UnknownError if document.children.empty?

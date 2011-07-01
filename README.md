@@ -1,14 +1,25 @@
-h2. INSTALLATION
+# rBraspag
 
-<pre><code>sudo gem install braspag</code></pre>
+rbraspag gem to use Braspag gateway
 
-h2. USAGE
+# Instalation
 
-<pre><code>connection = Braspag::Connection.new '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}'
-gateway = Braspag::Gateway.new connection
-gateway.authorize! :orderId => 'test001', :customerName => 'Walter Bishop', :amount => '1000000,00', ...</code></pre>
+    gem install rbraspag
 
-h2. LICENSE:
+# Example
+
+## Create a Bill (Boleto/Bloqueto for brazilian guys)
+    your_merchant_id = '{12341234-1234-1234-1234-123412341234}'
+    connection = Braspag::Connection.new your_merchant_id
+    Braspag::Bill.new(connection , {
+      :order_id => 1,
+      :amount => 3,
+      :payment_method => 10
+    })
+    @response = @bill.generate
+
+
+# License
 
 (The MIT License)
 
@@ -32,3 +43,4 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+

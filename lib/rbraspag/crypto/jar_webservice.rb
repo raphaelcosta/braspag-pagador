@@ -11,7 +11,7 @@ module Braspag
         raise Braspag::IncompleteParams if map.nil?
         raise Braspag::IncompleteParams unless map.is_a?(Hash)
         
-        request = HTTPI::Request.new encrypt_uri
+        request = ::HTTPI::Request.new encrypt_uri
         
         data = {:key => @crypto_key, :fields => map}
                             
@@ -19,7 +19,7 @@ module Braspag
         
         request.body = data.to_json
         
-        response = HTTPI.post request
+        response = ::HTTPI.post request
         
         begin
           response = JSON.parse(response.body)
@@ -46,7 +46,7 @@ module Braspag
         raise Braspag::IncompleteParams unless fields.is_a?(Array)
         
         
-        request = HTTPI::Request.new decrypt_uri
+        request = ::HTTPI::Request.new decrypt_uri
         request.body = {
         	"key" => @crypto_key,
         	"encrypted" => encrypted,
@@ -55,7 +55,7 @@ module Braspag
 
         request.headers["Content-Type"] = "application/json"
 
-        response = HTTPI.post request
+        response = ::HTTPI.post request
 
         begin
           response = JSON.parse(response.body)
