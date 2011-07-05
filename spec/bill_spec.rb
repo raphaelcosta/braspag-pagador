@@ -36,7 +36,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "13",
-            :amount => "12000"
+            :amount => "120.00"
           })
       }.to raise_error(Braspag::IncompleteParams)
     end
@@ -45,7 +45,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "13",
-            :amount => "12000",
+            :amount => "120.00",
             :payment_method => "10"
           })
       }.to raise_error(Braspag::InvalidPaymentMethod)
@@ -55,7 +55,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "13",
-            :amount => "12000",
+            :amount => "120.00",
             :payment_method => :invalid
           })
       }.to raise_error(Braspag::InvalidPaymentMethod)
@@ -65,7 +65,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "",
-            :amount => "12300",
+            :amount => "123.00",
             :payment_method => :bradesco
           })
       }.to raise_error(Braspag::InvalidOrderId)
@@ -75,7 +75,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "1" * 51,
-            :amount => "1200",
+            :amount => "12.00",
             :payment_method => :bradesco
           })
       }.to raise_error(Braspag::InvalidOrderId)
@@ -85,7 +85,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "102",
-            :amount => "4200",
+            :amount => "42.00",
             :payment_method => :bradesco,
             :customer_name => ""
           })
@@ -96,7 +96,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "112",
-            :amount => "12100",
+            :amount => "121.00",
             :payment_method => :bradesco,
             :customer_name => "A" * 256
           })
@@ -107,7 +107,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "23",
-            :amount => "25100",
+            :amount => "251.00",
             :payment_method => :bradesco,
             :customer_id => "2" * 10
           })
@@ -118,7 +118,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "90",
-            :amount => "9000",
+            :amount => "90.00",
             :payment_method => :bradesco,
             :customer_id => "3" * 19
           })
@@ -129,7 +129,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "900",
-            :amount => "9200",
+            :amount => "92.00",
             :payment_method => :bradesco,
             :number => ""
           })
@@ -140,7 +140,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "91",
-            :amount => "8000",
+            :amount => "80.00",
             :payment_method => :bradesco,
             :number => "5" * 256
           })
@@ -151,7 +151,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "76",
-            :amount => "5000",
+            :amount => "50.00",
             :payment_method => :bradesco,
             :instructions => ""
           })
@@ -162,7 +162,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "65",
-            :amount => "21000",
+            :amount => "210.00",
             :payment_method => :bradesco,
             :instructions => "O" * 513
           })
@@ -173,7 +173,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "34",
-            :amount => "24500",
+            :amount => "245.00",
             :payment_method => :bradesco,
             :expiration_date => "1" * 7
           })
@@ -182,7 +182,7 @@ describe Braspag::Bill do
       expect {
         Braspag::Bill.new(connection, {
             :order_id => "67",
-            :amount => "32100",
+            :amount => "321.00",
             :payment_method => :bradesco,
             :expiration_date => "2" * 9
           })
@@ -192,7 +192,7 @@ describe Braspag::Bill do
     it "should accept :payment_method as Symbol Object and convert to relative String value" do
       (bill = Braspag::Bill.new(connection, {
             :order_id => "67",
-            :amount => "32100",
+            :amount => "321.00",
             :payment_method => :itau,
             :expiration_date => Date.today + 2
           })
@@ -204,7 +204,7 @@ describe Braspag::Bill do
     it "should accept :expiration_date with Date Object" do
       Braspag::Bill.new(connection, {
           :order_id => "67",
-          :amount => "32100",
+          :amount => "321.00",
           :payment_method => :bradesco,
           :expiration_date => Date.today + 2
         }).should be_ok
@@ -213,11 +213,60 @@ describe Braspag::Bill do
     it "should accept :expiration_date with valid string date" do
       Braspag::Bill.new(connection, {
           :order_id => "67",
-          :amount => "32100",
+          :amount => "321.00",
           :payment_method => :bradesco,
           :expiration_date => (Date.today + 2).strftime("%d/%m/%y")
         }).should be_ok
     end
+
+    it "should accept string as :amount" do
+      (bill = Braspag::Bill.new(connection, {
+            :order_id => "67",
+            :amount => "54321.45",
+            :payment_method => :bradesco,
+            :expiration_date => (Date.today + 2).strftime("%d/%m/%y")
+          })
+      ).should be_ok
+
+      bill[:amount].should == BigDecimal.new("54321.45")
+    end
+
+    it "should accept integer as :amount" do
+      (bill = Braspag::Bill.new(connection, {
+            :order_id => "67",
+            :amount => 123,
+            :payment_method => :bradesco,
+            :expiration_date => (Date.today + 2).strftime("%d/%m/%y")
+          })
+      ).should be_ok
+
+      bill[:amount].should == BigDecimal.new("123.00")
+    end
+
+    it "should accept BigDecimal as :amount" do
+      (bill = Braspag::Bill.new(connection, {
+            :order_id => "67",
+            :amount => BigDecimal.new("123.45"),
+            :payment_method => :bradesco,
+            :expiration_date => (Date.today + 2).strftime("%d/%m/%y")
+          })
+      ).should be_ok
+
+      bill[:amount].should == BigDecimal.new("123.45")
+    end
+
+    it "should accept integer as :amount" do
+      (bill = Braspag::Bill.new(connection, {
+            :order_id => "67",
+            :amount => 12345,
+            :payment_method => :bradesco,
+            :expiration_date => (Date.today + 2).strftime("%d/%m/%y")
+          })
+      ).should be_ok
+
+      bill[:amount].should == BigDecimal.new("12345.00")
+    end
+
   end
 
   describe ".generate" do
@@ -251,7 +300,7 @@ describe Braspag::Bill do
       before(:all) do
         data = {
           :order_id => Time.now.to_i.to_s,
-          :amount => 3,
+          :amount => 1234.56,
           :payment_method => :real
         }
         @bill =  Braspag::Bill.new(connection, data)
@@ -272,7 +321,7 @@ describe Braspag::Bill do
       end
 
       it "should return 3 as the amount" do
-        @response[:amount].should == "3"
+        @response[:amount].should == BigDecimal.new("1234.56")
       end
 
       it "should return the bill number" do
@@ -430,9 +479,6 @@ describe Braspag::Bill do
 
         FakeWeb.clean_registry
       end
-
     end
-
   end
-
 end

@@ -1,3 +1,5 @@
+require "bigdecimal"
+
 module Braspag
   class Bill
     PAYMENT_METHOD = {
@@ -33,6 +35,10 @@ module Braspag
 
       if @params[:expiration_date].is_a?(Date)
         @params[:expiration_date] = @params[:expiration_date].strftime("%d/%m/%y")
+      end
+
+      if @params[:amount] && !@params[:amount].is_a?(BigDecimal)
+        @params[:amount] = BigDecimal.new(@params[:amount].to_s)
       end
 
       ok?
@@ -80,6 +86,8 @@ module Braspag
       data =  MAPPING.inject({}) do |memo, k|
         if k[0] == :payment_method
           memo[k[1]] = PAYMENT_METHOD[@params[:payment_method]]
+        elsif k[0] == :amount
+          memo[k[1]] = convert_decimal_to_string(@params[:amount])
         else
           memo[k[1]] = @params[k[0]] || "";
         end
@@ -99,10 +107,17 @@ module Braspag
       raise InvalidStringFormat if response[:message] == "Input string was not in a correct format."
       raise UnknownError if response[:status].nil?
 
+      response[:amount] = BigDecimal.new(response[:amount])
+
       response
     end
 
     protected
+    def convert_decimal_to_string(value)
+      cents = "0#{((value - value.to_i) * 100).to_i}".slice(-2,2)
+      integer = (value - (value - value.to_i)).to_i
+      "#{integer},#{cents}"
+    end
 
     def uri
       "#{@connection.base_url}/webservices/pagador/Boleto.asmx/CreateBoleto"
@@ -112,8 +127,8 @@ module Braspag
       document = Nokogiri::XML(document)
 
       map = {
-        :url => nil,\
-          :amount => nil,
+        :url => nil,
+        :amount => nil,
         :number => "boletoNumber",
         :expiration_date => Proc.new {
           begin
