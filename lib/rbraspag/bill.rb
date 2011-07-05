@@ -1,5 +1,15 @@
 module Braspag
   class Bill
+    PAYMENT_METHOD = {
+      :bradesco => "06",
+      :cef => "07",
+      :hsbc => "08",
+      :bb => "09",
+      :real => "10",
+      :citibank => "13",
+      :itau => "14",
+      :unibanco => "26"
+    }
 
     MAPPING = {
       :merchant_id => "merchantId",
@@ -10,7 +20,8 @@ module Braspag
       :payment_method => "paymentMethod",
       :number => "boletoNumber",
       :instructions => "instructions",
-      :expiration_date => "expirationDate"
+      :expiration_date => "expirationDate",
+      :emails => "emails"
     }
 
     def initialize(connection, params)
@@ -25,6 +36,10 @@ module Braspag
       end
 
       ok?
+    end
+
+    def [](key)
+      @params[key]
     end
 
     def ok?
@@ -50,21 +65,27 @@ module Braspag
       end
 
       unless @params[:expiration_date].nil?
-        raise InvalidExpirationDate unless @params[:expiration_date].to_s.size == 8
+        date_regexp = /(0[1-9]|1[0-9]|2[0-9]|3[01])\/(0[1-9]|1[012])\/\d\d/
+        raise InvalidExpirationDate unless @params[:expiration_date].to_s =~ date_regexp
       end
-      
+
+      unless @params[:payment_method].is_a?(Symbol) && PAYMENT_METHOD[@params[:payment_method]]
+        raise InvalidPaymentMethod
+      end
+
       true
     end
 
     def generate
-      data = {}
-      @params.each {|name, value|
-        if MAPPING[name].nil?
-          data[name] = value
+      data =  MAPPING.inject({}) do |memo, k|
+        if k[0] == :payment_method
+          memo[k[1]] = PAYMENT_METHOD[@params[:payment_method]]
         else
-          data[MAPPING[name]] = value
+          memo[k[1]] = @params[k[0]] || "";
         end
-      }
+        
+        memo
+      end
 
       request = ::HTTPI::Request.new uri
       request.body = data
@@ -107,7 +128,6 @@ module Braspag
       }
 
       map.each do |keyForMap , keyValue|
-
         if keyValue.is_a?(String) || keyValue.nil?
           keyValue = keyForMap if keyValue.nil?
 
@@ -126,8 +146,5 @@ module Braspag
 
       map
     end
-
   end
-
 end
-

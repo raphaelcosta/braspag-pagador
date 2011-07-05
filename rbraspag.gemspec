@@ -26,5 +26,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "fakeweb"
   s.add_development_dependency "shoulda-matchers"
   s.add_development_dependency "guard-rspec"
+  s.add_development_dependency "guard-bundler"
   s.add_development_dependency "ruby-debug19"
 end
