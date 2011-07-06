@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rbraspag (0.0.2)
+    rbraspag (0.0.3)
       cs-httpi (>= 0.9.5.2)
       json
       nokogiri

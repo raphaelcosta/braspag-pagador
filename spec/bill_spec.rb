@@ -17,7 +17,7 @@ describe Braspag::Bill do
     it "should raise an error when :order_id is not present" do
       expect {
         Braspag::Bill.new(connection, {
-            :amount => "10000",
+            :amount => "100.00",
             :payment_method => :bradesco
           })
       }.to raise_error(Braspag::IncompleteParams)
