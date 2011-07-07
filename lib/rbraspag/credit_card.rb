@@ -1,41 +1,36 @@
 module Braspag
   class CreditCard
 
-    %w(authorize capture).each do |method|
-      eval <<-METHOD
-        def #{method}!(map)
-          invoke! "#{method.capitalize}", map
-        end
-      METHOD
+    def initialize(connection, params)
+      raise InvalidConnection unless connection.is_a?(Braspag::Connection)
+
+      @connection = connection
+      @params = params
+      @params[:merchant_id] = connection.merchant_id
+
+      ok?
+      # verifica se os dados são consistentes
     end
 
-    protected
+    def ok?
+      p = [:order_id, :customer_name, :amount, :payment_method, :holder, :card_number, :expiration, :security_code, :number_payments, :type]
 
-    def invoke!(method, map)
-      document = invoke_and_parse(method, "#{base_action_url}/#{method}") do |message|
-        map.each do |key, value|
-          message.add("tns:#{key}", "#{value}")
-        end
-      end
-      convert_to_map document
+      p.each {|param| raise IncompleteParams unless @params.include?(param)}
+
+=begin
+
+        :customer_name => "W" * 21,
+         :amount => "100.00",
+         :payment_method => 20,
+         :holder => "Joao Maria Souza",
+         :card_number => "9" * 10,
+         :expiration => "10/12",
+         :security_code => "123",
+         :number_payments => 1,
+         :type => 0
+=end
+
     end
 
-    def base_action_url
-      "https://www.pagador.com.br/webservice/pagador"
-    end
-
-    def uri
-      "#{@connection.base_url}/webservices/pagador/Pagador.asmx"
-    end
-
-    def convert_to_map(document)
-      map = { "amount" => "", "authorisationNumber" => "", "message" => "", "returnCode" => "", "status" => "", "transactionId" => "" }
-      map.each_key do |key|
-        document.xpath("//ns:#{key}").each do |text|
-          map[key] = text.to_s
-        end
-      end
-      map
-    end
   end
 end
