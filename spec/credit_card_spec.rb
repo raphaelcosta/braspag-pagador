@@ -230,7 +230,7 @@ describe Braspag::CreditCard do
         params = valid_params
         params[:expiration] = "7" * 8
         Braspag::CreditCard.new(connection, params)
-      }.to raise_error(Braspag::InvalidExpiration)
+      }.to raise_error(Braspag::InvalidExpirationDate)
     end
 
     it "should raise an error when :security_code is more than 4 characters" do

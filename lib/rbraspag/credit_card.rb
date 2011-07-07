@@ -1,13 +1,4 @@
 module Braspag
-
-  class InvalidCustomerName < Exception ; end
-  class InvalidAmount < Exception ; end
-  class InvalidHolder < Exception ; end
-  class InvalidExpiration < Exception ; end
-  class InvalidSecurityCode < Exception ; end
-  class InvalidType < Exception ; end
-  class InvalidNumberPayments < Exception ; end
-
   class CreditCard
 
     def initialize(connection, params)
@@ -18,7 +9,6 @@ module Braspag
       @params[:merchant_id] = connection.merchant_id
 
       ok?
-      # verifica se os dados são consistentes
     end
 
     def ok?
@@ -31,7 +21,7 @@ module Braspag
       raise InvalidCustomerName unless (1..100).include?(@params[:customer_name].to_s.size)
       raise InvalidAmount unless (1..10).include?(@params[:amount].to_s.size)
       raise InvalidHolder unless (1..100).include?(@params[:holder].to_s.size)
-      raise InvalidExpiration unless (1..7).include?(@params[:expiration].to_s.size)
+      raise InvalidExpirationDate unless (1..7).include?(@params[:expiration].to_s.size)
       raise InvalidSecurityCode unless (1..4).include?(@params[:security_code].to_s.size)
       raise InvalidNumberPayments unless (1..2).include?(@params[:number_payments].to_s.size)
       raise InvalidType unless (1..2).include?(@params[:type].to_s.size)
