@@ -176,6 +176,87 @@ describe Braspag::CreditCard do
      }.to raise_error(Braspag::IncompleteParams)
     end
 
+    #TODO Verificar validação de tamanho mínimo de todos os campos
+
+    let!(:valid_params) {
+      {
+        :order_id => "1" * 5,
+        :customer_name => "AAAAAAAA",
+        :payment_method => 20,
+        :amount => "100.00",
+        :holder => "Joao Maria Souza",
+        :expiration => "10/12",
+        :card_number => "9" * 10,
+        :security_code => "123",
+        :number_payments => 1,
+        :type => 0
+      }
+    }
+
+    it "should raise an error when :order_id is more than 20 characters" do
+      expect {
+        params = valid_params
+        params[:order_id] = "A" * 21
+        Braspag::CreditCard.new(connection, params)
+      }.to raise_error(Braspag::InvalidOrderId)
+    end
+
+    it "should raise an error when :customer_name is more than 100 characters" do
+      expect {
+        params = valid_params
+        params[:customer_name] = "B" * 101
+        Braspag::CreditCard.new(connection, params)
+      }.to raise_error(Braspag::InvalidCustomerName)
+    end
+
+    it "should raise an error when :amount is more than 10 characters" do
+      expect {
+        params = valid_params
+        params[:amount] = "1234567890,00"
+        Braspag::CreditCard.new(connection, params)
+      }.to raise_error(Braspag::InvalidAmount)
+    end
+
+    it "should raise an error when :holder is more than 100 characters" do
+      expect {
+        params = valid_params
+        params[:holder] = "E" * 101
+        Braspag::CreditCard.new(connection, params)
+      }.to raise_error(Braspag::InvalidHolder)
+    end
+
+    it "should raise an error when :expiration is more than 7 characters" do
+      expect {
+        params = valid_params
+        params[:expiration] = "7" * 8
+        Braspag::CreditCard.new(connection, params)
+      }.to raise_error(Braspag::InvalidExpiration)
+    end
+
+    it "should raise an error when :security_code is more than 4 characters" do
+      expect {
+        params = valid_params
+        params[:security_code] = "9" * 5
+        Braspag::CreditCard.new(connection, params)
+      }.to raise_error(Braspag::InvalidSecurityCode)
+    end
+
+    it "should raise an error when :number_payments is more than 2 characters" do
+      expect {
+        params = valid_params
+        params[:number_payments] = "123"
+        Braspag::CreditCard.new(connection, params)
+      }.to raise_error(Braspag::InvalidNumberPayments)
+    end
+
+    it "should raise an error when :type is more than 1 character" do
+      expect {
+        params = valid_params
+        params[:type] = "123"
+        Braspag::CreditCard.new(connection, params)
+      }.to raise_error(Braspag::InvalidType)
+    end
+
   end
 
 =begin
