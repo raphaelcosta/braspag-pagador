@@ -14,10 +14,6 @@ describe Braspag::CreditCard do
       }.to raise_error(Braspag::InvalidConnection)
     end
 
-#    [:customer_name, :amount, :payment_method, :holder, :card_number, :expiration,
-#      :security_code, :number_payments, :type].each do |field|
-#    end
-
     it "should raise an error when :order_id is not present" do
      expect {
        Braspag::CreditCard.new(connection, {
@@ -257,6 +253,21 @@ describe Braspag::CreditCard do
       }.to raise_error(Braspag::InvalidType)
     end
 
+  end
+
+  describe ".authorize" do
+    let!(:params) {{
+      :order_id => "123456",
+      :customer_name => "Teste",
+      :payment_method => 18,
+      :amount => "0,01",
+      :holder => "teste",
+      :expiration => "05/13",
+      :card_number => "345678000000007",
+      :security_code => "1234",
+      :number_payments => "1",
+      :type => "0"
+    }}
   end
 
 =begin

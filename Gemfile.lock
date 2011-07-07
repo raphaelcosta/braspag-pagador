@@ -3,6 +3,7 @@ PATH
   specs:
     rbraspag (0.0.4)
       cs-httpi (>= 0.9.5.2)
+      handsoap
       json
       nokogiri
 
@@ -22,10 +23,11 @@ GEM
       guard (>= 0.2.2)
     guard-rspec (0.4.0)
       guard (>= 0.4.0)
+    handsoap (1.1.8)
     json (1.5.3)
     linecache19 (0.5.12)
       ruby_core_source (>= 0.1.4)
-    nokogiri (1.4.6)
+    nokogiri (1.5.0)
     rack (1.3.0)
     rspec (2.6.0)
       rspec-core (~> 2.6.0)
