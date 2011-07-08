@@ -21,7 +21,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'cs-httpi', '>= 0.9.5.2'
   s.add_dependency 'json'
   s.add_dependency 'nokogiri'
-  s.add_dependency 'handsoap'
 
   s.add_development_dependency "rspec"
   s.add_development_dependency "fakeweb"
