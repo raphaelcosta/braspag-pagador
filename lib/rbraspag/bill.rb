@@ -87,7 +87,7 @@ module Braspag
         if k[0] == :payment_method
           memo[k[1]] = PAYMENT_METHOD[@params[:payment_method]]
         elsif k[0] == :amount
-          memo[k[1]] = convert_decimal_to_string(@params[:amount])
+          memo[k[1]] = Utils.convert_decimal_to_string(@params[:amount])
         else
           memo[k[1]] = @params[k[0]] || "";
         end
@@ -113,12 +113,7 @@ module Braspag
     end
 
     protected
-    def convert_decimal_to_string(value)
-      cents = "0#{((value - value.to_i) * 100).to_i}".slice(-2,2)
-      integer = (value - (value - value.to_i)).to_i
-      "#{integer},#{cents}"
-    end
-
+  
     def uri
       "#{@connection.base_url}/webservices/pagador/Boleto.asmx/CreateBoleto"
     end
