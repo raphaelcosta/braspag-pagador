@@ -5,8 +5,8 @@ require "rbraspag/version"
 Gem::Specification.new do |s|
   s.name        = "rbraspag"
   s.version     = Braspag::VERSION
-  s.authors     = ["Celestino Gomes", "Renato Elias", "Luca Bastos", "Lenon Marcel", "Madson Cardoso"]
-  s.email       = %w[tinorj@gmail.com renato.elias@gmail.com lucabastos@gmail.com lenon.marcel@gmail.com madsonmac@gmail.com]
+  s.authors     = ["Celestino Gomes", "Renato Elias", "Luca Bastos", "Lenon Marcel", "Madson Cardoso", "Marcelo Linhares"]
+  s.email       = %w[tinorj@gmail.com renato.elias@gmail.com lucabastos@gmail.com lenon.marcel@gmail.com madsonmac@gmail.com marcelolinhares@gmail.com]
   s.homepage    = "http://github.com/concretesolutions/rbraspag"
   s.summary     = "rbraspag gem to use Braspag gateway"
   s.description = "rbraspag gem to use Braspag gateway"

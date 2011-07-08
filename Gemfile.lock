@@ -1,9 +1,8 @@
 PATH
   remote: .
   specs:
-    rbraspag (0.0.4)
+    rbraspag (0.0.5)
       cs-httpi (>= 0.9.5.2)
-      handsoap
       json
       nokogiri
 
@@ -23,7 +22,6 @@ GEM
       guard (>= 0.2.2)
     guard-rspec (0.4.0)
       guard (>= 0.4.0)
-    handsoap (1.1.8)
     json (1.5.3)
     linecache19 (0.5.12)
       ruby_core_source (>= 0.1.4)
