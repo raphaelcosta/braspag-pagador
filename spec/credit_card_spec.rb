@@ -14,6 +14,10 @@ describe Braspag::CreditCard do
       }.to raise_error(Braspag::InvalidConnection)
     end
 
+  end
+
+  describe ".authorize" do
+
     it "should raise an error when :order_id is not present" do
      expect {
        Braspag::CreditCard.new(connection).authorize({
@@ -172,8 +176,6 @@ describe Braspag::CreditCard do
      }.to raise_error(Braspag::IncompleteParams)
     end
 
-    #TODO Verificar validação de tamanho mínimo de todos os campos
-
     let!(:valid_params) {
       {
         :order_id => "1" * 5,
@@ -253,80 +255,87 @@ describe Braspag::CreditCard do
       }.to raise_error(Braspag::InvalidType)
     end
 
-  end
+    let!(:params) {
+      {
+        :order_id => "123456",
+        :customer_name => "Teste",
+        :payment_method => 18,
+        :amount => 1.3,
+        :holder => "teste",
+        :expiration => "05/13",
+        :card_number => "345678000000007",
+        :security_code => "1234",
+        :number_payments => "1",
+        :type => "0"
+      }
+    }
 
-  describe ".authorize" do
-    let!(:params) {{
-      :order_id => "123456",
-      :customer_name => "Teste",
-      :payment_method => 18,
-      :amount => 1.3,
-      :holder => "teste",
-      :expiration => "05/13",
-      :card_number => "345678000000007",
-      :security_code => "1234",
-      :number_payments => "1",
-      :type => "0"
-    }}
+    context "with a successful transaction" do
 
-    it "should sucess authorize, status = 1 - pending capture" do
-      
-      xml = <<-EOXML
-        <?xml version="1.0" encoding="utf-8"?>
-          <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://www.pagador.com.br/webservice/pagador">
+      it "should return an array with :status => 1" do
+        xml = <<-EOXML
+          <?xml version="1.0" encoding="utf-8"?>
+          <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         xmlns="https://www.pagador.com.br/webservice/pagador">
             <amount>2</amount>
             <authorisationNumber>733610</authorisationNumber>
             <message>Transaction Successful</message>
             <returnCode>0</returnCode>
             <status>1</status>
-
             <transactionId>398662</transactionId>
           </PagadorReturn>
-
-
         EOXML
 
-      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Pagador.asmx/Authorize", :body => xml)
+        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Pagador.asmx/Authorize", :body => xml)
 
-      result = Braspag::CreditCard.new(connection).authorize(params)
-      result[:status].should == "1"
+        result = Braspag::CreditCard.new(connection).authorize(params)
+        result[:status].should == "1"
+
+        FakeWeb.clean_registry
+      end
+
     end
 
-    it "should error authorize, status = 2 - deny order" do
-      
-      invalid_params = params
-      invalid_params[:security_code] = 1
-      
-      xml = <<-EOXML
-        <?xml version="1.0" encoding="utf-8"?>
-          <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://www.pagador.com.br/webservice/pagador">
+    context "with a unsuccessful transaction" do
+
+      it "should return an array with :status => 2" do
+        invalid_params = params
+        invalid_params[:security_code] = 1
+
+        xml = <<-EOXML
+          <?xml version="1.0" encoding="utf-8"?>
+          <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://www.pagador.com.br/webservice/pagador">
             <amount>5</amount>
             <message>Payment Server detected an error</message>
             <returnCode>7</returnCode>
             <status>2</status>
             <transactionId>0</transactionId>
-
           </PagadorReturn>
         EOXML
 
-      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Pagador.asmx/Authorize", :body => xml)
+        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Pagador.asmx/Authorize", :body => xml)
 
-      result = Braspag::CreditCard.new(connection).authorize(invalid_params)
-      result[:status].should == "2"
+        result = Braspag::CreditCard.new(connection).authorize(invalid_params)
+        result[:status].should == "2"
 
-      FakeWeb.clean_registry
+        FakeWeb.clean_registry
+      end
 
     end
 
+    context "when a internal server error occurs on the gateway" do
 
-     it "shoud error authorization, status = null - internal error" do
+      it "should return an array with :status => null" do
+        invalid_params = params
+        invalid_params[:security_code] = "1"
 
-      invalid_params = params
-      invalid_params[:security_code] = "1"
-
-      xml = <<-EOXML
-        <?xml version="1.0" encoding="utf-8"?>
-          <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://www.pagador.com.br/webservice/pagador">
+        xml = <<-EOXML
+          <?xml version="1.0" encoding="utf-8"?>
+          <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         xmlns="https://www.pagador.com.br/webservice/pagador">
             <amount>5</amount>
             <message>Payment Server detected an error</message>
             <returnCode>7</returnCode>
@@ -335,53 +344,87 @@ describe Braspag::CreditCard do
           </PagadorReturn>
         EOXML
 
-      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Pagador.asmx/Authorize", :body => xml)
+        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Pagador.asmx/Authorize", :body => xml)
 
-      result = Braspag::CreditCard.new(connection).authorize(invalid_params)
-      result[:status].should == "null"
+        result = Braspag::CreditCard.new(connection).authorize(invalid_params)
+        result[:status].should == "null"
 
-      FakeWeb.clean_registry
+        FakeWeb.clean_registry
+      end
 
     end
 
-    describe ".capture" do
+  end
 
-      it "captured with sucess - code 0" do
+  describe ".capture" do
 
-        xml = <<-EOXML
+    it "should raise an error when :order_id is more than 20 characters" do
+      expect {
+        Braspag::CreditCard.new(connection).capture(("A" * 21))
+      }.to raise_error(Braspag::InvalidOrderId)
+    end
+
+    it "should parse all the XML fields" do
+      xml = <<-EOXML
         <?xml version="1.0" encoding="utf-8"?>
-        <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://www.pagador.com.br/webservice/pagador">
-          <amount>2</amount>
-          <message>Approved</message>
-          <returnCode>0</returnCode>
+        <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                       xmlns="https://www.pagador.com.br/webservice/pagador">
+          <amount>0.01</amount>
+          <message>Capture Successful</message>
+          <returnCode>07</returnCode>
           <status>0</status>
         </PagadorReturn>
+      EOXML
+
+      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Pagador.asmx/Capture", :body => xml)
+
+      result = Braspag::CreditCard.new(connection).capture('123456')
+
+      result[:amount].should_not be_nil
+      result[:message].should_not be_nil
+      result[:return_code].should_not be_nil
+      result[:status].should_not be_nil
+
+      FakeWeb.clean_registry
+    end
+
+    context "with a successful capture" do
+
+      it "should return an array with :status => 0" do
+        xml = <<-EOXML
+          <?xml version="1.0" encoding="utf-8"?>
+          <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         xmlns="https://www.pagador.com.br/webservice/pagador">
+            <amount>2</amount>
+            <message>Approved</message>
+            <returnCode>0</returnCode>
+            <status>0</status>
+          </PagadorReturn>
         EOXML
 
         FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Pagador.asmx/Capture", :body => xml)
 
         result = Braspag::CreditCard.new(connection).capture('123456')
-
         result[:status].should == "0"
 
-         FakeWeb.clean_registry
+        FakeWeb.clean_registry
       end
 
+    end
 
-      it "orderId invalid" do
-        expect {
-          Braspag::CreditCard.new(connection).capture(("A" * 21))
-        }.to raise_error(Braspag::InvalidOrderId)
-      end
+    context "with an unsuccessful capture" do
 
-      it "captured deny - code 2 " do
-
+      it "should return an array with :status => 2" do
         xml = <<-EOXML
-       <?xml version="1.0" encoding="utf-8"?>
-        <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://www.pagador.com.br/webservice/pagador">
-          <amount>0.01</amount>
-          <message>Payment Server detected an error</message>
-          <returnCode>7</returnCode>
+          <?xml version="1.0" encoding="utf-8"?>
+          <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         xmlns="https://www.pagador.com.br/webservice/pagador">
+            <amount>0.01</amount>
+            <message>Payment Server detected an error</message>
+            <returnCode>7</returnCode>
           <status>2</status>
         </PagadorReturn>
         EOXML
@@ -394,51 +437,33 @@ describe Braspag::CreditCard do
         FakeWeb.clean_registry
       end
 
-      it "internal error - code null" do
+    end
 
-         xml = <<-EOXML
-       <?xml version="1.0" encoding="utf-8"?>
-        <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://www.pagador.com.br/webservice/pagador">
-          <amount>0.01</amount>
-          <message>Payment Server detected an error</message>
-          <returnCode>7</returnCode>
-          <status>null</status>
-        </PagadorReturn>
+    context "when an internal server error occurs on the gateway" do
+
+      it "should return an array with :status => null" do
+        xml = <<-EOXML
+          <?xml version="1.0" encoding="utf-8"?>
+          <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         xmlns="https://www.pagador.com.br/webservice/pagador">
+            <amount>0.01</amount>
+            <message>Payment Server detected an error</message>
+            <returnCode>7</returnCode>
+            <status>null</status>
+          </PagadorReturn>
         EOXML
 
         FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Pagador.asmx/Capture", :body => xml)
 
-         result = Braspag::CreditCard.new(connection).capture("1234")
+        result = Braspag::CreditCard.new(connection).capture("1234")
         result[:status].should == "null"
 
         FakeWeb.clean_registry
       end
 
-
-      it "validate all data return" do
-         xml = <<-EOXML
-        <?xml version="1.0" encoding="utf-8"?>
-        <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://www.pagador.com.br/webservice/pagador">
-          <amount>0.01</amount>
-          <message>Capture Successful</message>
-          <returnCode>07</returnCode>
-          <status>0</status>
-        </PagadorReturn>
-        EOXML
-
-        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Pagador.asmx/Capture", :body => xml)
-
-        result = Braspag::CreditCard.new(connection).capture('123456')
-
-        result[:amount].should_not be_nil
-        result[:message].should_not be_nil
-        result[:return_code].should_not be_nil
-        result[:status].should_not be_nil
-
-        FakeWeb.clean_registry
-      end
-
     end
+
   end
 
 end
