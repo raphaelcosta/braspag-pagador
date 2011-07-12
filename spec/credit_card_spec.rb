@@ -23,7 +23,7 @@ describe Braspag::CreditCard do
        Braspag::CreditCard.new(connection).authorize({
          :customer_name => "W" * 21,
          :amount => "100.00",
-         :payment_method => 20,
+         :payment_method => :redecard,
          :holder => "Joao Maria Souza",
          :card_number => "9" * 10,
          :expiration => "10/12",
@@ -39,7 +39,7 @@ describe Braspag::CreditCard do
        Braspag::CreditCard.new(connection).authorize({
          :order_id => "1" * 5,
          :amount => "100.00",
-         :payment_method => 20,
+         :payment_method => :redecard,
          :holder => "Joao Maria Souza",
          :card_number => "9" * 10,
          :expiration => "10/12",
@@ -55,7 +55,7 @@ describe Braspag::CreditCard do
        Braspag::CreditCard.new(connection).authorize({
          :order_id => "1" * 5,
          :customer_name => "",
-         :payment_method => 20,
+         :payment_method => :redecard,
          :holder => "Joao Maria Souza",
          :card_number => "9" * 10,
          :expiration => "10/12",
@@ -87,7 +87,7 @@ describe Braspag::CreditCard do
        Braspag::CreditCard.new(connection).authorize({
          :order_id => "1" * 5,
          :customer_name => "",
-         :payment_method => 20,
+         :payment_method => :redecard,
          :amount => "100.00",
          :card_number => "9" * 10,
          :expiration => "10/12",
@@ -103,7 +103,7 @@ describe Braspag::CreditCard do
        Braspag::CreditCard.new(connection).authorize({
          :order_id => "1" * 5,
          :customer_name => "",
-         :payment_method => 20,
+         :payment_method => :redecard,
          :amount => "100.00",
          :holder => "Joao Maria Souza",
          :expiration => "10/12",
@@ -119,7 +119,7 @@ describe Braspag::CreditCard do
        Braspag::CreditCard.new(connection).authorize({
          :order_id => "1" * 5,
          :customer_name => "",
-         :payment_method => 20,
+         :payment_method => :redecard,
          :amount => "100.00",
          :holder => "Joao Maria Souza",
          :card_number => "9" * 10,
@@ -135,7 +135,7 @@ describe Braspag::CreditCard do
        Braspag::CreditCard.new(connection).authorize({
          :order_id => "1" * 5,
          :customer_name => "AAAAAAAA",
-         :payment_method => 20,
+         :payment_method => :redecard,
          :amount => "100.00",
          :holder => "Joao Maria Souza",
          :expiration => "10/12",
@@ -151,7 +151,7 @@ describe Braspag::CreditCard do
        Braspag::CreditCard.new(connection).authorize({
          :order_id => "1" * 5,
          :customer_name => "AAAAAAAA",
-         :payment_method => 20,
+         :payment_method => :redecard,
          :amount => "100.00",
          :holder => "Joao Maria Souza",
          :expiration => "10/12",
@@ -166,7 +166,7 @@ describe Braspag::CreditCard do
        Braspag::CreditCard.new(connection).authorize({
          :order_id => "1" * 5,
          :customer_name => "AAAAAAAA",
-         :payment_method => 20,
+         :payment_method => :redecard,
          :amount => "100.00",
          :holder => "Joao Maria Souza",
          :expiration => "10/12",
@@ -180,7 +180,7 @@ describe Braspag::CreditCard do
       {
         :order_id => "1" * 5,
         :customer_name => "AAAAAAAA",
-        :payment_method => 20,
+        :payment_method => :amex_2p,
         :amount => "100.00",
         :holder => "Joao Maria Souza",
         :expiration => "10/12",
@@ -259,7 +259,7 @@ describe Braspag::CreditCard do
       {
         :order_id => "123456",
         :customer_name => "Teste",
-        :payment_method => 18,
+        :payment_method => :amex_2p,
         :amount => 1.3,
         :holder => "teste",
         :expiration => "05/13",
