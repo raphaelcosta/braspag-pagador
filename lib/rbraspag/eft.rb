@@ -2,6 +2,11 @@ module Braspag
   class Eft
     PAYMENT_METHOD = {
       :bradesco => "11",
+      :itau => "12",
+      :banco_do_brasil => "15",
+      :banco_real => "16",
+      :banrisul => "30",
+      :unibanco => "31"
     }
 
     MAPPING = {
