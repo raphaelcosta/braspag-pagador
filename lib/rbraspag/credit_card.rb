@@ -110,7 +110,7 @@ module Braspag
         :message => 'message',
         :return_code => 'returnCode',
         :status => 'status',
-        :return_code => "returnCode"
+        :transaction_id => "transactionId"
       }
 
       map.each do |keyForMap , keyValue|
