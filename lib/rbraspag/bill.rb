@@ -2,7 +2,7 @@ require "bigdecimal"
 
 module Braspag
   class Bill
-    PAYMENT_METHOD = {
+    PAYMENT_METHODS = {
       :bradesco => "06",
       :cef => "07",
       :hsbc => "08",
@@ -75,7 +75,7 @@ module Braspag
         raise InvalidExpirationDate unless @params[:expiration_date].to_s =~ date_regexp
       end
 
-      unless @params[:payment_method].is_a?(Symbol) && PAYMENT_METHOD[@params[:payment_method]]
+      unless @params[:payment_method].is_a?(Symbol) && PAYMENT_METHODS[@params[:payment_method]]
         raise InvalidPaymentMethod
       end
 
@@ -85,7 +85,7 @@ module Braspag
     def generate
       data =  MAPPING.inject({}) do |memo, k|
         if k[0] == :payment_method
-          memo[k[1]] = PAYMENT_METHOD[@params[:payment_method]]
+          memo[k[1]] = PAYMENT_METHODS[@params[:payment_method]]
         elsif k[0] == :amount
           memo[k[1]] = Utils.convert_decimal_to_string(@params[:amount])
         else

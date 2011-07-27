@@ -1,12 +1,12 @@
 module Braspag
   class Eft
-    PAYMENT_METHOD = {
-      :bradesco => "11",
-      :itau => "12",
-      :banco_do_brasil => "15",
-      :banco_real => "16",
-      :banrisul => "30",
-      :unibanco => "31"
+    PAYMENT_METHODS = {
+      :bradesco => 11,
+      :itau => 12,
+      :banco_do_brasil => 15,
+      :banco_real => 16,
+      :banrisul => 30,
+      :unibanco => 31
     }
 
     MAPPING = {
@@ -94,7 +94,7 @@ module Braspag
     def create_data_from_params
       MAPPING.inject({}) do |memo, k|
         if k[0] == :payment_method
-          memo[k[1]] = PAYMENT_METHOD[@params[:payment_method]]
+          memo[k[1]] = PAYMENT_METHODS[@params[:payment_method]]
         elsif k[0] == :amount
           memo[k[1]] = convert_decimal_to_string(@params[:amount])
         else

@@ -236,7 +236,6 @@ describe Braspag::Eft do
          
       end
       
-
    end
 
 end
