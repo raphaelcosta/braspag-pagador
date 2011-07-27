@@ -1,5 +1,5 @@
 module Braspag
-  class Eft
+  class Eft < PaymentMethod
     PAYMENT_METHODS = {
       :bradesco => 11,
       :itau => 12,

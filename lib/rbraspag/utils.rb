@@ -6,10 +6,6 @@ module Braspag
       integer = (value - (value - value.to_i)).to_i
       "#{integer},#{cents}"
     end
-
-    def self.payment_method_from_id(class_name, code)
-      all_values = eval("Braspag::#{class_name}::PAYMENT_METHODS")
-      all_values.invert.values_at(code).first
-    end
   end
+  
 end

@@ -1,7 +1,8 @@
 require "bigdecimal"
 
 module Braspag
-  class Bill
+  class Bill < PaymentMethod
+    
     PAYMENT_METHODS = {
       :bradesco => "06",
       :cef => "07",

@@ -480,5 +480,12 @@ describe Braspag::Bill do
         FakeWeb.clean_registry
       end
     end
+
+    context "#payment_method_from_id" do
+      it 'Credit card amex' do
+        Braspag::Bill::payment_method_from_id("06").should == :bradesco
+        Braspag::Bill::payment_method_from_id("06").should be_kind_of Symbol
+      end
+    end
   end
 end

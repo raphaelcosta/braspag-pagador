@@ -1,5 +1,5 @@
 module Braspag
-  class CreditCard
+  class CreditCard < PaymentMethod
 
     PAYMENT_METHODS = {
       # BRASIL

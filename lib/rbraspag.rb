@@ -13,6 +13,7 @@ require "nokogiri"
 Bundler.require(:default, ENV["RACK_ENV"].to_sym)
 
 require 'rbraspag/connection'
+require 'rbraspag/payment_method'
 require 'rbraspag/crypto/jar_webservice'
 require 'rbraspag/crypto/webservice'
 require 'rbraspag/bill'

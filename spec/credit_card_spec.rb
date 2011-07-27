@@ -464,6 +464,13 @@ describe Braspag::CreditCard do
 
     end
 
+    context ".payment_method_from_id" do
+      it 'Credit card amex' do
+       Braspag::CreditCard::payment_method_from_id(18).should == :amex_2p
+       Braspag::CreditCard::payment_method_from_id(18).should be_kind_of Symbol
+      end
+    end
+
   end
 
 end
