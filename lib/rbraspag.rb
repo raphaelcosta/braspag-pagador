@@ -21,6 +21,7 @@ require 'rbraspag/credit_card'
 require 'rbraspag/eft'
 require 'rbraspag/errors'
 require 'rbraspag/utils'
+require 'rbraspag/order'
 
 module Braspag
   class Production
