@@ -32,37 +32,33 @@ describe Braspag::Order do
       }.to raise_error(Braspag::InvalidOrderId)
     end
 
-    context "with incorrect data" do
-
-      it "should raise an error for invalid data" do
-        xml = <<-EOXML
+    it "should raise an error for incorrect data" do
+      xml = <<-EOXML
 <?xml version="1.0" encoding="utf-8"?>
 <DadosPedido xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-             xsi:nil="true"
-             xmlns="http://www.pagador.com.br/" />
-        EOXML
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xsi:nil="true"
+           xmlns="http://www.pagador.com.br/" />
+      EOXML
 
-        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/pagador/webservice/pedido.asmx/GetDadosPedido")
+      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/pagador/webservice/pedido.asmx/GetDadosPedido", :body => xml)
 
-        expect {
-          Braspag::Order.status(connection, "sadpoakjspodqdouq09wduwq")
-        }.to raise_error(Braspag::Order::InvalidData)
+      expect {
+        Braspag::Order.status(connection, "sadpoakjspodqdouq09wduwq")
+      }.to raise_error(Braspag::Order::InvalidData)
 
-        new_connection = Braspag::Connection.new("{12345678-1234-1234-1234-123456789012}", :test)
+      new_connection = Braspag::Connection.new("{12345678-1234-1234-1234-123456789012}", :test)
 
-        expect {
-          Braspag::Order.status(new_connection, "asdnasdniousa")
-        }.to raise_error(Braspag::Order::InvalidData)
+      expect {
+        Braspag::Order.status(new_connection, "asdnasdniousa")
+      }.to raise_error(Braspag::Order::InvalidData)
 
-        FakeWeb.clean_registry
-      end
-
+      FakeWeb.clean_registry
     end
 
     context "with correct data" do
 
-      let!(:order_info) {
+      let(:order_info) {
         xml = <<-EOXML
 <?xml version="1.0" encoding="utf-8"?>
 <DadosPedido xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -81,7 +77,8 @@ describe Braspag::Order do
 </DadosPedido>
         EOXML
 
-        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/pagador/webservice/pedido.asmx/GetDadosPedido")
+        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/pagador/webservice/pedido.asmx/GetDadosPedido",
+                              :body => xml)
         order_info = Braspag::Order.status(connection, "12345")
         FakeWeb.clean_registry
         order_info
@@ -91,15 +88,27 @@ describe Braspag::Order do
         order_info.should be_kind_of Hash
       end
 
-      it "should return a Hash with :status key" do
-        order_info[:status].should_not be_nil
-        order_info[:status].should == :paid
-      end
+      {
+        :authorization => "885796",
+        :error_code => nil,
+        :error_message => nil,
+        :payment_method => "18",
+        :payment_method_name => "American Express 2P",
+        :installments => "1",
+        :status => "3",
+        :amount => "0.01",
+        :cancelled_at => nil,
+        :paid_at => "7/8/2011 1:19:38 PM",
+        :order_date => "7/8/2011 1:06:06 PM",
+        :transaction_id => "398591",
+        :tid => "5a1d4463-1d11-4571-a877-763aba0ef7ff"
+      }.each do |key, value|
 
-      it "should return a Hash with :authorization_code key" do
-        order_info[:authorization_code].should_not be_nil
-      end
+        it "should return a Hash with :#{key.to_s} key" do
+          order_info[key].should == value
+        end
 
+      end
     end
 
   end
