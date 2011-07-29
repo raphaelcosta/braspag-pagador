@@ -41,7 +41,8 @@ describe Braspag::Order do
            xmlns="http://www.pagador.com.br/" />
       EOXML
 
-      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/pagador/webservice/pedido.asmx/GetDadosPedido", :body => xml)
+      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/pagador/webservice/pedido.asmx/GetDadosPedido",
+        :body => xml)
 
       expect {
         Braspag::Order.status(connection, "sadpoakjspodqdouq09wduwq")

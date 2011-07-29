@@ -13,10 +13,12 @@ module Braspag
       request.body = {:loja => connection.merchant_id, :numeroPedido => order_id.to_s}
 
       response = ::HTTPI.post(request)
+
       response = convert_to_map response.body
-      require "ruby-debug"
-      debugger
-      true
+
+      raise InvalidData if response[:authorization].nil?
+      response
+
     end
 
     def self.convert_to_map(document)
@@ -46,6 +48,9 @@ module Braspag
           if !value.nil?
             value = value.content.to_s
             map[keyForMap] = value unless value == ""
+            map[keyForMap] = nil if value == ""
+          else
+            map[keyForMap] = nil
           end
 
         elsif keyValue.is_a?(Proc)
