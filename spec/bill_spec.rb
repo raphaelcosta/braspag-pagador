@@ -2,21 +2,13 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe Braspag::Bill do
-
-  let!(:merchant_id) {"{84BE7E7F-698A-6C74-F820-AE359C2A07C2}"}
-  let!(:connection) {Braspag::Connection.new(merchant_id, :test)}
-
+  let!(:braspag_url) { "https://homologacao.pagador.com.br" }
+  
   describe ".new" do
-
-    it "should raise an error when no connection is given" do
-      expect {
-        Braspag::Bill.new("", {})
-      }.to raise_error(Braspag::InvalidConnection)
-    end
 
     it "should raise an error when :order_id is not present" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :amount => "100.00",
             :payment_method => :bradesco
           })
@@ -25,7 +17,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :amount is not present" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "12",
             :payment_method => :bradesco
           })
@@ -34,7 +26,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :payment_method is not present" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "13",
             :amount => "120.00"
           })
@@ -43,7 +35,7 @@ describe Braspag::Bill do
 
     it "should raise an error when invalid string :payment_method" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "13",
             :amount => "120.00",
             :payment_method => "10"
@@ -53,7 +45,7 @@ describe Braspag::Bill do
 
     it "should raise an error when invalid symbol :payment_method" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "13",
             :amount => "120.00",
             :payment_method => :invalid
@@ -63,7 +55,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :order_id is less than 1 character" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "",
             :amount => "123.00",
             :payment_method => :bradesco
@@ -73,7 +65,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :order_id is more than 50 characters" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "1" * 51,
             :amount => "12.00",
             :payment_method => :bradesco
@@ -83,7 +75,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :customer_name is less than 1 character" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "102",
             :amount => "42.00",
             :payment_method => :bradesco,
@@ -94,7 +86,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :customer_name is more than 255 characters" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "112",
             :amount => "121.00",
             :payment_method => :bradesco,
@@ -105,7 +97,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :customer_id is less than 11 characters" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "23",
             :amount => "251.00",
             :payment_method => :bradesco,
@@ -116,7 +108,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :customer_id is more than 18 characters" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "90",
             :amount => "90.00",
             :payment_method => :bradesco,
@@ -127,7 +119,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :number is less than 1 character" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "900",
             :amount => "92.00",
             :payment_method => :bradesco,
@@ -138,7 +130,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :number is more than 255 characters" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "91",
             :amount => "80.00",
             :payment_method => :bradesco,
@@ -149,7 +141,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :instructions is less than 1 character" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "76",
             :amount => "50.00",
             :payment_method => :bradesco,
@@ -160,7 +152,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :instructions is more than 512 characters" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "65",
             :amount => "210.00",
             :payment_method => :bradesco,
@@ -171,7 +163,7 @@ describe Braspag::Bill do
 
     it "should raise an error when :expiration_date is more or less than 8 characters" do
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "34",
             :amount => "245.00",
             :payment_method => :bradesco,
@@ -180,7 +172,7 @@ describe Braspag::Bill do
       }.to raise_error(Braspag::InvalidExpirationDate)
 
       expect {
-        Braspag::Bill.new(connection, {
+        Braspag::Bill.new( {
             :order_id => "67",
             :amount => "321.00",
             :payment_method => :bradesco,
@@ -190,7 +182,7 @@ describe Braspag::Bill do
     end
 
     it "should accept :payment_method as Symbol Object and convert to relative String value" do
-      (bill = Braspag::Bill.new(connection, {
+      (bill = Braspag::Bill.new( {
             :order_id => "67",
             :amount => "321.00",
             :payment_method => :itau,
@@ -202,7 +194,7 @@ describe Braspag::Bill do
     end
 
     it "should accept :expiration_date with Date Object" do
-      Braspag::Bill.new(connection, {
+      Braspag::Bill.new( {
           :order_id => "67",
           :amount => "321.00",
           :payment_method => :bradesco,
@@ -211,7 +203,7 @@ describe Braspag::Bill do
     end
 
     it "should accept :expiration_date with valid string date" do
-      Braspag::Bill.new(connection, {
+      Braspag::Bill.new( {
           :order_id => "67",
           :amount => "321.00",
           :payment_method => :bradesco,
@@ -220,7 +212,7 @@ describe Braspag::Bill do
     end
 
     it "should accept string as :amount" do
-      (bill = Braspag::Bill.new(connection, {
+      (bill = Braspag::Bill.new( {
             :order_id => "67",
             :amount => "54321.45",
             :payment_method => :bradesco,
@@ -232,7 +224,7 @@ describe Braspag::Bill do
     end
 
     it "should accept integer as :amount" do
-      (bill = Braspag::Bill.new(connection, {
+      (bill = Braspag::Bill.new( {
             :order_id => "67",
             :amount => 123,
             :payment_method => :bradesco,
@@ -244,7 +236,7 @@ describe Braspag::Bill do
     end
 
     it "should accept BigDecimal as :amount" do
-      (bill = Braspag::Bill.new(connection, {
+      (bill = Braspag::Bill.new( {
             :order_id => "67",
             :amount => BigDecimal.new("123.45"),
             :payment_method => :bradesco,
@@ -256,7 +248,7 @@ describe Braspag::Bill do
     end
 
     it "should accept integer as :amount" do
-      (bill = Braspag::Bill.new(connection, {
+      (bill = Braspag::Bill.new( {
             :order_id => "67",
             :amount => 12345,
             :payment_method => :bradesco,
@@ -282,7 +274,7 @@ describe Braspag::Bill do
           :expiration_date => @tomorrow.strftime("%d/%m/%y")
         }
 
-        @bill = Braspag::Bill.new(connection, data)
+        @bill = Braspag::Bill.new( data)
         @response = @bill.generate
       end
 
@@ -303,7 +295,7 @@ describe Braspag::Bill do
           :amount => 1234.56,
           :payment_method => :real
         }
-        @bill =  Braspag::Bill.new(connection, data)
+        @bill =  Braspag::Bill.new( data)
         @response = @bill.generate
       end
 
@@ -351,12 +343,10 @@ describe Braspag::Bill do
         </PagadorBoletoReturn>
         EOXML
 
-        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
-
-        connection = Braspag::Connection.new("{12345678-1234-1234-1234-123456789000}", :test)
+        FakeWeb.register_uri(:post, "#{braspag_url}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
 
         expect {
-          bill = Braspag::Bill.new(connection, {
+          bill = Braspag::Bill.new( {
               :order_id => 1,
               :amount => 3,
               :payment_method => :hsbc
@@ -381,10 +371,10 @@ describe Braspag::Bill do
         </PagadorBoletoReturn>
         EOXML
 
-        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
+        FakeWeb.register_uri(:post, "#{braspag_url}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
 
         expect {
-          bill = Braspag::Bill.new(connection, {
+          bill = Braspag::Bill.new( {
               :number => "A" * 50,
               :order_id => "x",
               :amount => 3,
@@ -410,10 +400,10 @@ describe Braspag::Bill do
         </PagadorBoletoReturn>
         EOXML
 
-        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
+        FakeWeb.register_uri(:post, "#{braspag_url}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
 
         expect {
-          bill = Braspag::Bill.new(connection, {
+          bill = Braspag::Bill.new( {
               :order_id => 1,
               :amount => "0000",
               :payment_method => :hsbc
@@ -438,10 +428,10 @@ describe Braspag::Bill do
         </PagadorBoletoReturn>
         EOXML
 
-        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
+        FakeWeb.register_uri(:post, "#{braspag_url}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
 
         expect {
-          bill = Braspag::Bill.new(connection, {
+          bill = Braspag::Bill.new( {
               :order_id => 1,
               :amount => -33,
               :payment_method => :hsbc
@@ -466,10 +456,10 @@ describe Braspag::Bill do
         </PagadorBoletoReturn>
         EOXML
 
-        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
+        FakeWeb.register_uri(:post, "#{braspag_url}/webservices/pagador/Boleto.asmx/CreateBoleto", :body => xml)
 
         expect {
-          bill = Braspag::Bill.new(connection, {
+          bill = Braspag::Bill.new( {
               :order_id => 1,
               :amount => 3,
               :payment_method => :real

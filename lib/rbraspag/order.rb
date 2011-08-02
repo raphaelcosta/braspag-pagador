@@ -3,13 +3,13 @@ module Braspag
 
     class InvalidData < Exception; end
 
-    def self.status(connection, order_id)
-      raise InvalidConnection unless connection.is_a?(Braspag::Connection)
+    def self.status(order_id)
+      connection = Braspag::Connection.instance
 
       raise InvalidOrderId unless order_id.is_a?(String) || order_id.is_a?(Fixnum)
       raise InvalidOrderId unless (1..50).include?(order_id.to_s.size)
 
-      request = ::HTTPI::Request.new("#{connection.base_url}/pagador/webservice/pedido.asmx/GetDadosPedido")
+      request = ::HTTPI::Request.new("#{connection.braspag_url}/pagador/webservice/pedido.asmx/GetDadosPedido")
       request.body = {:loja => connection.merchant_id, :numeroPedido => order_id.to_s}
 
       response = ::HTTPI.post(request)
@@ -62,6 +62,5 @@ module Braspag
 
       map
     end
-
   end
 end

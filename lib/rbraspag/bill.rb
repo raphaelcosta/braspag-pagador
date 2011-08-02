@@ -27,12 +27,10 @@ module Braspag
       :emails => "emails"
     }
 
-    def initialize(connection, params)
-      raise InvalidConnection unless connection.is_a?(Braspag::Connection)
-
-      @connection = connection
+    def initialize(params)
+      @connection = Braspag::Connection.instance
       @params = params
-      @params[:merchant_id] = connection.merchant_id
+      @params[:merchant_id] = @connection.merchant_id
 
       if @params[:expiration_date].is_a?(Date)
         @params[:expiration_date] = @params[:expiration_date].strftime("%d/%m/%y")
@@ -116,7 +114,7 @@ module Braspag
     protected
   
     def uri
-      "#{@connection.base_url}/webservices/pagador/Boleto.asmx/CreateBoleto"
+      "#{@connection.braspag_url}/webservices/pagador/Boleto.asmx/CreateBoleto"
     end
 
     def convert_to_map(document)

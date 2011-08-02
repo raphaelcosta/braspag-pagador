@@ -2,53 +2,114 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe Braspag::Connection do
-  let!(:connection) { Braspag::Connection }
   let!(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
+  let!(:braspag_url) { "https://homologacao.pagador.com.br" }
 
-  it "deve gerar uma exceção quando :merchantId for maior que 38 caracteres" do
-    merchant_id = (1..100).collect{"A"}.join
-    expect { connection.new(merchant_id) }.should raise_error(Braspag::Connection::InvalidMerchantId)
+  let!(:mock_for_connection) {
+    mock = {}
+    mock[ENV["RACK_ENV"]] = {
+      "merchant_id" => merchant_id,
+      "braspag_url" => braspag_url
+    }
+    mock
+  }
+
+  before(:all) do
+    @connection = Braspag::Connection.clone
   end
 
-  it "deve gerar uma exceção quando :merchantId for menor que 38 caracteres" do
-    merchant_id = (1..37).collect{"B"}.join
-    expect { connection.new(merchant_id) }.should raise_error(Braspag::Connection::InvalidMerchantId)
+  it "should read config/braspag.yml when alloc first instance" do
+    YAML.should_receive(:load_file).with("config/braspag.yml").and_return(mock_for_connection)
+    @connection.instance
   end
 
-  it "deve gerar uma exceção quando :merchantId não seguir o formato {00000000-0000-0000-0000-000000000000}" do
-    expect { connection.new("0000000-0000-0000-0000-000000000000") }.should raise_error(Braspag::Connection::InvalidMerchantId)
-    expect { connection.new("{000000000000000000000000000000000000}") }.should raise_error(Braspag::Connection::InvalidMerchantId)
-
-    expect { connection.new(merchant_id) }.should_not raise_error
+  it "should not read config/braspag.yml when alloc second instance" do
+    YAML.should_not_receive(:load_file)
+    @connection.instance
   end
 
-  it "deve inicializar dado um ambiente e o id da loja" do
-    expect { connection.new(merchant_id, :test) }.should_not raise_error
+  it "should generate exception when RACK_ENV is nil" do
+    backup = ENV["RACK_ENV"].clone
+    ENV["RACK_ENV"] = nil
+    expect {
+      other_connection = Braspag::Connection.clone
+      other_connection.instance
+    }.should raise_error(Braspag::Connection::InvalidEnv)
+    ENV["RACK_ENV"] = backup
   end
 
-  it "deve inicializar dado um id da loja" do
-    expect { connection.new(merchant_id) }.should_not raise_error
+  it "should generate exception when RACK_ENV is empty" do
+    backup = ENV["RACK_ENV"].clone
+    ENV["RACK_ENV"] = ""
+    expect {
+      other_connection = Braspag::Connection.clone
+      other_connection.instance
+    }.should raise_error(Braspag::Connection::InvalidEnv)
+    ENV["RACK_ENV"] = backup
   end
 
-  it "deve entender que o ambiente é produção quando nehum for especificado" do
-    connection.new(merchant_id).environment.should eql(Braspag::Production)
+
+  it "should generate exception when :merchant_id is more than 38 chars" do
+    mock_merchant = mock_for_connection
+    mock_merchant[ENV["RACK_ENV"]]["merchant_id"] = (1..100).collect{"A"}.join
+    YAML.should_receive(:load_file).with("config/braspag.yml").and_return(mock_merchant)
+    other_connection = Braspag::Connection.clone
+
+    expect { other_connection.instance }.should raise_error(Braspag::Connection::InvalidMerchantId)
   end
 
-   it "deve entender que o ambiente é teste quando for especificado staging" do
-    connection.new(merchant_id, 'staging').environment.should eql(Braspag::Test)
+  it "should generate exception when :merchant_id is less than 38 chars" do
+    mock_merchant = mock_for_connection
+    mock_merchant[ENV["RACK_ENV"]]["merchant_id"] = (1..37).collect{"B"}.join
+    YAML.should_receive(:load_file).with("config/braspag.yml").and_return(mock_merchant)
+    other_connection = Braspag::Connection.clone
+
+    expect { other_connection.instance }.should raise_error(Braspag::Connection::InvalidMerchantId)
   end
 
-  it "deve reconhecer a url do ambiente de teste" do
-    connection.new(merchant_id, :test).base_url.should eql(Braspag::Test::BASE_URL)
+  context "should generate exception when :merchant_id not follow format {00000000-0000-0000-0000-000000000000}" do
+    it "0000000-0000-0000-0000-000000000000" do
+     mock_merchant = mock_for_connection
+     mock_merchant[ENV["RACK_ENV"]]["merchant_id"] = "0000000-0000-0000-0000-000000000000"
+     YAML.should_receive(:load_file).with("config/braspag.yml").and_return(mock_merchant)
+     other_connection = Braspag::Connection.clone
+     expect { other_connection.instance }.should raise_error(Braspag::Connection::InvalidMerchantId)
+    end
+
+    it "{000000000000000000000000000000000000}" do
+     mock_merchant = mock_for_connection
+     mock_merchant[ENV["RACK_ENV"]]["merchant_id"] = "{000000000000000000000000000000000000}"
+     YAML.should_receive(:load_file).with("config/braspag.yml").and_return(mock_merchant)
+     other_connection = Braspag::Connection.clone
+     expect { other_connection.instance }.should raise_error(Braspag::Connection::InvalidMerchantId)
+    end
   end
 
-  it "deve reconhecer a url do ambiente de produção" do
-    connection.new(merchant_id, :production).base_url.should eql(Braspag::Production::BASE_URL)
+  it "should :merchant_id has correct in instance" do
+    new_connection = @connection.instance
+    new_connection.merchant_id.should == merchant_id
   end
 
-  it "deve devolver o merchant id utilizado na conexão" do
-    connection.new(merchant_id).merchant_id.should eql(merchant_id)
-  end
-  
+  it "should generate exception when :braspag_url is nil" do
+    mock_merchant = mock_for_connection
+    mock_merchant[ENV["RACK_ENV"]]["braspag_url"] = nil
+    YAML.should_receive(:load_file).with("config/braspag.yml").and_return(mock_merchant)
+    other_connection = Braspag::Connection.clone
 
+    expect { other_connection.instance }.should raise_error(Braspag::Connection::InvalidBraspagUrl)
+  end
+
+  it "should generate exception when :braspag_url is empty" do
+    mock_merchant = mock_for_connection
+    mock_merchant[ENV["RACK_ENV"]]["braspag_url"] = ""
+    YAML.should_receive(:load_file).with("config/braspag.yml").and_return(mock_merchant)
+    other_connection = Braspag::Connection.clone
+
+    expect { other_connection.instance }.should raise_error(Braspag::Connection::InvalidBraspagUrl)
+  end
+
+  it "should :braspag_url has correct in instance" do
+    new_connection = @connection.instance
+    new_connection.braspag_url.should == braspag_url
+  end
 end

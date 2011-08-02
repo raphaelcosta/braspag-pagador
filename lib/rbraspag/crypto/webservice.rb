@@ -1,15 +1,12 @@
 module Braspag
   module Crypto
     class Webservice
-      def initialize(connection)
-        @connection = connection
-      end
-      
-      def encrypt(map)
+      def self.encrypt(map)
+        connection = Braspag::Connection.instance
         raise Braspag::IncompleteParams if map.nil?
         raise Braspag::IncompleteParams unless map.is_a?(Hash)
 
-        request = ::HTTPI::Request.new uri
+        request = ::HTTPI::Request.new self.uri
 
         fields = "\n"
         map.each do |key, value|
@@ -22,7 +19,7 @@ module Braspag
   <env:Header />
   <env:Body>
     <tns:EncryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
-      <tns:merchantId>#{@connection.merchant_id}</tns:merchantId>
+      <tns:merchantId>#{connection.merchant_id}</tns:merchantId>
       <tns:request>
         #{fields}
       </tns:request>
@@ -48,12 +45,13 @@ STRING
         response
       end
 
-      def decrypt(encripted_text)
+      def self.decrypt(encripted_text)
+        connection = Braspag::Connection.instance
 
         raise Braspag::IncompleteParams if encripted_text.nil?
         raise Braspag::IncompleteParams unless encripted_text.is_a?(String)
 
-        request = ::HTTPI::Request.new uri
+        request = ::HTTPI::Request.new self.uri
 
         request.body = <<-STRING
 <?xml version="1.0" encoding="utf-8"?>
@@ -61,7 +59,7 @@ STRING
   <env:Header />
   <env:Body>
     <tns:DecryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
-      <tns:merchantId>#{@connection.merchant_id}</tns:merchantId>
+      <tns:merchantId>#{connection.merchant_id}</tns:merchantId>
       <tns:cryptString>#{encripted_text}</tns:cryptString>
     </tns:DecryptRequest>
   </env:Body>
@@ -80,16 +78,16 @@ STRING
         raise Braspag::InvalidMerchantId if (result_error == 'Erro BP 011' || result_error == 'Erro BP 012')
         raise Braspag::InvalidIP if (result_error == 'Erro BP 067' || result_error == 'Erro BP 068')
 
-        convert_request_to_map document          
+        self.convert_request_to_map document
       end
-      
 
       protected
-      def uri
-        "#{@connection.base_url}/BraspagGeneralService/BraspagGeneralService.asmx"
+      def self.uri
+        connection = Braspag::Connection.instance
+        "#{connection.braspag_url}/BraspagGeneralService/BraspagGeneralService.asmx"
       end
       
-      def convert_request_to_map(document)
+      def self.convert_request_to_map(document)
         map = {}
         document.children.children.children.children.children.each do |n|
           values = n.content.to_s.split("=")
@@ -97,7 +95,6 @@ STRING
         end
         map
       end
-      
     end
   end
 end

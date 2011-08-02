@@ -2,22 +2,11 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe Braspag::Eft do
-
-  let!(:merchant_id) {"{84BE7E7F-698A-6C74-F820-AE359C2A07C2}"}
-  let!(:connection) {Braspag::Connection.new(merchant_id, :test)}
-  
-  
   describe ".new" do
-
-    it "should raise an error when no connection is given" do
-      expect {
-        Braspag::Eft.new("", {})
-      }.to raise_error(Braspag::InvalidConnection)
-    end
 
     it "should raise an error when :order_id is not present" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :amount => "100.00",
             :payment_method => :bradesco
           })
@@ -26,7 +15,7 @@ describe Braspag::Eft do
 
     it "should raise an error when :amount is not present" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :order_id => "12",
             :payment_method => :bradesco
           })
@@ -35,7 +24,7 @@ describe Braspag::Eft do
 
     it "should raise an error when :payment_method is not present" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :order_id => "13",
             :amount => "120.00"
           })
@@ -44,7 +33,7 @@ describe Braspag::Eft do
 
     it "should raise an error when :order_id is less than 1 character" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :order_id => "",
             :amount => "123.00",
             :payment_method => :bradesco
@@ -54,7 +43,7 @@ describe Braspag::Eft do
 
     it "should raise an error when :order_id is more than 50 characters" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :order_id => "1" * 51,
             :amount => "12.00",
             :payment_method => :bradesco
@@ -64,7 +53,7 @@ describe Braspag::Eft do
 
     it "should raise an error when :customer_name is less than 1 character" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :order_id => "102",
             :amount => "42.00",
             :payment_method => :bradesco,
@@ -75,7 +64,7 @@ describe Braspag::Eft do
 
     it "should raise an error when :customer_name is more than 255 characters" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :order_id => "112",
             :amount => "121.00",
             :payment_method => :bradesco,
@@ -86,7 +75,7 @@ describe Braspag::Eft do
 
     it "should raise an error when :customer_id is less than 11 characters" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :order_id => "23",
             :amount => "251.00",
             :payment_method => :bradesco,
@@ -97,7 +86,7 @@ describe Braspag::Eft do
 
     it "should raise an error when :customer_id is more than 18 characters" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :order_id => "90",
             :amount => "90.00",
             :payment_method => :bradesco,
@@ -108,7 +97,7 @@ describe Braspag::Eft do
 
     it "should raise an error when :installments is less than 1 character" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :order_id => "900",
             :amount => "92.00",
             :payment_method => :bradesco,
@@ -119,7 +108,7 @@ describe Braspag::Eft do
 
     it "should raise an error when :installments is more than 2 characters" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :order_id => "91",
             :amount => "80.00",
             :payment_method => :bradesco,
@@ -130,7 +119,7 @@ describe Braspag::Eft do
 
     it "should raise an error when :installments is not a number" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :order_id => "91",
             :amount => "80.00",
             :payment_method => :bradesco,
@@ -141,7 +130,7 @@ describe Braspag::Eft do
 
     it "should raise an error when :has_interest is not boolean" do
       expect {
-        Braspag::Eft.new(connection, {
+        Braspag::Eft.new({
             :order_id => "76",
             :amount => "50.00",
             :payment_method => :bradesco,
@@ -154,7 +143,7 @@ describe Braspag::Eft do
   describe ".generate" do
     let!(:crypto_key) {"{84BE7E7F-698A-6C74-F820-AE359C2A07C2}"}
     let!(:braspag_crypto_jar_webservice) {Braspag::Crypto::JarWebservice.new(crypto_key, "http://localhost:9292")}
-    let!(:braspag_crypto_webservice) {Braspag::Crypto::Webservice.new(connection)}
+    let!(:braspag_crypto_webservice) {Braspag::Crypto::Webservice}
     
     
     it "should return form fields in strategy without crypto" do
@@ -174,7 +163,7 @@ describe Braspag::Eft do
 </script>
       EOHTML
 
-      Braspag::Eft.new(connection , {
+      Braspag::Eft.new({
           :order_id => "1234123125",
           :amount => "123.00",
           :payment_method => :bradesco
@@ -199,7 +188,7 @@ describe Braspag::Eft do
 </script>
       EOHTML
 
-      Braspag::Eft.new(connection , {
+      Braspag::Eft.new({
           :order_id => "1234123125",
           :amount => "123.00",
           :payment_method => :bradesco
@@ -226,14 +215,13 @@ describe Braspag::Eft do
 </script>
       EOHTML
 
-      Braspag::Eft.new(connection , {
+      Braspag::Eft.new({
           :order_id => "1234123125",
           :amount => "123.00",
           :payment_method => :bradesco
         } , braspag_crypto_webservice ).generate.should == html
          
       FakeWeb.clean_registry
-         
     end
 
     context ".payment_method_from_id" do
@@ -242,7 +230,5 @@ describe Braspag::Eft do
         Braspag::Eft.payment_method_from_id(31).should be_kind_of Symbol
       end
     end
-
   end
-
 end

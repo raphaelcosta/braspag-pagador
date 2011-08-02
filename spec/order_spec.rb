@@ -2,33 +2,24 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe Braspag::Order do
-
-  let!(:merchant_id) {"{84BE7E7F-698A-6C74-F820-AE359C2A07C2}"}
-  let!(:connection) {Braspag::Connection.new(merchant_id, :test)}
+  let!(:braspag_url) { "https://homologacao.pagador.com.br" }
 
   describe "#status" do
-
-    it "should raise an error when no connection is given" do
-      expect {
-        Braspag::Order.status("", nil)
-      }.to raise_error(Braspag::InvalidConnection)
-    end
-
     it "should raise an error when no order_id is given" do
       expect {
-        Braspag::Order.status(connection, nil)
+        Braspag::Order.status(nil)
       }.to raise_error(Braspag::InvalidOrderId)
     end
 
     it "should raise an error when order_id is empty" do
       expect {
-        Braspag::Order.status(connection, "")
+        Braspag::Order.status("")
       }.to raise_error(Braspag::InvalidOrderId)
     end
 
     it "should raise an error when order_id is more than 50 characters" do
       expect {
-        Braspag::Order.status(connection, "1" * 51)
+        Braspag::Order.status("1" * 51)
       }.to raise_error(Braspag::InvalidOrderId)
     end
 
@@ -41,17 +32,16 @@ describe Braspag::Order do
            xmlns="http://www.pagador.com.br/" />
       EOXML
 
-      FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/pagador/webservice/pedido.asmx/GetDadosPedido",
+      FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosPedido",
         :body => xml)
 
       expect {
-        Braspag::Order.status(connection, "sadpoakjspodqdouq09wduwq")
+        Braspag::Order.status("sadpoakjspodqdouq09wduwq")
       }.to raise_error(Braspag::Order::InvalidData)
 
-      new_connection = Braspag::Connection.new("{12345678-1234-1234-1234-123456789012}", :test)
 
       expect {
-        Braspag::Order.status(new_connection, "asdnasdniousa")
+        Braspag::Order.status("asdnasdniousa")
       }.to raise_error(Braspag::Order::InvalidData)
 
       FakeWeb.clean_registry
@@ -78,9 +68,9 @@ describe Braspag::Order do
 </DadosPedido>
         EOXML
 
-        FakeWeb.register_uri(:post, "#{Braspag::Test::BASE_URL}/pagador/webservice/pedido.asmx/GetDadosPedido",
+        FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosPedido",
                               :body => xml)
-        order_info = Braspag::Order.status(connection, "12345")
+        order_info = Braspag::Order.status("12345")
         FakeWeb.clean_registry
         order_info
       }

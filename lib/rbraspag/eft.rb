@@ -20,12 +20,11 @@ module Braspag
       :has_interest => "TIPOPARCELADO"
     }
 
-    def initialize(connection, params, crypto_strategy = nil)
-      raise InvalidConnection unless connection.is_a?(Braspag::Connection)
-
+    def initialize(params, crypto_strategy = nil)
+      connection = Braspag::Connection.instance
       @connection = connection
       @params = params
-      @params[:merchant_id] = connection.merchant_id
+      @params[:merchant_id] = @connection.merchant_id
       @crypto_strategy = crypto_strategy
       
       if @params[:amount] && !@params[:amount].is_a?(BigDecimal)
@@ -112,7 +111,7 @@ module Braspag
     end
 
     def uri
-      "#{@connection.base_url}/pagador/passthru.asp"
+      "#{@connection.braspag_url}/pagador/passthru.asp"
     end
   end
 end

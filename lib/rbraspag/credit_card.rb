@@ -44,21 +44,21 @@ module Braspag
       :type => "typePayment",
     }
 
-    def initialize(connection)
-      raise InvalidConnection unless connection.is_a?(Braspag::Connection)
-      @connection = connection
-      @merchant_id = connection.merchant_id 
+    def initialize
     end
 
-    def uri_authorize
-      "#{@connection.base_url}/webservices/pagador/Pagador.asmx/Authorize"
+    def self.uri_authorize
+      "#{Braspag::Connection.instance.braspag_url}/webservices/pagador/Pagador.asmx/Authorize"
     end
 
-    def uri_capture
-      "#{@connection.base_url}/webservices/pagador/Pagador.asmx/Capture"
+    def self.uri_capture
+      "#{Braspag::Connection.instance.braspag_url}/webservices/pagador/Pagador.asmx/Capture"
     end
 
-    def authorize params
+    def self.authorize(params = {})
+      connection = Braspag::Connection.instance
+      params[:merchant_id] = connection.merchant_id
+
       [:order_id, :customer_name, :amount, :payment_method, :holder,
         :card_number, :expiration, :security_code, :number_payments, :type].each do |param|
         raise IncompleteParams unless params.include?(param)
@@ -90,10 +90,13 @@ module Braspag
       response = convert_to_map response.body
     end
 
-    def capture(order_id)
+    def self.capture(order_id)
+      connection = Braspag::Connection.instance
+      merchant_id = connection.merchant_id
+
       raise InvalidOrderId unless (1..20).include?(order_id.to_s.size)
 
-      data = {MAPPING[:order_id] => order_id, "merchantId" => @merchant_id }
+      data = {MAPPING[:order_id] => order_id, "merchantId" => merchant_id }
       request = ::HTTPI::Request.new uri_capture
 
       request.body = data
@@ -101,7 +104,7 @@ module Braspag
       convert_to_map(response.body)
     end
 
-    def convert_to_map(document)
+    def self.convert_to_map(document)
       document = Nokogiri::XML(document)
 
       map = {
