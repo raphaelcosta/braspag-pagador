@@ -88,9 +88,23 @@ module Braspag
       request.body = data
 
       response = ::HTTPI.post request
-#      puts response.body
-      response = convert_to_map response.body
-#      puts response
+      response = Utils::convert_to_map(response.body,
+      {
+        :url => nil,
+        :amount => nil,
+        :number => "boletoNumber",
+        :expiration_date => Proc.new { |document|
+          begin
+            Date.parse(document.search("expirationDate").first.to_s)
+          rescue
+            nil
+          end
+        },
+        :return_code => "returnCode",
+        :status => nil,
+        :message => nil
+      })
+
       
       raise InvalidAmount if response[:message] == "Invalid purchase amount"
       raise InvalidMerchantId if response[:message] == "Invalid merchantId"
@@ -103,51 +117,44 @@ module Braspag
       response
     end
 
+
+     def self.status(order_id)
+      connection = Braspag::Connection.instance
+
+      raise InvalidOrderId unless order_id.is_a?(String) || order_id.is_a?(Fixnum)
+      raise InvalidOrderId unless (1..50).include?(order_id.to_s.size)
+
+      request = ::HTTPI::Request.new("#{connection.braspag_url}/pagador/webservice/pedido.asmx/GetDadosBoleto")
+      request.body = {:loja => connection.merchant_id, :numeroPedido => order_id.to_s}
+
+      response = ::HTTPI.post(request)
+      
+      response = Utils::convert_to_map(response.body, {
+        :authorization => "CodigoAutorizacao",
+        :error_code => "CodigoErro",
+        :error_message => "MensagemErro",
+        :payment_method => "CodigoPagamento",
+        :payment_method_name => "FormaPagamento",
+        :installments => "NumeroParcelas",
+        :status => "Status",
+        :amount => "Valor",
+        :cancelled_at => "DataCancelamento",
+        :paid_at => "DataPagamento",
+        :order_date => "DataPedido",
+        :transaction_id => "TransId",
+        :tid => "BraspagTid"
+      })
+
+      raise UnknownError if response[:authorization].nil?
+      response
+
+    end
+
     protected
   
     def self.uri
       connection = Braspag::Connection.instance
       "#{connection.braspag_url}/webservices/pagador/Boleto.asmx/CreateBoleto"
-    end
-
-    def self.convert_to_map(document)
-      document = Nokogiri::XML(document)
-
-      map = {
-        :url => nil,
-        :amount => nil,
-        :number => "boletoNumber",
-        :expiration_date => Proc.new {
-          begin
-            Date.parse(document.search("expirationDate").first.to_s)
-          rescue
-            nil
-          end
-        },
-        :return_code => "returnCode",
-        :status => nil,
-        :message => nil
-      }
-
-      map.each do |keyForMap , keyValue|
-        if keyValue.is_a?(String) || keyValue.nil?
-          keyValue = keyForMap if keyValue.nil?
-
-          value = document.search(keyValue).first
-          if !value.nil?
-            value = value.content.to_s
-            map[keyForMap] = value unless value == ""
-          end
-
-        elsif keyValue.is_a?(Proc)
-          map[keyForMap] = keyValue.call
-        end
-
-        map[keyForMap]
-      end
-
-
-      map
     end
   end
 end

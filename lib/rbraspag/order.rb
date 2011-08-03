@@ -1,6 +1,5 @@
 module Braspag
   class Order
-
     class InvalidData < Exception; end
 
     def self.status(order_id)
@@ -14,17 +13,7 @@ module Braspag
 
       response = ::HTTPI.post(request)
 
-      response = convert_to_map response.body
-
-      raise InvalidData if response[:authorization].nil?
-      response
-
-    end
-
-    def self.convert_to_map(document)
-      document = Nokogiri::XML(document)
-
-      map = {
+      response = Utils::convert_to_map(response.body, {
         :authorization => "CodigoAutorizacao",
         :error_code => "CodigoErro",
         :error_message => "MensagemErro",
@@ -38,29 +27,11 @@ module Braspag
         :order_date => "DataPedido",
         :transaction_id => "TransId",
         :tid => "BraspagTid"
-      }
+      })
 
-      map.each do |keyForMap , keyValue|
-        if keyValue.is_a?(String) || keyValue.nil?
-          keyValue = keyForMap if keyValue.nil?
+      raise InvalidData if response[:authorization].nil?
+      response
 
-          value = document.search(keyValue).first
-          if !value.nil?
-            value = value.content.to_s
-            map[keyForMap] = value unless value == ""
-            map[keyForMap] = nil if value == ""
-          else
-            map[keyForMap] = nil
-          end
-
-        elsif keyValue.is_a?(Proc)
-          map[keyForMap] = keyValue.call
-        end
-
-        map[keyForMap]
-      end
-
-      map
     end
   end
 end

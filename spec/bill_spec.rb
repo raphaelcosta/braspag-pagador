@@ -468,6 +468,106 @@ describe Braspag::Bill do
     end
   end
 
+  describe "#status" do
+    it "should raise an error when no Bill_id is given" do
+      expect {
+        Braspag::Bill.status(nil)
+      }.to raise_error(Braspag::InvalidOrderId)
+    end
+
+    it "should raise an error when Bill_id is empty" do
+      expect {
+        Braspag::Bill.status("")
+      }.to raise_error(Braspag::InvalidOrderId)
+    end
+
+    it "should raise an error when Bill_id is more than 50 characters" do
+      expect {
+        Braspag::Bill.status("1" * 51)
+      }.to raise_error(Braspag::InvalidOrderId)
+    end
+
+    it "should raise an error for incorrect data" do
+      xml = <<-EOXML
+<?xml version="1.0" encoding="utf-8"?>
+<DadosBoleto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xsi:nil="true"
+           xmlns="http://www.pagador.com.br/" />
+      EOXML
+
+      FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosBoleto",
+        :body => xml)
+
+      expect {
+        Braspag::Bill.status("sadpoakjspodqdouq09wduwq")
+      }.to raise_error(Braspag::UnknownError)
+
+
+      expect {
+        Braspag::Bill.status("asdnasdniousa")
+      }.to raise_error(Braspag::UnknownError)
+
+      FakeWeb.clean_registry
+    end
+
+    context "with correct data" do
+
+      let(:status) {
+        xml = <<-EOXML
+<?xml version="1.0" encoding="utf-8"?>
+<DadosBoleto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns="http://www.pagador.com.br/">
+<NumeroDocumento>999</NumeroDocumento>
+<Sacado/>
+<NossoNumero>999</NossoNumero>
+<LinhaDigitavel>35690.00361 03962.070003 00000.009993 4 50160000001000</LinhaDigitavel>
+<DataDocumento>22/6/2011</DataDocumento>
+<DataVencimento>2/7/2011</DataVencimento>
+<Cedente>Gonow Tecnologia e Acessoria Empresarial Ltda</Cedente>
+<Banco>356-5</Banco>
+<Agencia>0003</Agencia>
+<Conta>6039620</Conta>
+<Carteira>57</Carteira>
+<ValorDocumento>10,00</ValorDocumento>
+</DadosBoleto>
+        EOXML
+
+        FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosBoleto",
+          :body => xml)
+        status = Braspag::Bill.status("12345")
+        FakeWeb.clean_registry
+        status
+      }
+
+      it "should return a Hash" do
+        status.should be_kind_of Hash
+      end
+
+      {
+        :authorization => "885796",
+        :error_code => nil,
+        :error_message => nil,
+        :payment_method => "18",
+        :payment_method_name => "American Express 2P",
+        :installments => "1",
+        :status => "3",
+        :amount => "0.01",
+        :cancelled_at => nil,
+        :paid_at => "7/8/2011 1:19:38 PM",
+        :Bill_date => "7/8/2011 1:06:06 PM",
+        :transaction_id => "398591",
+        :tid => "5a1d4463-1d11-4571-a877-763aba0ef7ff"
+      }.each do |key, value|
+
+        it "should return a Hash with :#{key.to_s} key" do
+          status[key].should == value
+        end
+      end
+    end
+  end
+
   describe ".payment_method_from_id" do
       it 'Credit card amex' do
         Braspag::Bill::payment_method_from_id("06").should == :bradesco

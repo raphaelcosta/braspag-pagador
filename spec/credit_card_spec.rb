@@ -5,7 +5,6 @@ describe Braspag::CreditCard do
   let!(:braspag_url) { "https://homologacao.pagador.com.br" }
 
   describe ".authorize" do
-
     it "should raise an error when :order_id is not present" do
      expect {
        Braspag::CreditCard.authorize({
@@ -460,6 +459,4 @@ describe Braspag::CreditCard do
     end
 
   end
-
 end
-

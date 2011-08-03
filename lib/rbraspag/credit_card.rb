@@ -44,9 +44,6 @@ module Braspag
       :type => "typePayment",
     }
 
-    def initialize
-    end
-
     def self.uri_authorize
       "#{Braspag::Connection.instance.braspag_url}/webservices/pagador/Pagador.asmx/Authorize"
     end
@@ -87,7 +84,14 @@ module Braspag
       request = ::HTTPI::Request.new uri_authorize
       request.body = data
       response = ::HTTPI.post request
-      response = convert_to_map response.body
+      Utils::convert_to_map(response.body, {
+        :amount => nil,
+        :number => "authorisationNumber",
+        :message => 'message',
+        :return_code => 'returnCode',
+        :status => 'status',
+        :transaction_id => "transactionId"
+      })
     end
 
     def self.capture(order_id)
@@ -101,39 +105,15 @@ module Braspag
 
       request.body = data
       response = ::HTTPI.post(request)
-      convert_to_map(response.body)
-    end
 
-    def self.convert_to_map(document)
-      document = Nokogiri::XML(document)
-
-      map = {
+      Utils::convert_to_map(response.body, {
         :amount => nil,
         :number => "authorisationNumber",
         :message => 'message',
         :return_code => 'returnCode',
         :status => 'status',
         :transaction_id => "transactionId"
-      }
-
-      map.each do |keyForMap , keyValue|
-        if keyValue.is_a?(String) || keyValue.nil?
-          keyValue = keyForMap if keyValue.nil?
-
-          value = document.search(keyValue).first
-          if !value.nil?
-            value = value.content.to_s
-            map[keyForMap] = value unless value == ""
-          end
-
-        elsif keyValue.is_a?(Proc)
-          map[keyForMap] = keyValue.call
-        end
-
-        map[keyForMap]
-      end
-
-      map
+      })
     end
   end
 end

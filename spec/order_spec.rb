@@ -69,7 +69,7 @@ describe Braspag::Order do
         EOXML
 
         FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosPedido",
-                              :body => xml)
+          :body => xml)
         order_info = Braspag::Order.status("12345")
         FakeWeb.clean_registry
         order_info
@@ -98,11 +98,7 @@ describe Braspag::Order do
         it "should return a Hash with :#{key.to_s} key" do
           order_info[key].should == value
         end
-
       end
     end
-
   end
-
 end
-
