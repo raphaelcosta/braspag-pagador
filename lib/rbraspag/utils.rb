@@ -1,5 +1,4 @@
 module Braspag
-
   class Utils
     def self.convert_decimal_to_string(value)
       cents = "0#{((value - value.to_i) * 100).to_i}".slice(-2,2)
@@ -7,5 +6,4 @@ module Braspag
       "#{integer},#{cents}"
     end
   end
-  
 end

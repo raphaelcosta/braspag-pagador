@@ -2,10 +2,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Braspag::Crypto::JarWebservice do
-  let!(:crypto_key) {"{84BE7E7F-698A-6C74-F820-AE359C2A07C2}"}
-  let!(:uri) {"http://localhost:9292"}
-  let!(:crypt) {Braspag::Crypto::JarWebservice.new(crypto_key, uri)}
-  let!(:crypt_invalid) {Braspag::Crypto::JarWebservice.new("00000", uri)}
+  let!(:crypt) {Braspag::Crypto::JarWebservice}
   let! (:key) {"5u0ZN5qk8eQNuuGPHrcsk0rfi7YclF6s+ZXCE+G4uG4ztfRJrrOALlf81ra7k7p7"}
 
   after (:each) do
@@ -90,7 +87,7 @@ INVALIDO
         )
 
         expect {
-          crypt_invalid.encrypt(:venda => "value")
+          crypt.encrypt(:venda => "value")
         }.to raise_error(Braspag::InvalidCryptKey)
       end
       
@@ -182,7 +179,7 @@ INVALIDO
         )
         
         expect {
-          crypt_invalid.decrypt(key, [:nome, :sobrenome])
+          crypt.decrypt(key, [:nome, :sobrenome])
         }.to raise_error(Braspag::InvalidCryptKey)
       end
       

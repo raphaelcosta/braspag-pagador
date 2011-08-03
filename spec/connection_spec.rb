@@ -4,12 +4,16 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 describe Braspag::Connection do
   let!(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
   let!(:braspag_url) { "https://homologacao.pagador.com.br" }
+  let!(:crypto_key) {"{84BE7E7F-698A-6C74-F820-AE359C2A07C2}"}
+  let!(:crypto_url) {"http://localhost:9292"}
 
   let!(:mock_for_connection) {
     mock = {}
     mock[ENV["RACK_ENV"]] = {
       "merchant_id" => merchant_id,
-      "braspag_url" => braspag_url
+      "braspag_url" => braspag_url,
+      "crypto_key" => crypto_key,
+      "crypto_url" => crypto_url
     }
     mock
   }
@@ -111,5 +115,15 @@ describe Braspag::Connection do
   it "should :braspag_url has correct in instance" do
     new_connection = @connection.instance
     new_connection.braspag_url.should == braspag_url
+  end
+
+  it "should :crypto_url has correct in instance" do
+    new_connection = @connection.instance
+    new_connection.crypto_url.should == crypto_url
+  end
+
+  it "should :crypto_key has correct in instance" do
+    new_connection = @connection.instance
+    new_connection.crypto_key.should == crypto_key
   end
 end

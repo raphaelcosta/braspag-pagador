@@ -1,19 +1,14 @@
 module Braspag
   module Crypto
     class JarWebservice
-      
-      def initialize(crypto_key, connection_uri)
-        @crypto_key = crypto_key
-        @connection_uri = connection_uri
-      end
-      
-      def encrypt(map)
+      def self.encrypt(map)
+        crypto_key = Braspag::Connection.instance.crypto_key
         raise Braspag::IncompleteParams if map.nil?
         raise Braspag::IncompleteParams unless map.is_a?(Hash)
         
         request = ::HTTPI::Request.new encrypt_uri
         
-        data = {:key => @crypto_key, :fields => map}
+        data = {:key => crypto_key, :fields => map}
                             
         request.headers["Content-Type"] = "application/json"
         
@@ -38,7 +33,8 @@ module Braspag
         response["encrypt"]
       end
 
-      def decrypt(encrypted, fields)
+      def self.decrypt(encrypted, fields)
+        crypto_key = Braspag::Connection.instance.crypto_key
         raise Braspag::InvalidEncryptedKey if encrypted.nil?
         raise Braspag::InvalidEncryptedKey unless encrypted.is_a?(String)
         
@@ -48,7 +44,7 @@ module Braspag
         
         request = ::HTTPI::Request.new decrypt_uri
         request.body = {
-        	"key" => @crypto_key,
+        	"key" => crypto_key,
         	"encrypted" => encrypted,
         	"fields" => fields
         }.to_json
@@ -80,12 +76,14 @@ module Braspag
       end
 
       protected
-      def encrypt_uri
-        "#{@connection_uri}/v1/encrypt.json"
+      def self.encrypt_uri
+        connection_uri = Braspag::Connection.instance.crypto_url
+        "#{connection_uri}/v1/encrypt.json"
       end
       
-      def decrypt_uri
-        "#{@connection_uri}/v1/decrypt.json"
+      def self.decrypt_uri
+        connection_uri = Braspag::Connection.instance.crypto_url
+        "#{connection_uri}/v1/decrypt.json"
       end
       
     end
