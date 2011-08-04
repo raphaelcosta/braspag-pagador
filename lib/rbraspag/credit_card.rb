@@ -117,7 +117,7 @@ module Braspag
     end
 
 
-    def self.status(order_id)
+    def self.info(order_id)
       connection = Braspag::Connection.instance
 
       raise InvalidOrderId unless order_id.is_a?(String) || order_id.is_a?(Fixnum)

@@ -462,19 +462,19 @@ describe Braspag::CreditCard do
   describe "#status" do
     it "should raise an error when no order_id is given" do
       expect {
-        Braspag::CreditCard.status(nil)
+        Braspag::CreditCard.info(nil)
       }.to raise_error(Braspag::InvalidOrderId)
     end
 
     it "should raise an error when order_id is empty" do
       expect {
-        Braspag::CreditCard.status("")
+        Braspag::CreditCard.info("")
       }.to raise_error(Braspag::InvalidOrderId)
     end
 
     it "should raise an error when order_id is more than 50 characters" do
       expect {
-        Braspag::CreditCard.status("1" * 51)
+        Braspag::CreditCard.info("1" * 51)
       }.to raise_error(Braspag::InvalidOrderId)
     end
 
@@ -491,12 +491,12 @@ describe Braspag::CreditCard do
         :body => xml)
 
       expect {
-        Braspag::CreditCard.status("sadpoakjspodqdouq09wduwq")
+        Braspag::CreditCard.info("sadpoakjspodqdouq09wduwq")
       }.to raise_error(Braspag::UnknownError)
 
 
       expect {
-        Braspag::CreditCard.status("asdnasdniousa")
+        Braspag::CreditCard.info("asdnasdniousa")
       }.to raise_error(Braspag::UnknownError)
 
       FakeWeb.clean_registry
@@ -517,7 +517,7 @@ describe Braspag::CreditCard do
 
         FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosCartao",
           :body => xml)
-        order_info = Braspag::CreditCard.status("12345")
+        order_info = Braspag::CreditCard.info("12345")
         FakeWeb.clean_registry
         order_info
       }

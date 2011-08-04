@@ -471,19 +471,19 @@ describe Braspag::Bill do
   describe "#status" do
     it "should raise an error when no Bill_id is given" do
       expect {
-        Braspag::Bill.status(nil)
+        Braspag::Bill.info(nil)
       }.to raise_error(Braspag::InvalidOrderId)
     end
 
     it "should raise an error when Bill_id is empty" do
       expect {
-        Braspag::Bill.status("")
+        Braspag::Bill.info("")
       }.to raise_error(Braspag::InvalidOrderId)
     end
 
     it "should raise an error when Bill_id is more than 50 characters" do
       expect {
-        Braspag::Bill.status("1" * 51)
+        Braspag::Bill.info("1" * 51)
       }.to raise_error(Braspag::InvalidOrderId)
     end
 
@@ -500,12 +500,12 @@ describe Braspag::Bill do
         :body => xml)
 
       expect {
-        Braspag::Bill.status("sadpoakjspodqdouq09wduwq")
+        Braspag::Bill.info("sadpoakjspodqdouq09wduwq")
       }.to raise_error(Braspag::UnknownError)
 
 
       expect {
-        Braspag::Bill.status("asdnasdniousa")
+        Braspag::Bill.info("asdnasdniousa")
       }.to raise_error(Braspag::UnknownError)
 
       FakeWeb.clean_registry
@@ -536,7 +536,7 @@ describe Braspag::Bill do
 
         FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosBoleto",
           :body => xml)
-        status = Braspag::Bill.status("12345")
+        status = Braspag::Bill.info("12345")
         FakeWeb.clean_registry
         status
       }
