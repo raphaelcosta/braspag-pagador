@@ -458,5 +458,89 @@ describe Braspag::CreditCard do
       end
     end
 
+
+  describe "#status" do
+    it "should raise an error when no order_id is given" do
+      expect {
+        Braspag::CreditCard.status(nil)
+      }.to raise_error(Braspag::InvalidOrderId)
+    end
+
+    it "should raise an error when order_id is empty" do
+      expect {
+        Braspag::CreditCard.status("")
+      }.to raise_error(Braspag::InvalidOrderId)
+    end
+
+    it "should raise an error when order_id is more than 50 characters" do
+      expect {
+        Braspag::CreditCard.status("1" * 51)
+      }.to raise_error(Braspag::InvalidOrderId)
+    end
+
+    it "should raise an error for incorrect data" do
+      xml = <<-EOXML
+<?xml version="1.0" encoding="utf-8"?>
+<DadosCartao xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xsi:nil="true"
+           xmlns="http://www.pagador.com.br/" />
+      EOXML
+
+      FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosCartao",
+        :body => xml)
+
+      expect {
+        Braspag::CreditCard.status("sadpoakjspodqdouq09wduwq")
+      }.to raise_error(Braspag::UnknownError)
+
+
+      expect {
+        Braspag::CreditCard.status("asdnasdniousa")
+      }.to raise_error(Braspag::UnknownError)
+
+      FakeWeb.clean_registry
+    end
+
+    context "with correct data" do
+
+      let(:order_info) {
+        xml = <<-EOXML
+<DadosCartao xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.pagador.com.br/">
+  <NumeroComprovante>225296</NumeroComprovante>
+  <Autenticada>false</Autenticada>
+  <NumeroAutorizacao>557593</NumeroAutorizacao>
+  <NumeroCartao>345678*****0007</NumeroCartao>
+  <NumeroTransacao>101001225645</NumeroTransacao>
+</DadosCartao>
+        EOXML
+
+        FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosCartao",
+          :body => xml)
+        order_info = Braspag::CreditCard.status("12345")
+        FakeWeb.clean_registry
+        order_info
+      }
+
+      it "should return a Hash" do
+        order_info.should be_kind_of Hash
+      end
+
+      {
+        :checking_number => "225296",
+        :certified => "false",
+        :autorization_number => "557593",
+        :card_number => "345678*****0007",
+        :transaction_number => "101001225645"
+      }.each do |key, value|
+
+        it "should return a Hash with :#{key.to_s} key" do
+          order_info[key].should == value
+        end
+      end
+    end
+  end
+
+
   end
 end

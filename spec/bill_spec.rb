@@ -546,19 +546,18 @@ describe Braspag::Bill do
       end
 
       {
-        :authorization => "885796",
-        :error_code => nil,
-        :error_message => nil,
-        :payment_method => "18",
-        :payment_method_name => "American Express 2P",
-        :installments => "1",
-        :status => "3",
-        :amount => "0.01",
-        :cancelled_at => nil,
-        :paid_at => "7/8/2011 1:19:38 PM",
-        :Bill_date => "7/8/2011 1:06:06 PM",
-        :transaction_id => "398591",
-        :tid => "5a1d4463-1d11-4571-a877-763aba0ef7ff"
+        :document_number => "999",
+        :payer => nil,
+        :our_number => "999",
+        :bill_line => "35690.00361 03962.070003 00000.009993 4 50160000001000",
+        :document_date => "22/6/2011",
+        :expiration_date => "2/7/2011",
+        :receiver => "Gonow Tecnologia e Acessoria Empresarial Ltda",
+        :bank => "356-5",
+        :agency => "0003",
+        :account => "6039620",
+        :wallet => "57",
+        :amount => "10,00",
       }.each do |key, value|
 
         it "should return a Hash with :#{key.to_s} key" do

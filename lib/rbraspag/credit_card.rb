@@ -85,13 +85,13 @@ module Braspag
       request.body = data
       response = ::HTTPI.post request
       Utils::convert_to_map(response.body, {
-        :amount => nil,
-        :number => "authorisationNumber",
-        :message => 'message',
-        :return_code => 'returnCode',
-        :status => 'status',
-        :transaction_id => "transactionId"
-      })
+          :amount => nil,
+          :number => "authorisationNumber",
+          :message => 'message',
+          :return_code => 'returnCode',
+          :status => 'status',
+          :transaction_id => "transactionId"
+        })
     end
 
     def self.capture(order_id)
@@ -107,14 +107,41 @@ module Braspag
       response = ::HTTPI.post(request)
 
       Utils::convert_to_map(response.body, {
-        :amount => nil,
-        :number => "authorisationNumber",
-        :message => 'message',
-        :return_code => 'returnCode',
-        :status => 'status',
-        :transaction_id => "transactionId"
-      })
+          :amount => nil,
+          :number => "authorisationNumber",
+          :message => 'message',
+          :return_code => 'returnCode',
+          :status => 'status',
+          :transaction_id => "transactionId"
+        })
     end
+
+
+    def self.status(order_id)
+      connection = Braspag::Connection.instance
+
+      raise InvalidOrderId unless order_id.is_a?(String) || order_id.is_a?(Fixnum)
+      raise InvalidOrderId unless (1..50).include?(order_id.to_s.size)
+
+      request = ::HTTPI::Request.new("#{connection.braspag_url}/pagador/webservice/pedido.asmx/GetDadosCartao")
+      request.body = {:loja => connection.merchant_id, :numeroPedido => order_id.to_s}
+
+      response = ::HTTPI.post(request)
+
+      response = Utils::convert_to_map(response.body, {
+          :checking_number => "NumeroComprovante",
+          :certified => "Autenticada",
+          :autorization_number => "NumeroAutorizacao",
+          :card_number => "NumeroCartao",
+          :transaction_number => "NumeroTransacao"
+        })
+
+      raise UnknownError if response[:checking_number].nil?
+      response
+
+    end
+
+
   end
 end
 
