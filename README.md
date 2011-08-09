@@ -2,22 +2,36 @@
 
 rbraspag gem to use Braspag gateway
 
-# Instalation
+* This gem need RACK_ENV environment variable to identify the environment
 
-    gem install rbraspag
+# How to install
 
-# Example
+## for Rails 3 app
 
-## Create a Bill (Boleto/Bloqueto for brazilian guys)
-    your_merchant_id = '{12341234-1234-1234-1234-123412341234}'
-    connection = Braspag::Connection.new your_merchant_id
-    Braspag::Bill.new(connection , {
+### Add on your Gemfile
+
+	gem "rbraspag"
+
+### Create a config/braspag.yml file
+
+	$ rails generate braspag:install
+
+### Set RACK_ENV (our suggest)
+
+	# add last line in config/environment.rb
+    # ...
+    # ENV["RACK_ENV"] ||= ENV["RAILS_ENV"]
+
+### Edit config/braspag.yml with your Braspag merchant_id
+
+# Examples
+
+## to create a Bill (Boleto/Bloqueto for brazilian guys)
+    @bill = Braspag::Bill.generate({
       :order_id => 1,
       :amount => 3,
       :payment_method => 10
     })
-    @response = @bill.generate
-
 
 # License
 
