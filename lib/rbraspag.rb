@@ -1,7 +1,5 @@
 require "rbraspag/version"
 
-ENV["RACK_ENV"] ||= "development"
-
 require 'bundler'
 
 Bundler.setup
@@ -10,7 +8,7 @@ require "cs-httpi"
 require "json"
 require "nokogiri"
 
-Bundler.require(:default, ENV["RACK_ENV"].to_sym)
+Bundler.require(:default, (ENV["RACK_ENV"] || "development").to_sym)
 
 require 'rbraspag/connection'
 require 'rbraspag/payment_method'
