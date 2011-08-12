@@ -11,10 +11,10 @@ module Braspag
 
     MAPPING = {
       :merchant_id => "Id_Loja",
-      :order_id => "VendaId",
-      :customer_name => "Nome",
+      :order_id => "VENDAID",
+      :customer_name => "NOME",
       :customer_id => "Cpf",
-      :amount => "Valor",
+      :amount => "valor",
       :payment_method => "codpagamento",
       :installments => "PARCELAS",
       :has_interest => "TIPOPARCELADO"

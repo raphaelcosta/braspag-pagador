@@ -153,10 +153,10 @@ describe Braspag::Eft do
       html = <<-EOHTML
 <form id="form_tef_1234123125" name="form_tef_1234123125" action="https://homologacao.pagador.com.br/pagador/passthru.asp" method="post">
   <input type="text" name="Id_Loja" value="{84BE7E7F-698A-6C74-F820-AE359C2A07C2}" />
-  <input type="text" name="VendaId" value="1234123125" />
-  <input type="text" name="Nome" value="" />
+  <input type="text" name="VENDAID" value="1234123125" />
+  <input type="text" name="NOME" value="" />
   <input type="text" name="Cpf" value="" />
-  <input type="text" name="Valor" value="123,00" />
+  <input type="text" name="valor" value="123,00" />
   <input type="text" name="codpagamento" value="11" />
   <input type="text" name="PARCELAS" value="" />
   <input type="text" name="TIPOPARCELADO" value="" />
