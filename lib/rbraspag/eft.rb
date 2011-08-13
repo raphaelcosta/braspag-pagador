@@ -34,6 +34,9 @@ module Braspag
       raise InvalidOrderId unless params[:order_id].is_a?(String) || params[:order_id].is_a?(Fixnum)
       raise InvalidOrderId unless (1..50).include?(params[:order_id].to_s.size)
 
+      params[:installments] = "1" if params[:installments].nil?
+      params[:installments] = "1" if params[:installments].nil?
+
       unless params[:customer_name].nil?
         raise InvalidCustomerName unless (1..255).include?(params[:customer_name].to_s.size)
       end
@@ -53,6 +56,12 @@ module Braspag
 
       unless params[:has_interest].nil?
         raise InvalidHasInterest unless (params[:has_interest].is_a?(TrueClass) || params[:has_interest].is_a?(FalseClass))
+      end
+
+      if params[:has_interest]
+         params[:has_interest] = "1"
+      else
+         params[:has_interest] = "0"
       end
 
       data =  create_data(params)

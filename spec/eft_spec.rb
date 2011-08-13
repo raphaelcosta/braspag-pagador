@@ -154,12 +154,12 @@ describe Braspag::Eft do
 <form id="form_tef_1234123125" name="form_tef_1234123125" action="https://homologacao.pagador.com.br/pagador/passthru.asp" method="post">
   <input type="text" name="Id_Loja" value="{84BE7E7F-698A-6C74-F820-AE359C2A07C2}" />
   <input type="text" name="VENDAID" value="1234123125" />
-  <input type="text" name="NOME" value="" />
-  <input type="text" name="Cpf" value="" />
-  <input type="text" name="valor" value="123,00" />
-  <input type="text" name="codpagamento" value="11" />
-  <input type="text" name="PARCELAS" value="" />
-  <input type="text" name="TIPOPARCELADO" value="" />
+  <input type="text" name="nome" value="" />
+  <input type="text" name="CPF" value="" />
+  <input type="text" name="VALOR" value="12300" />
+  <input type="text" name="CODPAGAMENTO" value="11" />
+  <input type="text" name="PARCELAS" value="1" />
+  <input type="text" name="TIPOPARCELADO" value="0" />
 </form>
 <script type="text/javascript" charset="utf-8">
   document.forms["form_tef_1234123125"].submit();
