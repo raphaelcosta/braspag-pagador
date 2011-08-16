@@ -156,7 +156,7 @@ describe Braspag::Eft do
   <input type="text" name="VENDAID" value="1234123125" />
   <input type="text" name="nome" value="" />
   <input type="text" name="CPF" value="" />
-  <input type="text" name="VALOR" value="12300" />
+  <input type="text" name="VALOR" value="123,00" />
   <input type="text" name="CODPAGAMENTO" value="11" />
   <input type="text" name="PARCELAS" value="1" />
   <input type="text" name="TIPOPARCELADO" value="0" />
