@@ -3,6 +3,7 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe Braspag::CreditCard do
   let!(:braspag_url) { "https://homologacao.pagador.com.br" }
+  let!(:braspag_query_url) { "https://homologacao.pagador.com.br/pagador/webservice/pedido.asmx" }
 
   describe ".authorize" do
     it "should raise an error when :order_id is not present" do
@@ -487,7 +488,7 @@ describe Braspag::CreditCard do
            xmlns="http://www.pagador.com.br/" />
       EOXML
 
-      FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosCartao",
+      FakeWeb.register_uri(:post, "#{braspag_query_url}/GetDadosCartao",
         :body => xml)
 
       expect {
@@ -515,7 +516,7 @@ describe Braspag::CreditCard do
 </DadosCartao>
         EOXML
 
-        FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosCartao",
+        FakeWeb.register_uri(:post, "#{braspag_query_url}/GetDadosCartao",
           :body => xml)
         order_info = Braspag::CreditCard.info("12345")
         FakeWeb.clean_registry

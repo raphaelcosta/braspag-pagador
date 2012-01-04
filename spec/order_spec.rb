@@ -3,6 +3,7 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe Braspag::Order do
   let!(:braspag_url) { "https://homologacao.pagador.com.br" }
+  let!(:braspag_query_url) { "https://homologacao.pagador.com.br/pagador/webservice/pedido.asmx" }
 
   describe "#status" do
     it "should raise an error when no order_id is given" do
@@ -32,7 +33,7 @@ describe Braspag::Order do
            xmlns="http://www.pagador.com.br/" />
       EOXML
 
-      FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosPedido",
+      FakeWeb.register_uri(:post, "#{braspag_query_url}/GetDadosPedido",
         :body => xml)
 
       expect {
@@ -68,7 +69,7 @@ describe Braspag::Order do
 </DadosPedido>
         EOXML
 
-        FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosPedido",
+        FakeWeb.register_uri(:post, "#{braspag_query_url}/GetDadosPedido",
           :body => xml)
         order_info = Braspag::Order.status("12345")
         FakeWeb.clean_registry

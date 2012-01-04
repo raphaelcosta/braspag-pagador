@@ -3,7 +3,8 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe Braspag::Bill do
   let!(:braspag_url) { "https://homologacao.pagador.com.br" }
-  
+  let!(:braspag_query_url) { "https://homologacao.pagador.com.br/pagador/webservice/pedido.asmx" }
+
   describe ".generate" do
     context "consitencies" do
       before do
@@ -496,7 +497,7 @@ describe Braspag::Bill do
            xmlns="http://www.pagador.com.br/" />
       EOXML
 
-      FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosBoleto",
+      FakeWeb.register_uri(:post, "#{braspag_query_url}/GetDadosBoleto",
         :body => xml)
 
       expect {
@@ -534,7 +535,7 @@ describe Braspag::Bill do
 </DadosBoleto>
         EOXML
 
-        FakeWeb.register_uri(:post, "#{braspag_url}/pagador/webservice/pedido.asmx/GetDadosBoleto",
+        FakeWeb.register_uri(:post, "#{braspag_query_url}/GetDadosBoleto",
           :body => xml)
         status = Braspag::Bill.info("12345")
         FakeWeb.clean_registry

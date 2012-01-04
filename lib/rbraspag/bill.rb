@@ -2,7 +2,7 @@ require "bigdecimal"
 
 module Braspag
   class Bill < PaymentMethod
-    
+
     PAYMENT_METHODS = {
       :bradesco => "06",
       :cef => "07",
@@ -27,7 +27,7 @@ module Braspag
       :emails => "emails"
     }
 
-
+    # (my face when I saw this method ---------> D:)
     def self.generate(params)
       connection = Braspag::Connection.instance
       params = params
@@ -70,7 +70,6 @@ module Braspag
       unless params[:payment_method].is_a?(Symbol) && PAYMENT_METHODS[params[:payment_method]]
         raise InvalidPaymentMethod
       end
-
 
       data =  MAPPING.inject({}) do |memo, k|
         if k[0] == :payment_method
@@ -117,14 +116,13 @@ module Braspag
       response
     end
 
-
     def self.info(order_id)
       connection = Braspag::Connection.instance
 
       raise InvalidOrderId unless order_id.is_a?(String) || order_id.is_a?(Fixnum)
       raise InvalidOrderId unless (1..50).include?(order_id.to_s.size)
 
-      request = ::HTTPI::Request.new("#{connection.braspag_url}/pagador/webservice/pedido.asmx/GetDadosBoleto")
+      request = ::HTTPI::Request.new("#{connection.braspag_query_url}/GetDadosBoleto")
       request.body = {:loja => connection.merchant_id, :numeroPedido => order_id.to_s}
 
       response = ::HTTPI.post(request)
@@ -148,11 +146,10 @@ module Braspag
 
       raise UnknownError if response[:document_number].nil?
       response
-
     end
 
     protected
-  
+
     def self.uri
       connection = Braspag::Connection.instance
       "#{connection.braspag_url}/webservices/pagador/Boleto.asmx/CreateBoleto"
