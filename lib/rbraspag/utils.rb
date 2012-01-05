@@ -1,32 +1,29 @@
 module Braspag
   class Utils
     def self.convert_decimal_to_string(value)
-      cents = "0#{((value - value.to_i) * 100).to_i}".slice(-2,2)
-      integer = (value - (value - value.to_i)).to_i
-      "#{integer},#{cents}"
+      ("%.2f" % value.to_f).gsub('.', ',')
     end
 
     def self.convert_to_map(document, map = {})
       document = Nokogiri::XML(document)
 
-      map.each do |keyForMap , keyValue|
-        if keyValue.is_a?(String) || keyValue.nil?
-          keyValue = keyForMap if keyValue.nil?
+      map.each do |key, value|
+        if value.is_a?(String) || value.nil?
+          value = key if value.nil?
 
-          value = document.search(keyValue).first
-          if !value.nil?
-            value = value.content.to_s
-            map[keyForMap] = value unless value == ""
-            map[keyForMap] = nil if value == ""
+          new_value = document.search(value).first
+
+          if new_value.nil?
+            map[key] = nil
           else
-            map[keyForMap] = nil
+            new_value = new_value.content.to_s
+            map[key] = new_value unless new_value == ""
+            map[key] = nil if new_value == ""
           end
 
-        elsif keyValue.is_a?(Proc)
-          map[keyForMap] = keyValue.call(document)
+        elsif value.is_a?(Proc)
+          map[key] = value.call(document)
         end
-
-        map[keyForMap]
       end
 
       map

@@ -24,4 +24,10 @@ module Braspag
   class InvalidType < Exception ; end
   class InvalidNumberPayments < Exception ; end
   class UnknownError < Exception ; end
+
+  class Connection
+    class InvalidMerchantId < Exception ; end
+    class InvalidEnv < Exception ; end
+    class InvalidBraspagUrl < Exception ; end
+  end
 end

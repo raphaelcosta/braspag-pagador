@@ -2,10 +2,6 @@ module Braspag
   class Connection
     include Singleton
 
-    class InvalidMerchantId < Exception ; end
-    class InvalidEnv < Exception ; end
-    class InvalidBraspagUrl < Exception ; end
-
     PRODUCTION_URL = "https://transaction.pagador.com.br"
     HOMOLOGATION_URL = "https://homologacao.pagador.com.br"
 
@@ -22,13 +18,13 @@ module Braspag
 
       raise InvalidMerchantId unless @merchant_id =~ /\{[a-z0-9]{8}-([a-z0-9]{4}-){3}[a-z0-9]{12}\}/i
 
-      @environment = @options["environment"] == 'production' ? 'production' : 'homologation'
-
-      @braspag_url = self.production? ? PRODUCTION_URL : HOMOLOGATION_URL
-      @braspag_query_url = self.production? ? PRODUCTION_QUERY_URL : HOMOLOGATION_QUERY_URL
-
       @crypto_key  = @options["crypto_key"]
       @crypto_url  = @options["crypto_url"]
+
+      @environment = @options["environment"] == 'production' ? 'production' : 'homologation'
+
+      @braspag_url       = self.production? ? PRODUCTION_URL : HOMOLOGATION_URL
+      @braspag_query_url = self.production? ? PRODUCTION_QUERY_URL : HOMOLOGATION_QUERY_URL
     end
 
     def production?
