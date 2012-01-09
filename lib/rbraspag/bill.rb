@@ -27,67 +27,34 @@ module Braspag
       :emails => "emails"
     }
 
-    # (my face when I saw this method ---------> D:)
+    PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosBoleto"
+    HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosBoleto"
+    CREATION_URI = "/webservices/pagador/Boleto.asmx/CreateBoleto"
+
     def self.generate(params)
       connection = Braspag::Connection.instance
-      params = params
       params[:merchant_id] = connection.merchant_id
 
-      if params[:expiration_date].is_a?(Date)
-        params[:expiration_date] = params[:expiration_date].strftime("%d/%m/%y")
-      end
+      params = self.normalize_params(params)
+      self.check_params(params)
 
-      if params[:amount] && !params[:amount].is_a?(BigDecimal)
-        params[:amount] = BigDecimal.new(params[:amount].to_s)
-      end
+      data = {}
 
-      raise IncompleteParams if params[:order_id].nil? || params[:amount].nil? || params[:payment_method].nil?
-
-      raise InvalidOrderId unless params[:order_id].is_a?(String) || params[:order_id].is_a?(Fixnum)
-      raise InvalidOrderId unless (1..50).include?(params[:order_id].to_s.size)
-
-      unless params[:customer_name].nil?
-        raise InvalidCustomerName unless (1..255).include?(params[:customer_name].to_s.size)
-      end
-
-      unless params[:customer_id].nil?
-        raise InvalidCustomerId unless (11..18).include?(params[:customer_id].to_s.size)
-      end
-
-      unless params[:number].nil?
-        raise InvalidNumber unless (1..255).include?(params[:number].to_s.size)
-      end
-
-      unless params[:instructions].nil?
-        raise InvalidInstructions unless (1..512).include?(params[:instructions].to_s.size)
-      end
-
-      unless params[:expiration_date].nil?
-        date_regexp = /(0[1-9]|1[0-9]|2[0-9]|3[01])\/(0[1-9]|1[012])\/\d\d/
-        raise InvalidExpirationDate unless params[:expiration_date].to_s =~ date_regexp
-      end
-
-      unless params[:payment_method].is_a?(Symbol) && PAYMENT_METHODS[params[:payment_method]]
-        raise InvalidPaymentMethod
-      end
-
-      data =  MAPPING.inject({}) do |memo, k|
-        if k[0] == :payment_method
-          memo[k[1]] = PAYMENT_METHODS[params[:payment_method]]
-        elsif k[0] == :amount
-          memo[k[1]] = Utils.convert_decimal_to_string(params[:amount])
+      MAPPING.each do |k, v|
+        case k
+        when :payment_method
+          data[v] = PAYMENT_METHODS[params[:payment_method]]
+        when :amount
+          data[v] = Utils.convert_decimal_to_string(params[:amount])
         else
-          memo[k[1]] = params[k[0]] || "";
+          data[v] = params[k] || ""
         end
-        
-        memo
       end
 
-      request = ::HTTPI::Request.new uri
+      request = ::HTTPI::Request.new(self.creation_url)
       request.body = data
 
-      response = ::HTTPI.post request
-      response = Utils::convert_to_map(response.body,
+      response = Utils::convert_to_map(::HTTPI.post(request).body,
         {
           :url => nil,
           :amount => nil,
@@ -104,9 +71,8 @@ module Braspag
           :message => nil
         })
 
-      
-      raise InvalidAmount if response[:message] == "Invalid purchase amount"
       raise InvalidMerchantId if response[:message] == "Invalid merchantId"
+      raise InvalidAmount if response[:message] == "Invalid purchase amount"
       raise InvalidPaymentMethod if response[:message] == "Invalid payment method"
       raise InvalidStringFormat if response[:message] == "Input string was not in a correct format."
       raise UnknownError if response[:status].nil?
@@ -116,17 +82,60 @@ module Braspag
       response
     end
 
+    def self.normalize_params(params)
+      params = super
+
+      if params[:expiration_date].respond_to?(:strftime)
+        params[:expiration_date] = params[:expiration_date].strftime("%d/%m/%y")
+      end
+
+      params
+    end
+
+    def self.check_params(params)
+      super
+
+      if params[:number]
+        raise InvalidNumber unless (1..255).include?(params[:number].to_s.size)
+      end
+
+      if params[:instructions]
+        raise InvalidInstructions unless (1..512).include?(params[:instructions].to_s.size)
+      end
+
+      if params[:expiration_date]
+        matches = params[:expiration_date].to_s.match /(\d{2})\/(\d{2})\/(\d{2})/
+        raise InvalidExpirationDate unless matches
+        begin
+          Date.new(matches[3].to_i, matches[2].to_i, matches[1].to_i)
+        rescue ArgumentError
+          raise InvalidExpirationDate
+        end
+      end
+    end
+
+    def self.info_url
+      connection = Braspag::Connection.instance
+      connection.braspag_url + (connection.production? ? PRODUCTION_INFO_URI : HOMOLOGATION_INFO_URI)
+    end
+
+    def self.creation_url
+      Braspag::Connection.instance.braspag_url + CREATION_URI
+    end
+
     def self.info(order_id)
       connection = Braspag::Connection.instance
 
-      raise InvalidOrderId unless order_id.is_a?(String) || order_id.is_a?(Fixnum)
-      raise InvalidOrderId unless (1..50).include?(order_id.to_s.size)
+      raise InvalidOrderId unless self.valid_order_id?(order_id)
 
-      request = ::HTTPI::Request.new("#{connection.braspag_query_url}/GetDadosBoleto")
-      request.body = {:loja => connection.merchant_id, :numeroPedido => order_id.to_s}
+      request = ::HTTPI::Request.new(self.info_url)
+      request.body = {
+        :loja => connection.merchant_id,
+        :numeroPedido => order_id.to_s
+      }
 
       response = ::HTTPI.post(request)
-      
+
       response = Utils::convert_to_map(response.body, {
           :document_number => "NumeroDocumento",
           :payer => "Sacado",
@@ -146,13 +155,6 @@ module Braspag
 
       raise UnknownError if response[:document_number].nil?
       response
-    end
-
-    protected
-
-    def self.uri
-      connection = Braspag::Connection.instance
-      "#{connection.braspag_url}/webservices/pagador/Boleto.asmx/CreateBoleto"
     end
   end
 end

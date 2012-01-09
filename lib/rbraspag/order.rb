@@ -1,15 +1,17 @@
 module Braspag
   class Order
-    class InvalidData < Exception; end
+    PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosPedido"
+    HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosPedido"
 
     def self.status(order_id)
       connection = Braspag::Connection.instance
 
-      raise InvalidOrderId unless order_id.is_a?(String) || order_id.is_a?(Fixnum)
-      raise InvalidOrderId unless (1..50).include?(order_id.to_s.size)
+      raise InvalidOrderId unless Braspag::PaymentMethod.valid_order_id?(order_id)
 
-      request = ::HTTPI::Request.new("#{connection.braspag_query_url}/GetDadosPedido")
-      request.body = {:loja => connection.merchant_id, :numeroPedido => order_id.to_s}
+      request = ::HTTPI::Request.new(self.status_url)
+      request.body = {
+        :loja => connection.merchant_id, :numeroPedido => order_id.to_s
+      }
 
       response = ::HTTPI.post(request)
 
@@ -31,7 +33,11 @@ module Braspag
 
       raise InvalidData if response[:authorization].nil?
       response
+    end
 
+    def self.status_url
+      connection = Braspag::Connection.instance
+      connection.braspag_url + (connection.production? ? PRODUCTION_INFO_URI : HOMOLOGATION_INFO_URI)
     end
   end
 end

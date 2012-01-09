@@ -11,9 +11,6 @@ describe Braspag::Connection do
   let(:braspag_homologation_url) { "https://homologacao.pagador.com.br" }
   let(:braspag_production_url) { "https://transaction.pagador.com.br" }
 
-  let(:braspag_homologation_query_url) { "https://homologacao.pagador.com.br/pagador/webservice/pedido.asmx" }
-  let(:braspag_production_query_url) { "https://query.pagador.com.br/webservices/pagador/pedido.asmx" }
-
   let(:braspag_config) do
     config = {}
     config[ENV["RACK_ENV"]] = {
@@ -135,7 +132,6 @@ describe Braspag::Connection do
 
         connection = Braspag::Connection.clone.instance
         connection.braspag_url.should == braspag_homologation_url
-        connection.braspag_query_url.should == braspag_homologation_query_url
       end
     end
 
@@ -148,7 +144,6 @@ describe Braspag::Connection do
 
         connection = Braspag::Connection.clone.instance
         connection.braspag_url.should == braspag_production_url
-        connection.braspag_query_url.should == braspag_production_query_url
       end
     end
   end

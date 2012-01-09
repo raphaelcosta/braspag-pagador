@@ -1,5 +1,6 @@
 module Braspag
   class Eft < PaymentMethod
+
     PAYMENT_METHODS = {
       :bradesco => 11,
       :itau => 12,
@@ -20,92 +21,70 @@ module Braspag
       :has_interest => "TIPOPARCELADO"
     }
 
+    ACTION_URI = "/pagador/passthru.asp"
+
     def self.generate(params, crypto_strategy = nil)
       connection = Braspag::Connection.instance
-
       params[:merchant_id] = connection.merchant_id
 
-      if params[:amount] && !params[:amount].is_a?(BigDecimal)
-        params[:amount] = BigDecimal.new(params[:amount].to_s)
-      end
+      params = self.normalize_params(params)
+      self.check_params(params)
 
-      raise IncompleteParams if params[:order_id].nil? || params[:amount].nil? || params[:payment_method].nil?
+      data = {}
 
-      raise InvalidOrderId unless params[:order_id].is_a?(String) || params[:order_id].is_a?(Fixnum)
-      raise InvalidOrderId unless (1..50).include?(params[:order_id].to_s.size)
-
-      params[:installments] = "1" if params[:installments].nil?
-      params[:installments] = "1" if params[:installments].nil?
-
-      unless params[:customer_name].nil?
-        raise InvalidCustomerName unless (1..255).include?(params[:customer_name].to_s.size)
-      end
-
-      unless params[:customer_id].nil?
-        raise InvalidCustomerId unless (11..18).include?(params[:customer_id].to_s.size)
-      end
-
-      unless params[:installments].nil?
-        raise InvalidInstallments unless (1..2).include?(params[:installments].to_s.size)
-        begin
-          params[:installments] = Integer(params[:installments]) unless params[:installments].is_a?(Integer)
-        rescue Exception => e
-          raise InvalidInstallments
+      MAPPING.each do |k, v|
+        case k
+        when :payment_method
+          data[v] = PAYMENT_METHODS[params[:payment_method]]
+        when :amount
+          data[v] = Utils.convert_decimal_to_string(params[:amount])
+        else
+          data[v] = params[k] || ""
         end
       end
 
-      unless params[:has_interest].nil?
-        raise InvalidHasInterest unless (params[:has_interest].is_a?(TrueClass) || params[:has_interest].is_a?(FalseClass))
-      end
-
-      if params[:has_interest]
-         params[:has_interest] = "1"
-      else
-         params[:has_interest] = "0"
-      end
-
-      data =  create_data(params)
-
-      html = "<form id=\"form_tef_#{params[:order_id]}\" name=\"form_tef_#{params[:order_id]}\" action=\"#{self.uri}\" method=\"post\">\n"
+      html = "<form id=\"form_tef_#{params[:order_id]}\" name=\"form_tef_#{params[:order_id]}\" action=\"#{self.action_url}\" method=\"post\">"
 
       if crypto_strategy.nil?
         data.each do |key, value|
-          html.concat "  <input type=\"text\" name=\"#{key}\" value=\"#{value}\" />\n"
+          html << "<input type=\"text\" name=\"#{key}\" value=\"#{value}\" />"
         end
       else
         data.delete("Id_Loja")
-        html.concat "  <input type=\"text\" name=\"crypt\" value=\"#{crypto_strategy.encrypt(data)}\" />\n"
-        html.concat "  <input type=\"text\" name=\"Id_Loja\" value=\"#{params[:merchant_id]}\" />\n"
+        html << "<input type=\"text\" name=\"Id_Loja\" value=\"#{params[:merchant_id]}\" />"
+        html << "<input type=\"text\" name=\"crypt\" value=\"#{crypto_strategy.encrypt(data)}\" />"
       end
 
-      html.concat <<-EOHTML
-</form>
-<script type="text/javascript" charset="utf-8">
-  document.forms["form_tef_#{params[:order_id]}"].submit();
-</script>
-      EOHTML
+      html << "</form><script type=\"text/javascript\" charset=\"utf-8\">document.forms[\"form_tef_#{params[:order_id]}\"].submit();</script>"
 
       html
     end
 
-    protected
-    def self.create_data(params)
-      MAPPING.inject({}) do |memo, k|
-        if k[0] == :payment_method
-          memo[k[1]] = PAYMENT_METHODS[params[:payment_method]]
-        elsif k[0] == :amount
-          memo[k[1]] = Utils.convert_decimal_to_string(params[:amount])
-        else
-          memo[k[1]] = params[k[0]] || "";
-        end
+    def self.normalize_params(params)
+      params = super
 
-        memo
+      params[:installments] = params[:installments].to_i unless params[:installments].nil?
+      params[:installments] ||= 1
+
+      params[:has_interest] = params[:has_interest] == true ? "1" : "0"
+
+      params
+    end
+
+    def self.check_params(params)
+      super
+
+      if params[:installments]
+        raise InvalidInstallments if params[:installments].to_i < 1 || params[:installments].to_i > 99
+      end
+
+      if params[:has_interest]
+        raise InvalidHasInterest unless (params[:has_interest].is_a?(TrueClass) || params[:has_interest].is_a?(FalseClass))
       end
     end
 
-    def self.uri
-      connection = Braspag::Connection.instance
-      "#{connection.braspag_url}/pagador/passthru.asp"
+    def self.action_url
+      Braspag::Connection.instance.braspag_url + ACTION_URI
     end
   end
 end

@@ -1,229 +1,209 @@
-#encoding: utf-8
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe Braspag::Eft do
-  let!(:key) { "1234561246" }
-  describe ".payment_method_from_id" do
-    it 'Eft' do
-      Braspag::Eft.payment_method_from_id(31).should == :unibanco
-      Braspag::Eft.payment_method_from_id(31).should be_kind_of Symbol
-    end
+  let(:braspag_homologation_url) { "https://homologacao.pagador.com.br" }
+  let(:braspag_production_url) { "https://transaction.pagador.com.br" }
+  let(:merchant_id) { "um id qualquer" }
+
+  before do
+    @connection = mock(:merchant_id => merchant_id)
+    Braspag::Connection.stub(:instance => @connection)
   end
 
   describe ".generate" do
-    context "consistencies" do
+    let(:params) do
+      {
+        :order_id => 11,
+        :amount => 3,
+        :payment_method => :bradesco,
+        :installments => 1,
+        :has_interest => 0
+      }
+    end
 
-      it "should raise an error when :order_id is not present" do
-        expect {
-          Braspag::Eft.generate({
-              :amount => "100.00",
-              :payment_method => :bradesco
-            })
-        }.to raise_error(Braspag::IncompleteParams)
-      end
+    let(:params_with_merchant_id) do
+      params.merge!(:merchant_id => merchant_id)
+    end
 
-      it "should raise an error when :amount is not present" do
-        expect {
-          Braspag::Eft.generate({
-              :order_id => "12",
-              :payment_method => :bradesco
-            })
-        }.to raise_error(Braspag::IncompleteParams)
-      end
+    let(:action_url) { "https://bla.com/foo/bar/baz" }
 
-      it "should raise an error when :payment_method is not present" do
-        expect {
-          Braspag::Eft.generate({
-              :order_id => "13",
-              :amount => "120.00"
-            })
-        }.to raise_error(Braspag::IncompleteParams)
-      end
+    before do
+      @connection.should_receive(:merchant_id)
 
-      it "should raise an error when :order_id is less than 1 character" do
-        expect {
-          Braspag::Eft.generate({
-              :order_id => "",
-              :amount => "123.00",
-              :payment_method => :bradesco
-            })
-        }.to raise_error(Braspag::InvalidOrderId)
-      end
+      Braspag::Eft.should_receive(:action_url)
+                  .and_return(action_url)
 
-      it "should raise an error when :order_id is more than 50 characters" do
-        expect {
-          Braspag::Eft.generate({
-              :order_id => "1" * 51,
-              :amount => "12.00",
-              :payment_method => :bradesco
-            })
-        }.to raise_error(Braspag::InvalidOrderId)
-      end
+      Braspag::Eft.should_receive(:normalize_params)
+                  .with(params_with_merchant_id)
+                  .and_return(params_with_merchant_id)
 
-      it "should raise an error when :customer_name is less than 1 character" do
-        expect {
-          Braspag::Eft.generate({
-              :order_id => "102",
-              :amount => "42.00",
-              :payment_method => :bradesco,
-              :customer_name => ""
-            })
-        }.to raise_error(Braspag::InvalidCustomerName)
-      end
+      Braspag::Eft.should_receive(:check_params)
+                  .and_return(true)
+    end
 
-      it "should raise an error when :customer_name is more than 255 characters" do
-        expect {
-          Braspag::Eft.generate({
-              :order_id => "112",
-              :amount => "121.00",
-              :payment_method => :bradesco,
-              :customer_name => "A" * 256
-            })
-        }.to raise_error(Braspag::InvalidCustomerName)
-      end
+    it "should return a html form" do
+      html = "<form id=\"form_tef_11\" name=\"form_tef_11\" action=\"#{action_url}\" method=\"post\">" +
+             "<input type=\"text\" name=\"Id_Loja\" value=\"#{merchant_id}\" />" +
+             '<input type="text" name="VENDAID" value="11" />' +
+             '<input type="text" name="nome" value="" />' +
+             '<input type="text" name="CPF" value="" />' +
+             '<input type="text" name="VALOR" value="3,00" />' +
+             '<input type="text" name="CODPAGAMENTO" value="11" />' +
+             '<input type="text" name="PARCELAS" value="1" />' +
+             '<input type="text" name="TIPOPARCELADO" value="0" />' +
+             '</form>' +
+             '<script type="text/javascript" charset="utf-8">document.forms["form_tef_11"].submit();</script>'
 
-      it "should raise an error when :customer_id is less than 11 characters" do
-        expect {
-          Braspag::Eft.generate({
-              :order_id => "23",
-              :amount => "251.00",
-              :payment_method => :bradesco,
-              :customer_id => "2" * 10
-            })
-        }.to raise_error(Braspag::InvalidCustomerId)
-      end
+      Braspag::Eft.generate(params).should == html
+    end
 
-      it "should raise an error when :customer_id is more than 18 characters" do
-        expect {
-          Braspag::Eft.generate({
-              :order_id => "90",
-              :amount => "90.00",
-              :payment_method => :bradesco,
-              :customer_id => "3" * 19
-            })
-        }.to raise_error(Braspag::InvalidCustomerId)
-      end
+    it "should return a html form when crypto strategy is given" do
+      crypto = mock
+      crypto.should_receive(:encrypt)
+            .with(a_kind_of(Hash))
+            .and_return("vei na boa")
 
-      it "should raise an error when :installments is less than 1 character" do
-        expect {
-          Braspag::Eft.generate({
-              :order_id => "900",
-              :amount => "92.00",
-              :payment_method => :bradesco,
-              :installments => ""
-            })
-        }.to raise_error(Braspag::InvalidInstallments)
-      end
+      html = "<form id=\"form_tef_11\" name=\"form_tef_11\" action=\"#{action_url}\" method=\"post\">" +
+             "<input type=\"text\" name=\"Id_Loja\" value=\"#{merchant_id}\" />" +
+             '<input type="text" name="crypt" value="vei na boa" />' +
+             '</form>' +
+             '<script type="text/javascript" charset="utf-8">document.forms["form_tef_11"].submit();</script>'
 
-      it "should raise an error when :installments is more than 2 characters" do
-        expect {
-          Braspag::Eft.generate({
-              :order_id => "91",
-              :amount => "80.00",
-              :payment_method => :bradesco,
-              :installments => "5" * 3
-            })
-        }.to raise_error(Braspag::InvalidInstallments)
-      end
+      Braspag::Eft.generate(params, crypto).should == html
+    end
+  end
 
-      it "should raise an error when :installments is not a number" do
-        expect {
-          Braspag::Eft.generate({
-              :order_id => "91",
-              :amount => "80.00",
-              :payment_method => :bradesco,
-              :installments => "A" * 2
-            })
-        }.to raise_error(Braspag::InvalidInstallments)
-      end
+  describe ".normalize_params" do
+    it "should convert amount to BigDecimal" do
+      result = Braspag::Eft.normalize_params({ :amount => "100.2" })
+      result.should be_kind_of Hash
 
-      it "should raise an error when :has_interest is not boolean" do
+      result[:amount].should be_kind_of BigDecimal
+    end
+
+    it "should transform installments to Integer" do
+      result = Braspag::Eft.normalize_params({ :installments => "12" })
+      result.should be_kind_of Hash
+
+      result[:installments].should be_kind_of Integer
+      result[:installments].should == 12
+    end
+
+    it "should assign 1 to installments if installments is not present" do
+      result = Braspag::Eft.normalize_params({})
+      result.should be_kind_of Hash
+
+      result[:installments].should == 1
+    end
+
+    it "should transform has_interest into String" do
+      result = Braspag::Eft.normalize_params({ :has_interest => true })
+      result.should be_kind_of Hash
+
+      result[:has_interest].should == "1"
+
+      result = Braspag::Eft.normalize_params({ :has_interest => false })
+      result.should be_kind_of Hash
+
+      result[:has_interest].should == "0"
+    end
+  end
+
+  describe ".check_params" do
+    let(:params) do
+      {
+        :order_id => "111",
+        :amount => 100.0,
+        :payment_method => :bradesco
+      }
+    end
+
+    [:order_id, :amount, :payment_method].each do |param|
+      it "should raise an error when #{param} is not present" do
         expect {
-          Braspag::Eft.generate({
-              :order_id => "76",
-              :amount => "50.00",
-              :payment_method => :bradesco,
-              :has_interest => []
-            })
-        }.to raise_error(Braspag::InvalidHasInterest)
+          params[param] = nil
+          Braspag::Eft.check_params(params)
+        }.to raise_error Braspag::IncompleteParams
       end
     end
 
-    it "should return form fields in strategy without crypto" do
-      html = <<-EOHTML
-<form id="form_tef_1234123125" name="form_tef_1234123125" action="https://homologacao.pagador.com.br/pagador/passthru.asp" method="post">
-  <input type="text" name="Id_Loja" value="{84BE7E7F-698A-6C74-F820-AE359C2A07C2}" />
-  <input type="text" name="VENDAID" value="1234123125" />
-  <input type="text" name="nome" value="" />
-  <input type="text" name="CPF" value="" />
-  <input type="text" name="VALOR" value="123,00" />
-  <input type="text" name="CODPAGAMENTO" value="11" />
-  <input type="text" name="PARCELAS" value="1" />
-  <input type="text" name="TIPOPARCELADO" value="0" />
-</form>
-<script type="text/javascript" charset="utf-8">
-  document.forms["form_tef_1234123125"].submit();
-</script>
-      EOHTML
+    it "should raise an error when order_id is not valid" do
+      Braspag::Eft.should_receive(:valid_order_id?)
+                   .with(params[:order_id])
+                   .and_return(false)
 
-      Braspag::Eft.generate({
-          :order_id => "1234123125",
-          :amount => "123.00",
-          :payment_method => :bradesco
-        }).should == html
-    end
-     
-    it "should return form fields in strategy with braspag.jar crypto service" do
-      FakeWeb.register_uri(:post,
-        "http://localhost:9292/v1/encrypt.json",
-        :body => <<-EOJSON
-            {"encrypt":"5u0ZN5qk8eQNuuGPHrcsk0rfi7YclF6s+ZXCE+G4uG4ztfRJrrOALlf81ra7k7p7"}
-        EOJSON
-      )
-
-      html = <<-EOHTML
-<form id="form_tef_1234123125" name="form_tef_1234123125" action="https://homologacao.pagador.com.br/pagador/passthru.asp" method="post">
-  <input type="text" name="crypt" value="5u0ZN5qk8eQNuuGPHrcsk0rfi7YclF6s+ZXCE+G4uG4ztfRJrrOALlf81ra7k7p7" />
-  <input type="text" name="Id_Loja" value="{84BE7E7F-698A-6C74-F820-AE359C2A07C2}" />
-</form>
-<script type="text/javascript" charset="utf-8">
-  document.forms["form_tef_1234123125"].submit();
-</script>
-      EOHTML
-
-      Braspag::Eft.generate({
-          :order_id => "1234123125",
-          :amount => "123.00",
-          :payment_method => :bradesco
-        } , Braspag::Crypto::JarWebservice ).should == html
-         
-      FakeWeb.clean_registry
-         
+      expect {
+        Braspag::Eft.check_params(params)
+      }.to raise_error Braspag::InvalidOrderId
     end
 
-    it "should return form fields in strategy with braspag crypto webservice" do
-        
-      FakeWeb.register_uri(:post,
-        "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx",
-        :body => "<?xml version='1.0' encoding='utf-8'?><soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'><soap:Body><EncryptRequestResponse xmlns='https://www.pagador.com.br/webservice/BraspagGeneralService'><EncryptRequestResult>#{key}</EncryptRequestResult></EncryptRequestResponse></soap:Body></soap:Envelope>" )
+    it "should raise an error when customer_name is present and is greater than 255 chars" do
+      expect {
+        params[:customer_name] = "b" * 256
+        Braspag::Eft.check_params(params)
+      }.to raise_error Braspag::InvalidCustomerName
+    end
 
-      html = <<-EOHTML
-<form id="form_tef_1234123125" name="form_tef_1234123125" action="https://homologacao.pagador.com.br/pagador/passthru.asp" method="post">
-  <input type="text" name="crypt" value="#{key}" />
-  <input type="text" name="Id_Loja" value="{84BE7E7F-698A-6C74-F820-AE359C2A07C2}" />
-</form>
-<script type="text/javascript" charset="utf-8">
-  document.forms["form_tef_1234123125"].submit();
-</script>
-      EOHTML
+    it "should raise an error when customer_id is present and is greater than 18 chars" do
+      expect {
+        params[:customer_id] = "1" * 19
+        Braspag::Eft.check_params(params)
+      }.to raise_error Braspag::InvalidCustomerId
+    end
 
-      Braspag::Eft.generate({
-          :order_id => "1234123125",
-          :amount => "123.00",
-          :payment_method => :bradesco
-        } , Braspag::Crypto::Webservice ).should == html
-         
-      FakeWeb.clean_registry
+    it "should raise an error when customer_id is present and is less than 11 chars" do
+      expect {
+        params[:customer_id] = "1" * 10
+        Braspag::Eft.check_params(params)
+      }.to raise_error Braspag::InvalidCustomerId
+    end
+
+    it "should raise an error when installments is present and is greater than 99" do
+      expect {
+        params[:installments] = 100
+        Braspag::Eft.check_params(params)
+      }.to raise_error Braspag::InvalidInstallments
+    end
+
+    it "should raise an error when installments is present and is less than 99" do
+      expect {
+        params[:installments] = 0
+        Braspag::Eft.check_params(params)
+      }.to raise_error Braspag::InvalidInstallments
+
+      expect {
+        params[:installments] = 1
+        Braspag::Eft.check_params(params)
+      }.to_not raise_error Braspag::InvalidInstallments
+    end
+
+    it "should raise an error when has_interest is present and is not a boolean" do
+      expect {
+        params[:has_interest] = "string"
+        Braspag::Eft.check_params(params)
+      }.to raise_error Braspag::InvalidHasInterest
+
+      expect {
+        params[:has_interest] = true
+        Braspag::Eft.check_params(params)
+      }.to_not raise_error Braspag::InvalidHasInterest
+
+      expect {
+        params[:has_interest] = false
+        Braspag::Eft.check_params(params)
+      }.to_not raise_error Braspag::InvalidHasInterest
+    end
+  end
+
+  describe ".action_url" do
+    it "should return the correct eft creation url when connection environment is homologation" do
+      @connection.stub(:braspag_url => braspag_homologation_url)
+      Braspag::Eft.action_url.should == "#{braspag_homologation_url}/pagador/passthru.asp"
+    end
+
+    it "should return the correct eft creation url when connection environment is production" do
+      @connection.stub(:braspag_url => braspag_production_url)
+      Braspag::Eft.action_url.should == "#{braspag_production_url}/pagador/passthru.asp"
     end
   end
 end

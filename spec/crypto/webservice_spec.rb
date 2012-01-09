@@ -2,10 +2,10 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Braspag::Crypto::Webservice do
-  
+
     context "encrypt" do
       let!(:key) {"XXXXX"}
-      
+
       context "consistencies" do
         it "should return error with invalid data" do
           expect {
@@ -17,8 +17,8 @@ describe Braspag::Crypto::Webservice do
           body_invalid = <<-EOXML
 SERVER was unable to process
 EOXML
-          FakeWeb.register_uri(:post, 
-          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx", 
+          FakeWeb.register_uri(:post,
+          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx",
           :body => body_invalid )
           expect {
             Braspag::Crypto::Webservice.encrypt(:key => "INVALID DATA")
@@ -34,15 +34,15 @@ EOXML
 <EncryptRequestResult>Erro BP 011</EncryptRequestResult></EncryptRequestResponse>
 </soap:Body></soap:Envelope>
 EOXML
-          FakeWeb.register_uri(:post, 
-          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx", 
+          FakeWeb.register_uri(:post,
+          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx",
           :body => body_invalid )
           expect {
             Braspag::Crypto::Webservice.encrypt(:key => "value")
           }.to raise_error(Braspag::InvalidMerchantId)
           FakeWeb.clean_registry
         end
-        
+
         it "should return error with invalid ip" do
           body_invalid = <<-EOXML
 <?xml version="1.0" encoding="utf-8"?>
@@ -51,8 +51,8 @@ EOXML
 <EncryptRequestResult>Erro BP 067</EncryptRequestResult></EncryptRequestResponse>
 </soap:Body></soap:Envelope>
 EOXML
-          FakeWeb.register_uri(:post, 
-          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx", 
+          FakeWeb.register_uri(:post,
+          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx",
           :body => body_invalid )
           expect {
             Braspag::Crypto::Webservice.encrypt(:key => "value")
@@ -62,8 +62,8 @@ EOXML
       end
 
       it "should return a string" do
-          FakeWeb.register_uri(:post, 
-          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx", 
+          FakeWeb.register_uri(:post,
+          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx",
           :body => <<-EOXML
 <?xml version='1.0' encoding='utf-8'?>
 <soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
@@ -80,20 +80,20 @@ EOXML
     end
 
     context "when decrypt data" do
-      
+
       context "consistencies" do
         it "should return error with invalid data" do
           expect {
             Braspag::Crypto::Webservice.decrypt(1213123)
           }.to raise_error(Braspag::IncompleteParams)
         end
-        
+
         it "should return error with invalid data" do
           body_invalid = <<-EOXML
 SERVER was unable to process
 EOXML
-          FakeWeb.register_uri(:post, 
-          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx", 
+          FakeWeb.register_uri(:post,
+          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx",
           :body => body_invalid )
           expect {
             Braspag::Crypto::Webservice.decrypt("{sdfsdf34543534}")
@@ -109,8 +109,8 @@ EOXML
 <DecryptRequestResult><string>Erro BP 068</string></DecryptRequestResult>
 </DecryptRequestResponse></soap:Body></soap:Envelope>
 EOXML
-         FakeWeb.register_uri(:post, 
-         "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx", 
+         FakeWeb.register_uri(:post,
+         "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx",
          :body => body_invalid )
          expect {
             Braspag::Crypto::Webservice.decrypt("{sdfsdf34543534}")
@@ -120,8 +120,8 @@ EOXML
       end
 
       it "should return a string" do
-          FakeWeb.register_uri(:post, 
-          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx", 
+          FakeWeb.register_uri(:post,
+          "https://homologacao.pagador.com.br/BraspagGeneralService/BraspagGeneralService.asmx",
           :body => <<-EOXML
 <?xml version='1.0' encoding='utf-8'?><soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
 <soap:Body><DecryptRequestResponse xmlns='https://www.pagador.com.br/webservice/BraspagGeneralService'>
@@ -138,6 +138,6 @@ EOXML
           Braspag::Crypto::Webservice.decrypt("{sdfsdf34543534}")[:parcelas].should eql("1")
           FakeWeb.clean_registry
       end
-      
+
     end
 end

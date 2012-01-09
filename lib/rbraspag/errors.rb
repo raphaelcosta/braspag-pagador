@@ -30,4 +30,8 @@ module Braspag
     class InvalidEnv < Exception ; end
     class InvalidBraspagUrl < Exception ; end
   end
+
+  class Order
+    class InvalidData < Exception; end
+  end
 end

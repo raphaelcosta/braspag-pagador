@@ -44,45 +44,33 @@ module Braspag
       :type => "typePayment",
     }
 
-    def self.uri_authorize
-      "#{Braspag::Connection.instance.braspag_url}/webservices/pagador/Pagador.asmx/Authorize"
-    end
+    AUTHORIZE_URI = "/webservices/pagador/Pagador.asmx/Authorize"
+    CAPTURE_URI = "/webservices/pagador/Pagador.asmx/Capture"
 
-    def self.uri_capture
-      "#{Braspag::Connection.instance.braspag_url}/webservices/pagador/Pagador.asmx/Capture"
-    end
+    PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosCartao"
+    HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosCartao"
 
     def self.authorize(params = {})
       connection = Braspag::Connection.instance
       params[:merchant_id] = connection.merchant_id
 
-      [:order_id, :customer_name, :amount, :payment_method, :holder,
-        :card_number, :expiration, :security_code, :number_payments, :type].each do |param|
-        raise IncompleteParams unless params.include?(param)
-      end
+      self.check_params(params)
 
-      raise InvalidOrderId unless (1..20).include?(params[:order_id].to_s.size)
-      raise InvalidCustomerName unless (1..100).include?(params[:customer_name].to_s.size)
-      raise InvalidAmount unless (1..10).include?(params[:amount].to_s.size)
-      raise InvalidHolder unless (1..100).include?(params[:holder].to_s.size)
-      raise InvalidExpirationDate unless (1..7).include?(params[:expiration].to_s.size)
-      raise InvalidSecurityCode unless (1..4).include?(params[:security_code].to_s.size)
-      raise InvalidNumberPayments unless (1..2).include?(params[:number_payments].to_s.size)
-      raise InvalidType unless (1..2).include?(params[:type].to_s.size)
-
-      params[:payment_method] = PAYMENT_METHODS[params[:payment_method]] if params[:payment_method].is_a?(Symbol)
-
-      data =  MAPPING.inject({}) do |memo, k|
-        if k[0] == :amount
-          memo[k[1]] = Utils.convert_decimal_to_string(params[:amount])
+      data = {}
+      MAPPING.each do |k, v|
+        case k
+        when :payment_method
+          data[v] = PAYMENT_METHODS[params[:payment_method]]
+        when :amount
+          data[v] = Utils.convert_decimal_to_string(params[:amount])
         else
-          memo[k[1]] = params[k[0]] || "";
+          data[v] = params[k] || ""
         end
-        memo
       end
 
-      request = ::HTTPI::Request.new uri_authorize
+      request = ::HTTPI::Request.new self.authorize_url
       request.body = data
+
       response = ::HTTPI.post request
       Utils::convert_to_map(response.body, {
           :amount => nil,
@@ -98,14 +86,17 @@ module Braspag
       connection = Braspag::Connection.instance
       merchant_id = connection.merchant_id
 
-      raise InvalidOrderId unless (1..20).include?(order_id.to_s.size)
+      raise InvalidOrderId unless self.valid_order_id?(order_id)
 
-      data = {MAPPING[:order_id] => order_id, "merchantId" => merchant_id }
-      request = ::HTTPI::Request.new uri_capture
+      data = {
+        MAPPING[:order_id] => order_id,
+        MAPPING[:merchant_id] => merchant_id
+      }
 
+      request = ::HTTPI::Request.new(self.capture_url)
       request.body = data
-      response = ::HTTPI.post(request)
 
+      response = ::HTTPI.post(request)
       Utils::convert_to_map(response.body, {
           :amount => nil,
           :number => "authorisationNumber",
@@ -116,14 +107,12 @@ module Braspag
         })
     end
 
-
     def self.info(order_id)
       connection = Braspag::Connection.instance
 
-      raise InvalidOrderId unless order_id.is_a?(String) || order_id.is_a?(Fixnum)
-      raise InvalidOrderId unless (1..50).include?(order_id.to_s.size)
+      raise InvalidOrderId unless self.valid_order_id?(order_id)
 
-      request = ::HTTPI::Request.new("#{connection.braspag_query_url}/GetDadosCartao")
+      request = ::HTTPI::Request.new(self.info_url)
       request.body = {:loja => connection.merchant_id, :numeroPedido => order_id.to_s}
 
       response = ::HTTPI.post(request)
@@ -138,10 +127,44 @@ module Braspag
 
       raise UnknownError if response[:checking_number].nil?
       response
-
     end
 
+    def self.check_params(params)
+      super
 
+      [:customer_name, :holder, :card_number, :expiration, :security_code, :number_payments, :type].each do |param|
+        raise IncompleteParams if params[param].nil?
+      end
+
+      raise InvalidHolder if params[:holder].to_s.size < 1 || params[:holder].to_s.size > 100
+
+      matches = params[:expiration].to_s.match /^(\d{2})\/(\d{2}|\d{4})$/
+      raise InvalidExpirationDate unless matches
+      begin
+        year = matches[2].to_i
+        year = "20#{year}" if year.size == 2
+
+        Date.new(year.to_i, matches[1].to_i)
+      rescue ArgumentError
+        raise InvalidExpirationDate
+      end
+
+      raise InvalidSecurityCode if params[:security_code].to_s.size < 1 || params[:security_code].to_s.size > 4
+
+      raise InvalidNumberPayments if params[:number_payments].to_i < 1 || params[:number_payments].to_i > 99
+    end
+
+    def self.info_url
+      connection = Braspag::Connection.instance
+      connection.braspag_url + (connection.production? ? PRODUCTION_INFO_URI : HOMOLOGATION_INFO_URI)
+    end
+
+    def self.authorize_url
+      Braspag::Connection.instance.braspag_url + AUTHORIZE_URI
+    end
+
+    def self.capture_url
+      Braspag::Connection.instance.braspag_url + CAPTURE_URI
+    end
   end
 end
-
