@@ -5,4 +5,5 @@ tags
 *.swp
 .bundle
 .rvmrc
+Gemfile.lock
 
