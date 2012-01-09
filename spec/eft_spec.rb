@@ -177,19 +177,19 @@ describe Braspag::Eft do
       }.to_not raise_error Braspag::InvalidInstallments
     end
 
-    it "should raise an error when has_interest is present and is not a boolean" do
+    it "should raise an error when has_interest is present and is invalid" do
       expect {
         params[:has_interest] = "string"
         Braspag::Eft.check_params(params)
       }.to raise_error Braspag::InvalidHasInterest
 
       expect {
-        params[:has_interest] = true
+        params[:has_interest] = "1"
         Braspag::Eft.check_params(params)
       }.to_not raise_error Braspag::InvalidHasInterest
 
       expect {
-        params[:has_interest] = false
+        params[:has_interest] = "0"
         Braspag::Eft.check_params(params)
       }.to_not raise_error Braspag::InvalidHasInterest
     end

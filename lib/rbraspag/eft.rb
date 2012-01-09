@@ -79,7 +79,7 @@ module Braspag
       end
 
       if params[:has_interest]
-        raise InvalidHasInterest unless (params[:has_interest].is_a?(TrueClass) || params[:has_interest].is_a?(FalseClass))
+        raise InvalidHasInterest if params[:has_interest] != "1" && params[:has_interest] != "0"
       end
     end
 
