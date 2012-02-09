@@ -10,7 +10,7 @@ require 'braspag/recorrente'
 
 module Braspag
   class Production
-    BASE_URL = 'https://www.pagador.com.br'
+    BASE_URL = 'https://transaction.pagador.com.br'
   end
 
   class Test
