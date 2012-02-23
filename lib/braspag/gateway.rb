@@ -10,10 +10,14 @@ module Braspag
       METHOD
     end
 
+    def void_transaction!(map)
+      invoke! "VoidTransaction", map
+    end
+
     protected
 
     def invoke!(method, map)
-      document = invoke_and_parse(method, "#{base_action_url}/#{method}") do |message|
+      document = invoke_and_parse(method, "#{uri}/#{method}") do |message|
         map.each do |key, value|
           message.add("tns:#{key}", "#{value}")
         end
