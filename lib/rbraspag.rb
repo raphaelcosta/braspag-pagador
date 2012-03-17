@@ -4,7 +4,7 @@ require 'bundler'
 
 Bundler.setup
 
-require "cs-httpi"
+require "httpi"
 require "json"
 require "nokogiri"
 
