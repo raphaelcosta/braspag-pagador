@@ -1,5 +1,11 @@
 require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
+require 'httpi'
+require 'nokogiri'
+require 'json'
 require 'rbraspag'
+
 require 'fakeweb'
 
 ENV["RACK_ENV"] ||= "test"
