@@ -137,6 +137,63 @@ describe Braspag::CreditCard do
     end
   end
 
+  describe ".void" do
+    let(:cancellation_url) { "http://foo.bar/bar/baz" }
+    let(:order_id) { "um id qualquer" }
+
+    before do
+      @connection.should_receive(:merchant_id)
+    end
+
+    context "invalid order id" do
+      it "should raise an error" do
+        Braspag::CreditCard.should_receive(:valid_order_id?)
+                           .with(order_id)
+                           .and_return(false)
+
+        expect {
+          Braspag::CreditCard.void(order_id)
+        }.to raise_error(Braspag::InvalidOrderId)
+      end
+    end
+
+    context "valid order id" do
+      let(:valid_xml) do
+        <<-EOXML
+          <?xml version="1.0" encoding="utf-8"?>
+          <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         xmlns="https://www.pagador.com.br/webservice/pagador">
+            <amount>2</amount>
+            <message>Approved</message>
+            <returnCode>0</returnCode>
+            <status>0</status>
+          </PagadorReturn>
+        EOXML
+      end
+
+      before do
+        Braspag::CreditCard.should_receive(:cancellation_url)
+                           .and_return(cancellation_url)
+
+        FakeWeb.register_uri(:post, cancellation_url, :body => valid_xml)
+        @response = Braspag::CreditCard.void("order id qualquer")
+      end
+
+      it "should return a Hash" do
+        @response.should be_kind_of Hash
+        @response.should == {
+          :amount => "2",
+          :number => nil,
+          :message => "Approved",
+          :return_code => "0",
+          :status => "0",
+          :transaction_id => nil
+        }
+      end
+    end
+  end
+
   describe ".info" do
     let(:info_url) { "http://braspag/bla" }
 
@@ -325,17 +382,19 @@ describe Braspag::CreditCard do
     end
   end
 
-  describe ".authorize_url .capture_url" do
+  describe ".authorize_url .capture_url .cancellation_url" do
     it "should return the correct credit card creation url when connection environment is homologation" do
       @connection.stub(:braspag_url => braspag_homologation_url)
       Braspag::CreditCard.authorize_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/Authorize"
       Braspag::CreditCard.capture_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/Capture"
+      Braspag::CreditCard.cancellation_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/VoidTransaction"
     end
 
     it "should return the correct credit card creation url when connection environment is production" do
       @connection.stub(:braspag_url => braspag_production_url)
       Braspag::CreditCard.authorize_url.should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/Authorize"
       Braspag::CreditCard.capture_url.should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/Capture"
+      Braspag::CreditCard.cancellation_url.should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/VoidTransaction"
     end
   end
 end
