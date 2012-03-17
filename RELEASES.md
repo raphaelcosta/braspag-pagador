@@ -1,5 +1,9 @@
 # RELEASES
 
+## For next release
+
+d2b9a7a Voltando a usar o HTTPI
+
 ## 0.1.1 - 09/01/2012
 
 9ffbcbd adicionando novos códigos de métodos de pagamento
