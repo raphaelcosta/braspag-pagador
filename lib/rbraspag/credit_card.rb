@@ -48,6 +48,7 @@ module Braspag
 
     AUTHORIZE_URI = "/webservices/pagador/Pagador.asmx/Authorize"
     CAPTURE_URI = "/webservices/pagador/Pagador.asmx/Capture"
+    CANCELLATION_URI = "/webservices/pagador/Pagador.asmx/VoidTransaction"
 
     PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosCartao"
     HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosCartao"
@@ -96,6 +97,31 @@ module Braspag
       }
 
       request = ::HTTPI::Request.new(self.capture_url)
+      request.body = data
+
+      response = ::HTTPI.post(request)
+      Utils::convert_to_map(response.body, {
+          :amount => nil,
+          :number => "authorisationNumber",
+          :message => 'message',
+          :return_code => 'returnCode',
+          :status => 'status',
+          :transaction_id => "transactionId"
+        })
+    end
+
+    def self.void(order_id)
+      connection = Braspag::Connection.instance
+      merchant_id = connection.merchant_id
+
+      raise InvalidOrderId unless self.valid_order_id?(order_id)
+
+      data = {
+        MAPPING[:order_id] => order_id,
+        MAPPING[:merchant_id] => merchant_id
+      }
+
+      request = ::HTTPI::Request.new(self.cancellation_url)
       request.body = data
 
       response = ::HTTPI.post(request)
@@ -167,6 +193,10 @@ module Braspag
 
     def self.capture_url
       Braspag::Connection.instance.braspag_url + CAPTURE_URI
+    end
+
+    def self.cancellation_url
+      Braspag::Connection.instance.braspag_url + CANCELLATION_URI
     end
   end
 end

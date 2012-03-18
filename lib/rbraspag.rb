@@ -1,15 +1,5 @@
+require 'singleton'
 require "rbraspag/version"
-
-require 'bundler'
-
-Bundler.setup
-
-require "httpi"
-require "json"
-require "nokogiri"
-
-Bundler.require(:default, (ENV["RACK_ENV"] || "development").to_sym)
-
 require 'rbraspag/connection'
 require 'rbraspag/payment_method'
 require 'rbraspag/crypto/jar_webservice'
