@@ -26,6 +26,28 @@ describe Braspag::Connection do
     @connection = Braspag::Connection.clone
   end
 
+  context "changing default config file path" do
+    before :each do
+      @original_path = Braspag.config_file_path
+    end
+
+    after :each do
+      Braspag.config_file_path = @original_path
+    end
+
+    it "should read config from a different path when specified" do
+      connection = Braspag::Connection.clone
+
+      Braspag.config_file_path = '/some/crazy/path'
+
+      YAML.should_receive(:load_file).
+        with("/some/crazy/path").
+        and_return(braspag_config)
+
+      connection.instance
+    end
+  end
+
   it "should read config/braspag.yml when alloc first instance" do
     YAML.should_receive(:load_file)
         .with("config/braspag.yml")
