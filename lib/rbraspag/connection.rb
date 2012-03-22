@@ -10,7 +10,7 @@ module Braspag
     def initialize
       raise InvalidEnv if ENV["RACK_ENV"].nil? || ENV["RACK_ENV"].empty?
 
-      @options = YAML.load_file('config/braspag.yml')[ ENV['RACK_ENV'] ]
+      @options = YAML.load_file(Braspag.config_file_path)[ ENV['RACK_ENV'] ]
       @merchant_id = @options['merchant_id']
 
       raise InvalidMerchantId unless @merchant_id =~ /\{[a-z0-9]{8}-([a-z0-9]{4}-){3}[a-z0-9]{12}\}/i
