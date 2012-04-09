@@ -34,6 +34,7 @@ module Braspag
 
     MAPPING = {
       :merchant_id => "merchantId",
+      :order => 'order',
       :order_id => "orderId",
       :customer_name => "customerName",
       :amount => "amount",
@@ -117,7 +118,7 @@ module Braspag
       raise InvalidOrderId unless self.valid_order_id?(order_id)
 
       data = {
-        MAPPING[:order_id] => order_id,
+        MAPPING[:order] => order_id,
         MAPPING[:merchant_id] => merchant_id
       }
 
