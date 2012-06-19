@@ -384,7 +384,7 @@ describe Braspag::CreditCard do
     end
   end
 
-  describe ".authorize_url .capture_url .cancellation_url .save_protected_card_url .get_protected_card_url" do
+  describe ".authorize_url .capture_url .cancellation_url" do
     it "should return the correct credit card creation url when connection environment is homologation" do
       @connection.stub(:braspag_url => braspag_homologation_url)
 
@@ -393,7 +393,7 @@ describe Braspag::CreditCard do
       Braspag::CreditCard.cancellation_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/VoidTransaction"
     end
 
-    it "should return the correct protect credit card creation url when connection environment is homologation" do
+    it ".save_protected_card_url .get_protected_card_url" do
       @connection.stub(:braspag_url => braspag_homologation_protected_card_url)
       
       Braspag::CreditCard.save_protected_card_url.should == "#{braspag_homologation_protected_card_url}/CartaoProtegido.asmx/SaveCreditCard"
