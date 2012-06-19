@@ -3,6 +3,8 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 describe Braspag::CreditCard do
   let(:braspag_homologation_url) { "https://homologacao.pagador.com.br" }
   let(:braspag_production_url) { "https://transaction.pagador.com.br" }
+  let(:braspag_homologation_protected_card_url) { "https://cartaoprotegido.braspag.com.br" }
+  let(:braspag_production_protected_card_url) { "https://www.cartaoprotegido.com.br" }
   let(:merchant_id) { "um id qualquer" }
 
   before do
@@ -382,19 +384,36 @@ describe Braspag::CreditCard do
     end
   end
 
-  describe ".authorize_url .capture_url .cancellation_url" do
+  describe ".authorize_url .capture_url .cancellation_url .save_protected_card_url .get_protected_card_url" do
     it "should return the correct credit card creation url when connection environment is homologation" do
       @connection.stub(:braspag_url => braspag_homologation_url)
+
       Braspag::CreditCard.authorize_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/Authorize"
       Braspag::CreditCard.capture_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/Capture"
       Braspag::CreditCard.cancellation_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/VoidTransaction"
     end
 
+    it "should return the correct protect credit card creation url when connection environment is homologation" do
+      @connection.stub(:braspag_url => braspag_homologation_protected_card_url)
+      
+      Braspag::CreditCard.save_protected_card_url.should == "#{braspag_homologation_protected_card_url}/CartaoProtegido.asmx/SaveCreditCard"
+      Braspag::CreditCard.get_protected_card_url.should == "#{braspag_homologation_protected_card_url}/CartaoProtegido.asmx/GetCreditCard"
+    end
+
+
     it "should return the correct credit card creation url when connection environment is production" do
       @connection.stub(:braspag_url => braspag_production_url)
+
       Braspag::CreditCard.authorize_url.should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/Authorize"
       Braspag::CreditCard.capture_url.should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/Capture"
       Braspag::CreditCard.cancellation_url.should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/VoidTransaction"
+    end
+
+    it "should return the correct protected credit card url when connection environment is production" do
+      @connection.stub(:braspag_url => braspag_production_protected_card_url)
+
+      Braspag::CreditCard.save_protected_card_url.should == "#{braspag_production_protected_card_url}/CartaoProtegido.asmx/SaveCreditCard"
+      Braspag::CreditCard.get_protected_card_url.should == "#{braspag_production_protected_card_url}/CartaoProtegido.asmx/GetCreditCard"
     end
   end
 end

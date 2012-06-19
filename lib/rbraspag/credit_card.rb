@@ -50,6 +50,8 @@ module Braspag
     AUTHORIZE_URI = "/webservices/pagador/Pagador.asmx/Authorize"
     CAPTURE_URI = "/webservices/pagador/Pagador.asmx/Capture"
     CANCELLATION_URI = "/webservices/pagador/Pagador.asmx/VoidTransaction"
+    SAVE_PROTECTED_CARD_URI = "/CartaoProtegido.asmx/SaveCreditCard"
+    GET_PROTECTED_CARD_URI = "/CartaoProtegido.asmx/GetCreditCard"
 
     PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosCartao"
     HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosCartao"
@@ -199,5 +201,14 @@ module Braspag
     def self.cancellation_url
       Braspag::Connection.instance.braspag_url + CANCELLATION_URI
     end
+
+    def self.save_protected_card_url
+      Braspag::Connection.instance.braspag_url + SAVE_PROTECTED_CARD_URI
+    end
+
+    def self.get_protected_card_url
+      Braspag::Connection.instance.braspag_url + GET_PROTECTED_CARD_URI
+    end
+
   end
 end
