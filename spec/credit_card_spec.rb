@@ -196,6 +196,62 @@ describe Braspag::CreditCard do
     end
   end
 
+  describe ".save" do
+    let(:params) do
+      {
+        :customer_name => "W" * 21,
+        :holder =>  "Joao Maria Souza",
+        :card_number => "9" * 10,
+        :expiration => "10/12",
+        :order_id => "um order id"
+      }
+    end
+
+    let(:params_with_merchant_id) do
+      params.merge!(:merchant_id => merchant_id)
+    end
+
+    let(:save_protected_card_url) { "http://braspag/bla" }
+
+    before do
+      @connection.should_receive(:merchant_id)
+
+      Braspag::CreditCard.should_receive(:save_protected_card_url)
+                         .and_return(save_protected_card_url)
+
+      Braspag::CreditCard.should_receive(:check_protected_card_params)
+                         .and_return(true)
+    end
+
+    context "with invalid params"
+
+    context "with valid params" do
+      let(:valid_xml) do
+        <<-EOXML
+        <?xml version="1.0" encoding="utf-8"?>
+        <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                       xmlns="https://www.pagador.com.br/webservice/pagador">
+          <JustClickKey>SAVE-PROTECTED-CARD-TOKEN</JustClickKey>
+        </PagadorReturn>
+        EOXML
+      end
+
+      before do
+        FakeWeb.register_uri(:post, save_protected_card_url, :body => valid_xml)
+        @response = Braspag::CreditCard.save(params)
+      end
+
+      it "should return a Hash" do
+        @response.should be_kind_of Hash
+        @response.should == {
+          :just_click_key => "SAVE-PROTECTED-CARD-TOKEN"
+        }
+      end
+    end
+  end
+
+
   describe ".info" do
     let(:info_url) { "http://braspag/bla" }
 

@@ -47,6 +47,15 @@ module Braspag
       :type => "typePayment",
     }
 
+    PROTECTED_CARD_MAPPING = {
+      :merchant_id => "merchantKey",
+      :customer_name => "CustomerName",
+      :holder => "CardHolder",
+      :card_number => "CardNumber",
+      :expiration => "CardExpiration",
+      :order_id => "RequestId"
+    }
+
     AUTHORIZE_URI = "/webservices/pagador/Pagador.asmx/Authorize"
     CAPTURE_URI = "/webservices/pagador/Pagador.asmx/Capture"
     CANCELLATION_URI = "/webservices/pagador/Pagador.asmx/VoidTransaction"
@@ -138,6 +147,33 @@ module Braspag
         })
     end
 
+    def self.save(params = {})
+      connection = Braspag::Connection.instance
+      params[:merchant_id] = connection.merchant_id
+
+      self.check_protected_card_params(params)
+
+      order_id = params[:order_id]
+      raise InvalidOrderId unless self.valid_order_id?(order_id)
+
+      data = { 'saveCreditCardRequestWS' => {} }
+
+      PROTECTED_CARD_MAPPING.each do |k, v|
+        data['saveCreditCardRequestWS'][v] = params[k] || ""
+      end
+
+      request = ::HTTPI::Request.new(self.save_protected_card_url)
+      request.body = data
+
+      response = ::HTTPI.post(request)
+
+      Utils::convert_to_map(response.body, {
+          :just_click_key => "JustClickKey"
+        })
+
+    end
+
+
     def self.info(order_id)
       connection = Braspag::Connection.instance
 
@@ -184,6 +220,26 @@ module Braspag
 
       raise InvalidNumberPayments if params[:number_payments].to_i < 1 || params[:number_payments].to_i > 99
     end
+
+    def self.check_protected_card_params(params)
+      [:customer_name, :holder, :card_number, :expiration, :order_id].each do |param|
+        raise IncompleteParams if params[param].nil?
+      end
+
+      raise InvalidHolder if params[:holder].to_s.size < 1 || params[:holder].to_s.size > 100
+
+      matches = params[:expiration].to_s.match /^(\d{2})\/(\d{2}|\d{4})$/
+      raise InvalidExpirationDate unless matches
+      begin
+        year = matches[2].to_i
+        year = "20#{year}" if year.size == 2
+
+        Date.new(year.to_i, matches[1].to_i)
+      rescue ArgumentError
+        raise InvalidExpirationDate
+      end
+    end
+
 
     def self.info_url
       connection = Braspag::Connection.instance
