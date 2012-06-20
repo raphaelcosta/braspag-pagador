@@ -147,6 +147,7 @@ module Braspag
         })
     end
 
+    # saves credit card in Braspag PCI Compliant
     def self.save(params = {})
       connection = Braspag::Connection.instance
       params[:merchant_id] = connection.merchant_id
@@ -173,6 +174,27 @@ module Braspag
 
     end
 
+    # request the credit card info in Braspag PCI Compliant
+    def self.get(just_click_key)
+      connection = Braspag::Connection.instance
+
+      raise InvalidJustClickKey unless valid_just_click_key?(just_click_key)
+
+      request = ::HTTPI::Request.new(self.get_protected_card_url)
+      request.body = { 'getCreditCardRequestWS' => {:loja => connection.merchant_id, :justClickKey => just_click_key} }
+
+      response = ::HTTPI.post(request)
+
+      response = Utils::convert_to_map(response.body, {
+          :holder => "CardHolder",
+          :card_number => "CardNumber",
+          :expiration => "CardExpiration",
+          :masked_card_number => "MaskedCardNumber"
+        })
+
+      raise UnknownError if response[:card_number].nil?
+      response
+    end
 
     def self.info(order_id)
       connection = Braspag::Connection.instance
@@ -240,6 +262,9 @@ module Braspag
       end
     end
 
+    def self.valid_just_click_key?(just_click_key)
+      (just_click_key.is_a?(String) && just_click_key.size == 36)
+    end
 
     def self.info_url
       connection = Braspag::Connection.instance

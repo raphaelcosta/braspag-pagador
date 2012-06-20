@@ -251,6 +251,75 @@ describe Braspag::CreditCard do
     end
   end
 
+  describe ".get" do
+    let(:get_protected_card_url) { "http://braspag/bla" }
+
+    let(:invalid_xml) do
+      <<-EOXML
+      <DadosCartao xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.pagador.com.br/">
+        <CardHolder>Joao Maria Souza</CardHolder>
+        <CardNumber></CardNumber>
+        <CardExpiration>10/12</CardExpiration>
+        <MaskedCardNumber>******9999</MaskedCardNumber>
+      </DadosCartao>
+      EOXML
+    end
+
+    let(:valid_xml) do
+      <<-EOXML
+      <DadosCartao xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.pagador.com.br/">
+        <CardHolder>Joao Maria Souza</CardHolder>
+        <CardNumber>9999999999</CardNumber>
+        <CardExpiration>10/12</CardExpiration>
+        <MaskedCardNumber>******9999</MaskedCardNumber>
+      </DadosCartao>
+      EOXML
+    end
+
+    it "should raise an error when just click key is not valid" do
+      Braspag::CreditCard.should_receive(:valid_just_click_key?)
+                         .with("bla")
+                         .and_return(false)
+
+      expect {
+        Braspag::CreditCard.get "bla"
+      }.to raise_error(Braspag::InvalidJustClickKey)
+    end
+
+    it "should raise an error when Braspag returned an invalid xml as response" do
+      FakeWeb.register_uri(:post, get_protected_card_url, :body => invalid_xml)
+
+      Braspag::CreditCard.should_receive(:get_protected_card_url)
+                         .and_return(get_protected_card_url)
+
+      expect {
+        Braspag::CreditCard.get("b0b0b0b0-bbbb-4d4d-bd27-f1f1f1ededed")
+      }.to raise_error(Braspag::UnknownError)
+    end
+
+    it "should return a Hash when Braspag returned a valid xml as response" do
+      FakeWeb.register_uri(:post, get_protected_card_url, :body => valid_xml)
+
+      Braspag::CreditCard.should_receive(:get_protected_card_url)
+                         .and_return(get_protected_card_url)
+
+      response = Braspag::CreditCard.get("b0b0b0b0-bbbb-4d4d-bd27-f1f1f1ededed")
+      response.should be_kind_of Hash
+
+      response.should == {
+        :holder => "Joao Maria Souza",
+        :expiration => "10/12",
+        :card_number => "9" * 10,
+        :masked_card_number => "*" * 6 + "9" * 4
+      }
+    end
+
+  end
+
 
   describe ".info" do
     let(:info_url) { "http://braspag/bla" }
