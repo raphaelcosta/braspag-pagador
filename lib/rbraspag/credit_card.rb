@@ -48,7 +48,7 @@ module Braspag
     }
 
     PROTECTED_CARD_MAPPING = {
-      :merchant_id => "merchantKey",
+      :merchant_id => "MerchantKey",
       :customer_name => "CustomerName",
       :holder => "CardHolder",
       :card_number => "CardNumber",
