@@ -56,11 +56,24 @@ module Braspag
       :order_id => "RequestId"
     }
 
+    JUST_CLICK_MAPPING = {
+      :merchant_id => "MerchantKey",
+      :customer_name => "CustomerName",
+      :order_id => "OrderId",
+      :amount => "Amount",
+      :payment_method => "PaymentMethod",
+      :number_installments => "NumberInstallments",
+      :payment_type => "PaymentType",
+      :just_click_key => "JustClickKey",
+      :security_code => "SecurityCode"
+    }
+
     AUTHORIZE_URI = "/webservices/pagador/Pagador.asmx/Authorize"
     CAPTURE_URI = "/webservices/pagador/Pagador.asmx/Capture"
     CANCELLATION_URI = "/webservices/pagador/Pagador.asmx/VoidTransaction"
     SAVE_PROTECTED_CARD_URI = "/CartaoProtegido.asmx/SaveCreditCard"
     GET_PROTECTED_CARD_URI = "/CartaoProtegido.asmx/GetCreditCard"
+    JUST_CLICK_SHOP_URI = "/CartaoProtegido.asmx/JustClickShop"
 
     PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosCartao"
     HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosCartao"
@@ -196,6 +209,42 @@ module Braspag
       response
     end
 
+    def self.just_click_shop(params = {})
+      connection = Braspag::Connection.instance
+      params[:merchant_id] = connection.merchant_id
+
+      self.check_just_click_shop_params(params)
+
+      order_id = params[:order_id]
+      raise InvalidOrderId unless self.valid_order_id?(order_id)
+
+      data = { 'justClickShopRequestWS' => {} }
+
+      JUST_CLICK_MAPPING.each do |k, v|
+        data[v] = params[k] || ""
+      end
+
+      request = ::HTTPI::Request.new(self.just_click_shop_url)
+      request.body = data
+
+      response = ::HTTPI.post(request)
+
+      response = Utils::convert_to_map(response.body, {
+          :transaction_id => "BraspagTransactionId",
+          :acquirer_transaction_id => "AcquirerTransactionId",
+          :amount => "Amount",
+          :authorization_code => "AuthorizationCode",
+          :status => "Status",
+          :return_code => "ReturnCode",
+          :return_message => "ReturnMessage",
+          :country => "Country",
+          :currency => "Currency"
+        })
+
+      raise UnknownError if response[:return_code].nil?
+      response
+    end
+
     def self.info(order_id)
       connection = Braspag::Connection.instance
 
@@ -262,6 +311,20 @@ module Braspag
       end
     end
 
+    def self.check_just_click_shop_params(params)
+      just_click_shop_attributes = [:customer_name, :order_id, :amount, :payment_method,
+      :number_installments, :payment_type, :just_click_key, :security_code]
+
+      just_click_shop_attributes.each do |param|
+        raise IncompleteParams if params[param].nil?
+      end
+
+      raise InvalidSecurityCode if params[:security_code].to_s.size < 1 || params[:security_code].to_s.size > 4
+
+      raise InvalidNumberInstallments if params[:number_installments].to_i < 1 || params[:number_installments].to_i > 99
+
+    end
+
     def self.valid_just_click_key?(just_click_key)
       (just_click_key.is_a?(String) && just_click_key.size == 36)
     end
@@ -289,6 +352,10 @@ module Braspag
 
     def self.get_protected_card_url
       Braspag::Connection.instance.braspag_url + GET_PROTECTED_CARD_URI
+    end
+
+    def self.just_click_shop_url
+      Braspag::Connection.instance.braspag_url + JUST_CLICK_SHOP_URI
     end
 
   end
