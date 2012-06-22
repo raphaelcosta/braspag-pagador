@@ -48,15 +48,16 @@ module Braspag
     }
 
     PROTECTED_CARD_MAPPING = {
+      :request_id => "RequestId",
       :merchant_id => "MerchantKey",
       :customer_name => "CustomerName",
       :holder => "CardHolder",
       :card_number => "CardNumber",
-      :expiration => "CardExpiration",
-      :order_id => "RequestId"
+      :expiration => "CardExpiration"
     }
 
     JUST_CLICK_MAPPING = {
+      :request_id => "RequestId",
       :merchant_id => "MerchantKey",
       :customer_name => "CustomerName",
       :order_id => "OrderId",
@@ -293,7 +294,7 @@ module Braspag
     end
 
     def self.check_protected_card_params(params)
-      [:customer_name, :holder, :card_number, :expiration, :order_id].each do |param|
+      [:request_id, :customer_name, :holder, :card_number, :expiration].each do |param|
         raise IncompleteParams if params[param].nil?
       end
 
@@ -312,7 +313,7 @@ module Braspag
     end
 
     def self.check_just_click_shop_params(params)
-      just_click_shop_attributes = [:customer_name, :order_id, :amount, :payment_method,
+      just_click_shop_attributes = [:request_id, :customer_name, :order_id, :amount, :payment_method,
       :number_installments, :payment_type, :just_click_key, :security_code]
 
       just_click_shop_attributes.each do |param|

@@ -324,6 +324,7 @@ describe Braspag::CreditCard do
     let(:params) do
       {
         :customer_name =>  "Joao Maria Souza",
+        :request_id => "um request id",
         :order_id => "um order id",
         :amount => "9.10",
         :payment_method => "20",
