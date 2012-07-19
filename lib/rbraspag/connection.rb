@@ -4,8 +4,11 @@ module Braspag
 
     PRODUCTION_URL = "https://transaction.pagador.com.br"
     HOMOLOGATION_URL = "https://homologacao.pagador.com.br"
+    
+    PROTECTED_CARD_PRODUCTION_URL = "https://cartaoprotegido.braspag.com.br"
+    PROTECTED_CARD_HOMOLOGATION_URL = "https://www.cartaoprotegido.com.br"
 
-    attr_reader :braspag_url, :merchant_id, :crypto_url, :crypto_key, :options, :environment
+    attr_reader :braspag_url, :protected_card_url, :merchant_id, :crypto_url, :crypto_key, :options, :environment
 
     def initialize
       raise InvalidEnv if ENV["RACK_ENV"].nil? || ENV["RACK_ENV"].empty?
@@ -20,6 +23,7 @@ module Braspag
       @environment = @options["environment"] == 'production' ? 'production' : 'homologation'
 
       @braspag_url = self.production? ? PRODUCTION_URL : HOMOLOGATION_URL
+      @protected_card_url = self.production? ? PROTECTED_CARD_PRODUCTION_URL : PROTECTED_CARD_HOMOLOGATION_URL
     end
 
     def production?
