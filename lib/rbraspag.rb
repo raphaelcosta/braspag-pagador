@@ -17,11 +17,9 @@ require 'rbraspag/order'
 
 module Braspag
   def self.logger=(logger)
-    @logger = logger
-  end
-
-  def self.logger
-    @logger
+    HTTPI.log = true
+    HTTPI.logger = logger
+    HTTPI.log_level = :debug
   end
 
   def self.config_file_path=(path)

@@ -100,10 +100,7 @@ module Braspag
       request = ::HTTPI::Request.new self.authorize_url
       request.body = data
 
-      ::Braspag.logger.info("[Braspag] #authorize: #{self.authorize_url}, data: #{data.inspect}")
-
       response = ::HTTPI.post request
-      ::Braspag.logger.info("[Braspag] #authorize return: #{response.body.inspect}")
       Utils::convert_to_map(response.body, {
           :amount => nil,
           :number => "authorisationNumber",
