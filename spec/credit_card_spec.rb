@@ -237,6 +237,7 @@ describe Braspag::CreditCard do
       end
 
       before do
+        Braspag::CreditCard.should_receive(:save_protected_card_url)
         Braspag::CreditCard.should_receive(:check_protected_card_params)
                            .and_return(true)
         Savon::Client.should_receive(:new).and_return(savon)
@@ -269,6 +270,7 @@ describe Braspag::CreditCard do
 
       before do
         Braspag::CreditCard.should_receive(:check_protected_card_params)
+        Braspag::CreditCard.should_receive(:save_protected_card_url)
                             .and_return(true)
         Savon::Client.should_receive(:new).and_return(savon)
         savon.should_receive(:request).and_return(response)
