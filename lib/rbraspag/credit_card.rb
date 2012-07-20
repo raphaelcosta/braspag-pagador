@@ -177,14 +177,15 @@ module Braspag
         data['saveCreditCardRequestWS'][v] = params[k] || ""
       end
 
-      request = ::HTTPI::Request.new(self.save_protected_card_url)
-      request.body = data
-
-      response = ::HTTPI.post(request)
+      client = Savon::Client.new('https://cartaoprotegido.braspag.com.br/Services/CartaoProtegido.asmx?wsdl')
+      puts self.save_protected_card_url
+      response = client.request(:web, :save_credit_card) do
+        soap.body = data
+      end
 
       Utils::convert_to_map(response.body, {
           :just_click_key => "JustClickKey"
-        })
+      })
 
     end
 
@@ -348,15 +349,15 @@ module Braspag
     end
 
     def self.save_protected_card_url
-      Braspag::Connection.instance.braspag_url + SAVE_PROTECTED_CARD_URI
+      Braspag::Connection.instance.protected_card_url + SAVE_PROTECTED_CARD_URI
     end
 
     def self.get_protected_card_url
-      Braspag::Connection.instance.braspag_url + GET_PROTECTED_CARD_URI
+      Braspag::Connection.instance.protected_card_url + GET_PROTECTED_CARD_URI
     end
 
     def self.just_click_shop_url
-      Braspag::Connection.instance.braspag_url + JUST_CLICK_SHOP_URI
+      Braspag::Connection.instance.protected_card_url + JUST_CLICK_SHOP_URI
     end
 
   end

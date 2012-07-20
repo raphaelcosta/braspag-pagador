@@ -2,6 +2,7 @@ require 'singleton'
 require 'httpi'
 require 'nokogiri'
 require 'json'
+require 'savon'
 
 require "rbraspag/version"
 require 'rbraspag/connection'

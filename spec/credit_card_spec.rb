@@ -203,7 +203,8 @@ describe Braspag::CreditCard do
         :holder =>  "Joao Maria Souza",
         :card_number => "9" * 10,
         :expiration => "10/12",
-        :order_id => "um order id"
+        :order_id => "um order id",
+        :request_id => "00000000-0000-0000-0000-000000000044"
       }
     end
 
@@ -211,19 +212,13 @@ describe Braspag::CreditCard do
       params.merge!(:merchant_id => merchant_id)
     end
 
-    let(:save_protected_card_url) { "http://braspag/bla" }
+    let(:save_protected_card_url) { "http://braspag.com/bla" }
+
+    let(:savon) { double('Savon') }
 
     before do
       @connection.should_receive(:merchant_id)
-
-      Braspag::CreditCard.should_receive(:save_protected_card_url)
-                         .and_return(save_protected_card_url)
-
-      Braspag::CreditCard.should_receive(:check_protected_card_params)
-                         .and_return(true)
     end
-
-    context "with invalid params"
 
     context "with valid params" do
       let(:valid_xml) do
@@ -231,22 +226,29 @@ describe Braspag::CreditCard do
         <?xml version="1.0" encoding="utf-8"?>
         <CartaoProtegidoReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                       xmlns="https://www.pagador.com.br/webservice/pagador">
+                       xmlns="https://cartaoprotegido.braspag.com.br/Services/CartaoProtegido.asmx">
           <JustClickKey>SAVE-PROTECTED-CARD-TOKEN</JustClickKey>
         </CartaoProtegidoReturn>
         EOXML
       end
 
+      let(:response) do
+        double('Response', :body => valid_xml)
+      end
       before do
-        FakeWeb.register_uri(:post, save_protected_card_url, :body => valid_xml)
+        Braspag::CreditCard.should_receive(:save_protected_card_url)
+                           .and_return(save_protected_card_url)
+        Braspag::CreditCard.should_receive(:check_protected_card_params)
+                           .and_return(true)
+        Savon::Client.should_receive(:new).and_return(savon)
+        savon.should_receive(:request).and_return(response)
+
         @response = Braspag::CreditCard.save(params)
       end
 
       it "should return a Hash" do
         @response.should be_kind_of Hash
-        @response.should == {
-          :just_click_key => "SAVE-PROTECTED-CARD-TOKEN"
-        }
+        @response.should == { :just_click_key => "SAVE-PROTECTED-CARD-TOKEN" }
       end
     end
   end
@@ -601,8 +603,8 @@ describe Braspag::CreditCard do
     end
 
     it ".save_protected_card_url .get_protected_card_url" do
-      @connection.stub(:braspag_url => braspag_homologation_protected_card_url)
-      
+      @connection.stub(:protected_card_url => braspag_homologation_protected_card_url)
+
       Braspag::CreditCard.save_protected_card_url.should == "#{braspag_homologation_protected_card_url}/CartaoProtegido.asmx/SaveCreditCard"
       Braspag::CreditCard.get_protected_card_url.should == "#{braspag_homologation_protected_card_url}/CartaoProtegido.asmx/GetCreditCard"
     end
@@ -617,7 +619,7 @@ describe Braspag::CreditCard do
     end
 
     it "should return the correct protected credit card url when connection environment is production" do
-      @connection.stub(:braspag_url => braspag_production_protected_card_url)
+      @connection.stub(:protected_card_url => braspag_production_protected_card_url)
 
       Braspag::CreditCard.save_protected_card_url.should == "#{braspag_production_protected_card_url}/CartaoProtegido.asmx/SaveCreditCard"
       Braspag::CreditCard.get_protected_card_url.should == "#{braspag_production_protected_card_url}/CartaoProtegido.asmx/GetCreditCard"
