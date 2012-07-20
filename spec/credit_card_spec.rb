@@ -235,6 +235,7 @@ describe Braspag::CreditCard do
       let(:response) do
         double('Response', :body => valid_xml)
       end
+
       before do
         Braspag::CreditCard.should_receive(:check_protected_card_params)
                            .and_return(true)
@@ -247,6 +248,39 @@ describe Braspag::CreditCard do
       it "should return a Hash" do
         @response.should be_kind_of Hash
         @response.should == { :just_click_key => "SAVE-PROTECTED-CARD-TOKEN" }
+      end
+    end
+
+    context "with invalid params" do
+      let(:invalid_xml) do
+        <<-EOXML
+        <?xml version="1.0" encoding="utf-8"?>
+        <CartaoProtegidoReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                       xmlns="https://cartaoprotegido.braspag.com.br/Services/CartaoProtegido.asmx">
+          <JustClickKey></JustClickKey>
+        </CartaoProtegidoReturn>
+        EOXML
+      end
+
+      let(:response) do
+        double('Response', :body => invalid_xml)
+      end
+
+      before do
+        Braspag::CreditCard.should_receive(:check_protected_card_params)
+                            .and_return(true)
+        Savon::Client.should_receive(:new).and_return(savon)
+        savon.should_receive(:request).and_return(response)
+
+        @response = Braspag::CreditCard.save(params)
+      end
+
+      it "should return a Hash" do
+        @response.should be_kind_of Hash
+        @response.should == { 
+          :just_click_key => nil,
+        }
       end
     end
   end
