@@ -178,7 +178,6 @@ module Braspag
       end
 
       client = Savon::Client.new('https://cartaoprotegido.braspag.com.br/Services/CartaoProtegido.asmx?wsdl')
-      puts self.save_protected_card_url
       response = client.request(:web, :save_credit_card) do
         soap.body = data
       end

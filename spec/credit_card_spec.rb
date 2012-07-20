@@ -236,8 +236,6 @@ describe Braspag::CreditCard do
         double('Response', :body => valid_xml)
       end
       before do
-        Braspag::CreditCard.should_receive(:save_protected_card_url)
-                           .and_return(save_protected_card_url)
         Braspag::CreditCard.should_receive(:check_protected_card_params)
                            .and_return(true)
         Savon::Client.should_receive(:new).and_return(savon)
