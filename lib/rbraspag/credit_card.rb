@@ -72,7 +72,7 @@ module Braspag
     AUTHORIZE_URI = "/webservices/pagador/Pagador.asmx/Authorize"
     CAPTURE_URI = "/webservices/pagador/Pagador.asmx/Capture"
     CANCELLATION_URI = "/webservices/pagador/Pagador.asmx/VoidTransaction"
-    SAVE_PROTECTED_CARD_URI = "/CartaoProtegido.asmx/SaveCreditCard"
+    SAVE_PROTECTED_CARD_URI = "/CartaoProtegido.asmx?wsdl"
     GET_PROTECTED_CARD_URI = "/CartaoProtegido.asmx/GetCreditCard"
     JUST_CLICK_SHOP_URI = "/CartaoProtegido.asmx/JustClickShop"
 
@@ -168,9 +168,6 @@ module Braspag
 
       self.check_protected_card_params(params)
 
-      order_id = params[:order_id]
-      raise InvalidOrderId unless self.valid_order_id?(order_id)
-
       data = { 'saveCreditCardRequestWS' => {} }
 
       PROTECTED_CARD_MAPPING.each do |k, v|
@@ -182,9 +179,7 @@ module Braspag
         soap.body = data
       end
 
-      Utils::convert_to_map(response.body, {
-          :just_click_key => "JustClickKey"
-      })
+      response.to_hash[:save_credit_card_response][:save_credit_card_result]
 
     end
 
@@ -277,7 +272,7 @@ module Braspag
 
       raise InvalidHolder if params[:holder].to_s.size < 1 || params[:holder].to_s.size > 100
 
-      matches = params[:expiration].to_s.match /^(\d{2})\/(\d{2}|\d{4})$/
+      matches = params[:expiration].to_s.match /^(\d{2})\/(\d{2,4})$/
       raise InvalidExpirationDate unless matches
       begin
         year = matches[2].to_i
@@ -300,7 +295,7 @@ module Braspag
 
       raise InvalidHolder if params[:holder].to_s.size < 1 || params[:holder].to_s.size > 100
 
-      matches = params[:expiration].to_s.match /^(\d{2})\/(\d{2}|\d{4})$/
+      matches = params[:expiration].to_s.match /^(\d{2})\/(\d{2,4})$/
       raise InvalidExpirationDate unless matches
       begin
         year = matches[2].to_i
