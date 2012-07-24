@@ -65,6 +65,7 @@ describe Braspag::CreditCard do
 
       before do
         FakeWeb.register_uri(:post, authorize_url, :body => valid_xml)
+        Braspag::Connection.instance.should_receive(:homologation?)
         @response = Braspag::CreditCard.authorize(params)
       end
 

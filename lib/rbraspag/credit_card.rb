@@ -29,7 +29,9 @@ module Braspag
       :col_amex   => 65, # Amex
       :col_diners => 66, # Diners
       # INTERNACIONAL
-      :paypal_express => 35 # PayPal Express Checkout
+      :paypal_express => 35, # PayPal Express Checkout
+      # HOMOLOGATION
+      :braspag => 997
     }
 
     MAPPING = {
@@ -89,7 +91,7 @@ module Braspag
       MAPPING.each do |k, v|
         case k
         when :payment_method
-          data[v] = PAYMENT_METHODS[params[:payment_method]]
+          data[v] = Braspag::Connection.instance.homologation? ? PAYMENT_METHODS[:braspag] : PAYMENT_METHODS[params[:payment_method]]
         when :amount
           data[v] = Utils.convert_decimal_to_string(params[:amount])
         else
