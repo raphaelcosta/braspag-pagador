@@ -31,7 +31,7 @@ module Braspag
       # INTERNACIONAL
       :paypal_express => 35, # PayPal Express Checkout
       # HOMOLOGATION
-      :braspag => 998
+      :braspag => 997
     }
 
     MAPPING = {
