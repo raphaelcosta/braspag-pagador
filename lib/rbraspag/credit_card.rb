@@ -76,7 +76,7 @@ module Braspag
     CANCELLATION_URI = "/webservices/pagador/Pagador.asmx/VoidTransaction"
     SAVE_PROTECTED_CARD_URI = "/CartaoProtegido.asmx?wsdl"
     GET_PROTECTED_CARD_URI = "/CartaoProtegido.asmx/GetCreditCard"
-    JUST_CLICK_SHOP_URI = "/CartaoProtegido.asmx/JustClickShop"
+    JUST_CLICK_SHOP_URI = "/CartaoProtegido.asmx?wsdl"
 
     PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosCartao"
     HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosCartao"
@@ -219,28 +219,15 @@ module Braspag
       data = { 'justClickShopRequestWS' => {} }
 
       JUST_CLICK_MAPPING.each do |k, v|
-        data[v] = params[k] || ""
+        data['justClickShopRequestWS'][v] = params[k] || ""
       end
 
-      request = ::HTTPI::Request.new(self.just_click_shop_url)
-      request.body = data
+      client = Savon::Client.new(self.just_click_shop_url)
+      response = client.request(:web, :just_click_shop) do
+        soap.body = data
+      end
 
-      response = ::HTTPI.post(request)
-
-      response = Utils::convert_to_map(response.body, {
-          :transaction_id => "BraspagTransactionId",
-          :acquirer_transaction_id => "AcquirerTransactionId",
-          :amount => "Amount",
-          :authorization_code => "AuthorizationCode",
-          :status => "Status",
-          :return_code => "ReturnCode",
-          :return_message => "ReturnMessage",
-          :country => "Country",
-          :currency => "Currency"
-        })
-
-      raise UnknownError if response[:return_code].nil?
-      response
+      response.to_hash[:just_click_shop_response][:just_click_shop_result]
     end
 
     def self.info(order_id)

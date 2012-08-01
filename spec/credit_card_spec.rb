@@ -1,4 +1,5 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require 'ostruct'
 
 describe Braspag::CreditCard do
   let(:braspag_homologation_url) { "https://homologacao.pagador.com.br" }
@@ -8,7 +9,7 @@ describe Braspag::CreditCard do
   let(:merchant_id) { "um id qualquer" }
 
   before do
-    @connection = mock(:merchant_id => merchant_id)
+    @connection = mock(:merchant_id => merchant_id, :protected_card_url => 'https://www.cartaoprotegido.com.br/Services/TestEnvironment')
     Braspag::Connection.stub(:instance => @connection)
   end
 
@@ -125,8 +126,7 @@ describe Braspag::CreditCard do
         FakeWeb.register_uri(:post, capture_url, :body => valid_xml)
         @response = Braspag::CreditCard.capture("order id qualquer")
       end
-
-      it "should return a Hash" do
+it "should return a Hash" do
         @response.should be_kind_of Hash
         @response.should == {
           :amount => "2",
@@ -215,7 +215,7 @@ describe Braspag::CreditCard do
 
     let(:save_protected_card_url) { "http://braspag.com/bla" }
 
-    let(:savon) { double('Savon') }
+    let(:savon_double) { double('Savon') }
 
     before do
       @connection.should_receive(:merchant_id)
@@ -241,8 +241,8 @@ describe Braspag::CreditCard do
         Braspag::CreditCard.should_receive(:save_protected_card_url)
         Braspag::CreditCard.should_receive(:check_protected_card_params)
                            .and_return(true)
-        Savon::Client.should_receive(:new).and_return(savon)
-        savon.should_receive(:request).and_return(response)
+        Savon::Client.should_receive(:new).and_return(savon_double)
+        savon_double.should_receive(:request).and_return(response)
 
         @response = Braspag::CreditCard.save(params)
       end
@@ -276,15 +276,15 @@ describe Braspag::CreditCard do
         Braspag::CreditCard.should_receive(:check_protected_card_params)
         Braspag::CreditCard.should_receive(:save_protected_card_url)
                             .and_return(true)
-        Savon::Client.should_receive(:new).and_return(savon)
-        savon.should_receive(:request).and_return(response)
+        Savon::Client.should_receive(:new).and_return(savon_double)
+        savon_double.should_receive(:request).and_return(response)
 
         @response = Braspag::CreditCard.save(params)
       end
 
       it "should return a Hash" do
         @response.should be_kind_of Hash
-        @response.should == { 
+        @response.should == {
           :just_click_key => nil,
           :success => false
         }
@@ -362,87 +362,96 @@ describe Braspag::CreditCard do
   end
 
   describe ".just_click_shop" do
-    let(:params) do
-      {
-        :customer_name =>  "Joao Maria Souza",
-        :request_id => "um request id",
-        :order_id => "um order id",
-        :amount => "9.10",
-        :payment_method => "20",
-        :number_installments => "1",
-        :payment_type => 0,
-        :just_click_key => "b0b0b0b0-bbbb-4d4d-bd27-f1f1f1ededed",
+    context "body" do
+      let(:params) { {
+        :request_id => "123",
+        :customer_name => "Joao Silva",
+        :order_id => "999",
+        :amount => 10.50,
+        :payment_method => "MyMethod",
+        :number_installments => 3,
+        :payment_type => "test",
+        :just_click_key => "key",
         :security_code => "123"
-      }
+      } }
+
+      class SavonClientTest
+        attr_accessor :response
+        attr_reader :method
+
+        def request(web, method, &block)
+          @method = method
+          instance_eval &block
+
+          @response
+        end
+
+        def soap
+          @soap ||= OpenStruct.new
+        end
+      end
+
+      before :each do
+        @savon_client_test = SavonClientTest.new
+        @savon_client_test.response = {:just_click_shop_response => {}}
+        Savon::Client.stub(:new).with('https://www.cartaoprotegido.com.br/Services/TestEnvironment/CartaoProtegido.asmx?wsdl').and_return(@savon_client_test)
+      end
+
+      after :each do
+        Savon::Client.unstub(:new)
+      end
+
+      it "should have RequestId" do
+        described_class.just_click_shop(params)
+        @savon_client_test.soap.body['justClickShopRequestWS']['RequestId'].should eq '123'
+      end
+
+      it "should have MerchantKey" do
+        described_class.just_click_shop(params)
+        @savon_client_test.soap.body['justClickShopRequestWS']['MerchantKey'].should eq 'um id qualquer'
+      end
+
+      it "should have CustomerName" do
+        described_class.just_click_shop(params)
+        @savon_client_test.soap.body['justClickShopRequestWS']['CustomerName'].should eq 'Joao Silva'
+      end
+
+      it "should have OrderId" do
+        described_class.just_click_shop(params)
+        @savon_client_test.soap.body['justClickShopRequestWS']['OrderId'].should eq '999'
+      end
+
+      it "should have Amount" do
+        described_class.just_click_shop(params)
+        @savon_client_test.soap.body['justClickShopRequestWS']['Amount'].should eq 10.50
+      end
+
+      it "should have PaymentMethod" do
+        described_class.just_click_shop(params)
+        @savon_client_test.soap.body['justClickShopRequestWS']['PaymentMethod'].should eq 'MyMethod'
+      end
+
+      it "should have PaymentType" do
+        described_class.just_click_shop(params)
+        @savon_client_test.soap.body['justClickShopRequestWS']['PaymentType'].should eq 'test'
+      end
+
+      it "should have NumberInstallments" do
+        described_class.just_click_shop(params)
+        @savon_client_test.soap.body['justClickShopRequestWS']['NumberInstallments'].should eq 3
+      end
+
+      it "should have JustClickKey" do
+        described_class.just_click_shop(params)
+        @savon_client_test.soap.body['justClickShopRequestWS']['JustClickKey'].should eq 'key'
+      end
+
+      it "should have SecurityCode" do
+        described_class.just_click_shop(params)
+        @savon_client_test.soap.body['justClickShopRequestWS']['SecurityCode'].should eq '123'
+      end
     end
-
-    let(:params_with_merchant_id) do
-      params.merge!(:merchant_id => merchant_id)
-    end
-
-    let(:just_click_shop_url) { "http://braspag/bla" }
-
-    let(:invalid_xml) do
-      <<-EOXML
-      <CartaoProtegidoReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                   xmlns="http://www.pagador.com.br/">
-        <BraspagTransactionId>001</BraspagTransactionId>
-        <AcquirerTransactionId>0001</AcquirerTransactionId>
-        <Amount>10,00</Amount>
-        <AuthorizationCode>01</AuthorizationCode>
-        <Status></Status>
-        <ReturnCode></ReturnCode>
-        <ReturnMessage>Just testing</ReturnMessage>
-        <Country>Brazil</Country>
-        <Currency>BRL</Currency>
-      </CartaoProtegidoReturn>
-      EOXML
-    end
-
-    let(:valid_xml) do
-      <<-EOXML
-      <CartaoProtegidoReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                   xmlns="http://www.pagador.com.br/">
-        <BraspagTransactionId>001</BraspagTransactionId>
-        <AcquirerTransactionId>0001</AcquirerTransactionId>
-        <Amount>10.00</Amount>
-        <AuthorizationCode>01</AuthorizationCode>
-        <Status>1</Status>
-        <ReturnCode>1</ReturnCode>
-        <ReturnMessage>It works</ReturnMessage>
-        <Country>Brazil</Country>
-        <Currency>BRL</Currency>
-      </CartaoProtegidoReturn>
-      EOXML
-    end
-
-    it "should return a Hash when Braspag returned a valid xml as response" do
-      FakeWeb.register_uri(:post, just_click_shop_url, :body => valid_xml)
-
-      Braspag::CreditCard.should_receive(:just_click_shop_url)
-                         .and_return(just_click_shop_url)
-
-      response = Braspag::CreditCard.just_click_shop(params_with_merchant_id)
-      response.should be_kind_of Hash
-
-      response.should == {
-        :transaction_id => "001",
-        :acquirer_transaction_id => "0001",
-        :amount => "10.00",
-        :authorization_code => "01",
-        :status => "1",
-        :return_code => "1",
-        :return_message => "It works",
-        :country => "Brazil",
-        :currency => "BRL"
-      }
-    end
-
   end
-
-
 
   describe ".info" do
     let(:info_url) { "http://braspag/bla" }
