@@ -9,7 +9,7 @@ describe Braspag::CreditCard do
   let(:merchant_id) { "um id qualquer" }
 
   before do
-    @connection = mock(:merchant_id => merchant_id, :protected_card_url => 'https://www.cartaoprotegido.com.br/Services/TestEnvironment')
+    @connection = mock(:merchant_id => merchant_id, :protected_card_url => 'https://www.cartaoprotegido.com.br/Services/TestEnvironment', :homologation? => false)
     Braspag::Connection.stub(:instance => @connection)
   end
 
@@ -368,7 +368,7 @@ it "should return a Hash" do
         :customer_name => "Joao Silva",
         :order_id => "999",
         :amount => 10.50,
-        :payment_method => "MyMethod",
+        :payment_method => :redecard,
         :number_installments => 3,
         :payment_type => "test",
         :just_click_key => "key",
@@ -428,7 +428,7 @@ it "should return a Hash" do
 
       it "should have PaymentMethod" do
         described_class.just_click_shop(params)
-        @savon_client_test.soap.body['justClickShopRequestWS']['PaymentMethod'].should eq 'MyMethod'
+        @savon_client_test.soap.body['justClickShopRequestWS']['PaymentMethod'].should eq 20
       end
 
       it "should have PaymentType" do

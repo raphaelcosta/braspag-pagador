@@ -219,7 +219,12 @@ module Braspag
       data = { 'justClickShopRequestWS' => {} }
 
       JUST_CLICK_MAPPING.each do |k, v|
-        data['justClickShopRequestWS'][v] = params[k] || ""
+        case k
+        when :payment_method
+          data['justClickShopRequestWS'][v] = Braspag::Connection.instance.homologation? ? PAYMENT_METHODS[:braspag] : PAYMENT_METHODS[params[:payment_method]]
+        else
+          data['justClickShopRequestWS'][v] = params[k] || ""
+        end
       end
 
       client = Savon::Client.new(self.just_click_shop_url)
@@ -228,6 +233,7 @@ module Braspag
       end
 
       response.to_hash[:just_click_shop_response][:just_click_shop_result]
+
     end
 
     def self.info(order_id)
