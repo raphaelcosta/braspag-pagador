@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 module Braspag
   class Poster
     def initialize(request)
