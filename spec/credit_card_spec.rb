@@ -1,3 +1,4 @@
+require 'ostruct'
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 require 'ostruct'
 
@@ -7,6 +8,7 @@ describe Braspag::CreditCard do
   let(:braspag_homologation_protected_card_url) { "https://cartaoprotegido.braspag.com.br" }
   let(:braspag_production_protected_card_url) { "https://www.cartaoprotegido.com.br" }
   let(:merchant_id) { "um id qualquer" }
+  let(:logger) { mock(:info => nil) }
 
   before do
     @connection = mock(:merchant_id => merchant_id, :protected_card_url => 'https://www.cartaoprotegido.com.br/Services/TestEnvironment', :homologation? => false)
@@ -64,15 +66,18 @@ describe Braspag::CreditCard do
         EOXML
       end
 
+      let(:request) { OpenStruct.new :url => authorize_url }
+
       before do
-        FakeWeb.register_uri(:post, authorize_url, :body => valid_xml)
         Braspag::Connection.instance.should_receive(:homologation?)
-        @response = Braspag::CreditCard.authorize(params)
+        ::HTTPI::Request.should_receive(:new).with(authorize_url).and_return(request)
+        ::HTTPI.should_receive(:post).with(request).and_return(mock(:body => valid_xml))
       end
 
       it "should return a Hash" do
-        @response.should be_kind_of Hash
-        @response.should == {
+        response = Braspag::CreditCard.authorize(params)
+        response.should be_kind_of Hash
+        response.should == {
           :amount => "5",
           :message => "Transaction Successful",
           :number => "733610",
@@ -80,6 +85,11 @@ describe Braspag::CreditCard do
           :status => "2",
           :transaction_id => "0"
         }
+      end
+
+      it "should post transation info" do
+        Braspag::CreditCard.authorize(params)
+        request.body.should == {"merchantId"=>"um id qualquer", "order"=>"", "orderId"=>"um order id", "customerName"=>"WWWWWWWWWWWWWWWWWWWWW", "amount"=>"100,00", "paymentMethod"=>20, "holder"=>"Joao Maria Souza", "cardNumber"=>"9999999999", "expiration"=>"10/12", "securityCode"=>"123", "numberPayments"=>1, "typePayment"=>0}
       end
     end
   end
@@ -119,16 +129,25 @@ describe Braspag::CreditCard do
         EOXML
       end
 
+      let(:request) { OpenStruct.new :url => capture_url }
+
       before do
         Braspag::CreditCard.should_receive(:capture_url)
                            .and_return(capture_url)
 
-        FakeWeb.register_uri(:post, capture_url, :body => valid_xml)
-        @response = Braspag::CreditCard.capture("order id qualquer")
+        ::HTTPI::Request.should_receive(:new)
+                        .with(capture_url)
+                        .and_return(request)
+
+        ::HTTPI.should_receive(:post)
+               .with(request)
+               .and_return(mock(:body => valid_xml))
       end
-it "should return a Hash" do
-        @response.should be_kind_of Hash
-        @response.should == {
+
+      it "should return a Hash" do
+        response = Braspag::CreditCard.capture("order id qualquer")
+        response.should be_kind_of Hash
+        response.should == {
           :amount => "2",
           :number => nil,
           :message => "Approved",
@@ -136,6 +155,11 @@ it "should return a Hash" do
           :status => "0",
           :transaction_id => nil
         }
+      end
+
+      it "should post capture info" do
+        Braspag::CreditCard.capture("order id qualquer")
+        request.body.should == {"orderId"=>"order id qualquer", "merchantId"=>"um id qualquer"}
       end
     end
   end
@@ -175,17 +199,20 @@ it "should return a Hash" do
         EOXML
       end
 
+      let(:request) { OpenStruct.new :url => cancellation_url }
+
       before do
         Braspag::CreditCard.should_receive(:cancellation_url)
                            .and_return(cancellation_url)
 
-        FakeWeb.register_uri(:post, cancellation_url, :body => valid_xml)
-        @response = Braspag::CreditCard.void("order id qualquer")
+        ::HTTPI::Request.should_receive(:new).with(cancellation_url).and_return(request)
+        ::HTTPI.should_receive(:post).with(request).and_return(mock(:body => valid_xml))
       end
 
       it "should return a Hash" do
-        @response.should be_kind_of Hash
-        @response.should == {
+        response = Braspag::CreditCard.void("order id qualquer")
+        response.should be_kind_of Hash
+        response.should == {
           :amount => "2",
           :number => nil,
           :message => "Approved",
@@ -193,6 +220,11 @@ it "should return a Hash" do
           :status => "0",
           :transaction_id => nil
         }
+      end
+
+      it "should post void info" do
+        Braspag::CreditCard.void("order id qualquer")
+        request.body.should == {"order"=>"order id qualquer", "merchantId"=>"um id qualquer"}
       end
     end
   end
