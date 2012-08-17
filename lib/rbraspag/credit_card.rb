@@ -102,7 +102,8 @@ module Braspag
       request = ::HTTPI::Request.new self.authorize_url
       request.body = data
 
-      response = ::HTTPI.post request
+      response = Braspag::Poster.new(request).do_post(:authorize, data)
+
       Utils::convert_to_map(response.body, {
           :amount => nil,
           :number => "authorisationNumber",
@@ -127,7 +128,8 @@ module Braspag
       request = ::HTTPI::Request.new(self.capture_url)
       request.body = data
 
-      response = ::HTTPI.post(request)
+      response = Braspag::Poster.new(request).do_post(:capture, data)
+
       Utils::convert_to_map(response.body, {
           :amount => nil,
           :number => "authorisationNumber",
@@ -152,7 +154,8 @@ module Braspag
       request = ::HTTPI::Request.new(self.cancellation_url)
       request.body = data
 
-      response = ::HTTPI.post(request)
+      response = Braspag::Poster.new(request).do_post(:void, data)
+
       Utils::convert_to_map(response.body, {
           :amount => nil,
           :number => "authorisationNumber",
@@ -348,6 +351,5 @@ module Braspag
     def self.just_click_shop_url
       Braspag::Connection.instance.protected_card_url + JUST_CLICK_SHOP_URI
     end
-
   end
 end
