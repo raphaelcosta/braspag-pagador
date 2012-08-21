@@ -1,20 +1,30 @@
 module Braspag
   class Poster
-    def initialize(request)
-      @request = request
+    def initialize(url)
+      @request = ::HTTPI::Request.new(url)
     end
 
     def do_post(method, data)
-      Braspag::logger.info("[Braspag] ##{method}: #{@request.url}, data: #{mask_data(data).inspect}") if Braspag::logger
+      @request.body = data
+      @request.proxy = Braspag.proxy_address if Braspag.proxy_address
 
-      response = ::HTTPI.post @request
-
-      Braspag::logger.info("[Braspag] ##{method} returns: #{response.body.inspect}") if Braspag::logger
-
-      response
+      with_logger(method) do
+        ::HTTPI.post @request
+      end
     end
 
     private
+
+    def with_logger(method)
+      if Braspag::logger
+        Braspag::logger.info("[Braspag] ##{method}: #{@request.url}, data: #{mask_data(@request.body).inspect}")
+        response = yield
+        Braspag::logger.info("[Braspag] ##{method} returns: #{response.body.inspect}")
+      else
+        response = yield
+      end
+      response
+    end
 
     def mask_data(data)
       copy_data = data.dup

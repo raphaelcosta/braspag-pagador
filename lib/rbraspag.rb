@@ -34,4 +34,12 @@ module Braspag
   def self.config_file_path
     @config_path || 'config/braspag.yml'
   end
+
+  def self.proxy_address=(value)
+    @proxy_address = value
+  end
+
+  def self.proxy_address
+    @proxy_address
+  end
 end
