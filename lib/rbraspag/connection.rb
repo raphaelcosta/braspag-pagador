@@ -6,7 +6,7 @@ module Braspag
     HOMOLOGATION_URL = "https://homologacao.pagador.com.br"
     
     PROTECTED_CARD_PRODUCTION_URL = "https://cartaoprotegido.braspag.com.br/Services"
-    PROTECTED_CARD_HOMOLOGATION_URL = "https://www.cartaoprotegido.com.br/Services/TestEnvironment"
+    PROTECTED_CARD_HOMOLOGATION_URL = "https://homologacao.braspag.com.br/services/testenvironment"
 
     attr_reader :braspag_url, :protected_card_url, :merchant_id, :crypto_url, :crypto_key, :options, :environment
 
