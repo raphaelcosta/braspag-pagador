@@ -23,6 +23,8 @@ module Braspag
   class InvalidSecurityCode < Exception ; end
   class InvalidType < Exception ; end
   class InvalidNumberPayments < Exception ; end
+  class InvalidNumberInstallments < Exception ; end
+  class InvalidJustClickKey < Exception ; end
   class UnknownError < Exception ; end
 
   class Connection

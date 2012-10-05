@@ -2,7 +2,7 @@ nbproject
 pkg
 doc
 tags
-*.swp
+*.sw*
 .bundle
 .rvmrc
 Gemfile.lock
