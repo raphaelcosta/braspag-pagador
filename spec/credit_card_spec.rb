@@ -1,12 +1,14 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require 'ostruct'
 
 describe Braspag::CreditCard do
   let(:braspag_homologation_url) { "https://homologacao.pagador.com.br" }
   let(:braspag_production_url) { "https://transaction.pagador.com.br" }
   let(:merchant_id) { "um id qualquer" }
+  let(:logger) { mock(:info => nil) }
 
   before do
-    @connection = mock(:merchant_id => merchant_id)
+    @connection = mock(:merchant_id => merchant_id, :protected_card_url => 'https://www.cartaoprotegido.com.br/Services/TestEnvironment', :homologation? => false)
     Braspag::Connection.stub(:instance => @connection)
   end
 
@@ -61,14 +63,18 @@ describe Braspag::CreditCard do
         EOXML
       end
 
+      let(:request) { OpenStruct.new :url => authorize_url }
+
       before do
-        FakeWeb.register_uri(:post, authorize_url, :body => valid_xml)
-        @response = Braspag::CreditCard.authorize(params)
+        Braspag::Connection.instance.should_receive(:homologation?)
+        ::HTTPI::Request.should_receive(:new).with(authorize_url).and_return(request)
+        ::HTTPI.should_receive(:post).with(request).and_return(mock(:body => valid_xml))
       end
 
       it "should return a Hash" do
-        @response.should be_kind_of Hash
-        @response.should == {
+        response = Braspag::CreditCard.authorize(params)
+        response.should be_kind_of Hash
+        response.should == {
           :amount => "5",
           :message => "Transaction Successful",
           :number => "733610",
@@ -76,6 +82,11 @@ describe Braspag::CreditCard do
           :status => "2",
           :transaction_id => "0"
         }
+      end
+
+      it "should post transation info" do
+        Braspag::CreditCard.authorize(params)
+        request.body.should == {"merchantId"=>"um id qualquer", "order"=>"", "orderId"=>"um order id", "customerName"=>"WWWWWWWWWWWWWWWWWWWWW", "amount"=>"100,00", "paymentMethod"=>20, "holder"=>"Joao Maria Souza", "cardNumber"=>"9999999999", "expiration"=>"10/12", "securityCode"=>"123", "numberPayments"=>1, "typePayment"=>0}
       end
     end
   end
@@ -115,17 +126,25 @@ describe Braspag::CreditCard do
         EOXML
       end
 
+      let(:request) { OpenStruct.new :url => capture_url }
+
       before do
         Braspag::CreditCard.should_receive(:capture_url)
                            .and_return(capture_url)
 
-        FakeWeb.register_uri(:post, capture_url, :body => valid_xml)
-        @response = Braspag::CreditCard.capture("order id qualquer")
+        ::HTTPI::Request.should_receive(:new)
+                        .with(capture_url)
+                        .and_return(request)
+
+        ::HTTPI.should_receive(:post)
+               .with(request)
+               .and_return(mock(:body => valid_xml))
       end
 
       it "should return a Hash" do
-        @response.should be_kind_of Hash
-        @response.should == {
+        response = Braspag::CreditCard.capture("order id qualquer")
+        response.should be_kind_of Hash
+        response.should == {
           :amount => "2",
           :number => nil,
           :message => "Approved",
@@ -133,6 +152,11 @@ describe Braspag::CreditCard do
           :status => "0",
           :transaction_id => nil
         }
+      end
+
+      it "should post capture info" do
+        Braspag::CreditCard.capture("order id qualquer")
+        request.body.should == {"orderId"=>"order id qualquer", "merchantId"=>"um id qualquer"}
       end
     end
   end
@@ -172,17 +196,20 @@ describe Braspag::CreditCard do
         EOXML
       end
 
+      let(:request) { OpenStruct.new :url => cancellation_url }
+
       before do
         Braspag::CreditCard.should_receive(:cancellation_url)
                            .and_return(cancellation_url)
 
-        FakeWeb.register_uri(:post, cancellation_url, :body => valid_xml)
-        @response = Braspag::CreditCard.void("order id qualquer")
+        ::HTTPI::Request.should_receive(:new).with(cancellation_url).and_return(request)
+        ::HTTPI.should_receive(:post).with(request).and_return(mock(:body => valid_xml))
       end
 
       it "should return a Hash" do
-        @response.should be_kind_of Hash
-        @response.should == {
+        response = Braspag::CreditCard.void("order id qualquer")
+        response.should be_kind_of Hash
+        response.should == {
           :amount => "2",
           :number => nil,
           :message => "Approved",
@@ -190,6 +217,11 @@ describe Braspag::CreditCard do
           :status => "0",
           :transaction_id => nil
         }
+      end
+
+      it "should post void info" do
+        Braspag::CreditCard.void("order id qualquer")
+        request.body.should == {"order"=>"order id qualquer", "merchantId"=>"um id qualquer"}
       end
     end
   end
@@ -385,6 +417,7 @@ describe Braspag::CreditCard do
   describe ".authorize_url .capture_url .cancellation_url" do
     it "should return the correct credit card creation url when connection environment is homologation" do
       @connection.stub(:braspag_url => braspag_homologation_url)
+
       Braspag::CreditCard.authorize_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/Authorize"
       Braspag::CreditCard.capture_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/Capture"
       Braspag::CreditCard.cancellation_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/VoidTransaction"
@@ -392,9 +425,23 @@ describe Braspag::CreditCard do
 
     it "should return the correct credit card creation url when connection environment is production" do
       @connection.stub(:braspag_url => braspag_production_url)
+
       Braspag::CreditCard.authorize_url.should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/Authorize"
       Braspag::CreditCard.capture_url.should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/Capture"
       Braspag::CreditCard.cancellation_url.should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/VoidTransaction"
+    end
+  end
+
+  describe ".save .get .just_click_shop" do
+    it "should delegate to ProtectedCreditCard class" do
+      Braspag::ProtectedCreditCard.should_receive(:save).with({})
+      Braspag::CreditCard.save({})
+
+      Braspag::ProtectedCreditCard.should_receive(:get).with('just_click_key')
+      Braspag::CreditCard.get('just_click_key')
+
+      Braspag::ProtectedCreditCard.should_receive(:just_click_shop).with({})
+      Braspag::CreditCard.just_click_shop({})
     end
   end
 end

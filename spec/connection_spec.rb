@@ -13,7 +13,7 @@ describe Braspag::Connection do
 
   let(:braspag_config) do
     config = {}
-    config[ENV["RACK_ENV"]] = {
+    config[ENV["BRASPAG_ENV"]] = {
       "environment" => braspag_environment,
       "merchant_id" => merchant_id,
       "crypto_key"  => crypto_key,
@@ -60,9 +60,9 @@ describe Braspag::Connection do
     @connection.instance
   end
 
-  it "should generate an exception when RACK_ENV is nil" do
+  it "should generate an exception when BRASPAG_ENV is nil" do
     ENV.should_receive(:[])
-       .with("RACK_ENV")
+       .with("BRASPAG_ENV")
        .and_return(nil)
 
     expect {
@@ -70,10 +70,10 @@ describe Braspag::Connection do
     }.to raise_error Braspag::Connection::InvalidEnv
   end
 
-  it "should generate an exception when RACK_ENV is empty" do
+  it "should generate an exception when BRASPAG_ENV is empty" do
     ENV.should_receive(:[])
        .twice
-       .with("RACK_ENV")
+       .with("BRASPAG_ENV")
        .and_return("")
 
     expect {
@@ -82,7 +82,7 @@ describe Braspag::Connection do
   end
 
   it "should generate an exception when merchant_id is not in a correct format" do
-    braspag_config[ENV["RACK_ENV"]]["merchant_id"] = "A" * 38
+    braspag_config[ENV["BRASPAG_ENV"]]["merchant_id"] = "A" * 38
 
     YAML.should_receive(:load_file)
         .with("config/braspag.yml")
@@ -106,7 +106,7 @@ describe Braspag::Connection do
 
   describe "#production?" do
     it "should return true when environment is production" do
-      braspag_config[ENV["RACK_ENV"]]["environment"] = "production"
+      braspag_config[ENV["BRASPAG_ENV"]]["environment"] = "production"
 
       YAML.should_receive(:load_file)
           .and_return(braspag_config)
@@ -115,7 +115,7 @@ describe Braspag::Connection do
     end
 
     it "should return false when environment is not production" do
-      braspag_config[ENV["RACK_ENV"]]["environment"] = "homologation"
+      braspag_config[ENV["BRASPAG_ENV"]]["environment"] = "homologation"
 
       YAML.should_receive(:load_file)
           .and_return(braspag_config)
@@ -126,7 +126,7 @@ describe Braspag::Connection do
 
   describe "#homologation?" do
     it "should return true when environment is homologation" do
-      braspag_config[ENV["RACK_ENV"]]["environment"] = "homologation"
+      braspag_config[ENV["BRASPAG_ENV"]]["environment"] = "homologation"
 
       YAML.should_receive(:load_file)
           .and_return(braspag_config)
@@ -135,7 +135,7 @@ describe Braspag::Connection do
     end
 
     it "should return false when environment is not homologation" do
-      braspag_config[ENV["RACK_ENV"]]["environment"] = "production"
+      braspag_config[ENV["BRASPAG_ENV"]]["environment"] = "production"
 
       YAML.should_receive(:load_file)
           .and_return(braspag_config)
@@ -147,7 +147,7 @@ describe Braspag::Connection do
   describe "#braspag_url" do
     context "when environment is homologation" do
       it "should return the Braspag homologation url" do
-        braspag_config[ENV["RACK_ENV"]]["environment"] = "homologation"
+        braspag_config[ENV["BRASPAG_ENV"]]["environment"] = "homologation"
 
         YAML.should_receive(:load_file)
             .and_return(braspag_config)
@@ -159,7 +159,7 @@ describe Braspag::Connection do
 
     context "when environment is production" do
       it "should return the Braspag production url" do
-        braspag_config[ENV["RACK_ENV"]]["environment"] = "production"
+        braspag_config[ENV["BRASPAG_ENV"]]["environment"] = "production"
 
         YAML.should_receive(:load_file)
             .and_return(braspag_config)

@@ -1,37 +1,6 @@
 module Braspag
   class CreditCard < PaymentMethod
 
-    PAYMENT_METHODS = {
-      # BRASIL
-      :amex_2p                  => 18,  # American Express 2 Party
-      :cielo_noauth_visa        => 71,  # Cielo webservice captura automática sem autenticação - Visa
-      :cielo_preauth_visa       => 73,  # Cielo webservice preauth sem autenticação - Visa
-      :cielo_noauth_mastercard  => 120, # Cielo webservice captura automática sem autenticação - Mastercard
-      :cielo_preauth_mastercard => 122, # Cielo webservice preauth sem autenticação - Mastercard
-      :cielo_noauth_elo         => 126, # Cielo webservice captura automática sem autenticação - ELO
-      :cielo_noauth_diners      => 130, # Cielo webservice captura automática sem autenticação - Diners
-      :redecard                 => 20,  # Redecard Mastercard/Diners/Visa
-      :redecard_preauth         => 42,  # Redecard preauth Mastercard/Diners/Visa
-      :cielo_sitef              => 57,  # Cielo SITEF
-      :hipercard_sitef          => 62,  # Hipercard SITEF
-      :hipercard_moip           => 90,  # Hipercard MOIP
-      :oi_paggo                 => 55,  # OiPaggo
-      :amex_sitef               => 58,  # Amex SITEF
-      :aura_dtef                => 37,  # Aura DTEF
-      :redecard_sitef           => 44,  # Redecard SITEF - Mastercard/Diners
-      # MÉXICO
-      :mex_amex_2p            => 45, # American Express 2 Party
-      :mex_banorte_visa       => 50, # Banorte Visa
-      :mex_banorte_diners     => 52, # Banorte Diners
-      :mex_banorte_mastercard => 53, # Banorte Mastercard
-      # COLÔMBIA
-      :col_visa   => 63, # Visa
-      :col_amex   => 65, # Amex
-      :col_diners => 66, # Diners
-      # INTERNACIONAL
-      :paypal_express => 35 # PayPal Express Checkout
-    }
-
     MAPPING = {
       :merchant_id => "merchantId",
       :order => 'order',
@@ -50,7 +19,6 @@ module Braspag
     AUTHORIZE_URI = "/webservices/pagador/Pagador.asmx/Authorize"
     CAPTURE_URI = "/webservices/pagador/Pagador.asmx/Capture"
     CANCELLATION_URI = "/webservices/pagador/Pagador.asmx/VoidTransaction"
-
     PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosCartao"
     HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosCartao"
 
@@ -64,7 +32,7 @@ module Braspag
       MAPPING.each do |k, v|
         case k
         when :payment_method
-          data[v] = PAYMENT_METHODS[params[:payment_method]]
+          data[v] = Braspag::Connection.instance.homologation? ? PAYMENT_METHODS[:braspag] : PAYMENT_METHODS[params[:payment_method]]
         when :amount
           data[v] = Utils.convert_decimal_to_string(params[:amount])
         else
@@ -72,13 +40,8 @@ module Braspag
         end
       end
 
-      request = ::HTTPI::Request.new self.authorize_url
-      request.body = data
+      response = Braspag::Poster.new(self.authorize_url).do_post(:authorize, data)
 
-      ::Braspag.logger.info("[Braspag] #authorize: #{self.authorize_url}, data: #{data.inspect}")
-
-      response = ::HTTPI.post request
-      ::Braspag.logger.info("[Braspag] #authorize return: #{response.body.inspect}")
       Utils::convert_to_map(response.body, {
           :amount => nil,
           :number => "authorisationNumber",
@@ -100,10 +63,8 @@ module Braspag
         MAPPING[:merchant_id] => merchant_id
       }
 
-      request = ::HTTPI::Request.new(self.capture_url)
-      request.body = data
+      response = Braspag::Poster.new(self.capture_url).do_post(:capture, data)
 
-      response = ::HTTPI.post(request)
       Utils::convert_to_map(response.body, {
           :amount => nil,
           :number => "authorisationNumber",
@@ -125,10 +86,8 @@ module Braspag
         MAPPING[:merchant_id] => merchant_id
       }
 
-      request = ::HTTPI::Request.new(self.cancellation_url)
-      request.body = data
+      response = Braspag::Poster.new(self.cancellation_url).do_post(:void, data)
 
-      response = ::HTTPI.post(request)
       Utils::convert_to_map(response.body, {
           :amount => nil,
           :number => "authorisationNumber",
@@ -144,10 +103,8 @@ module Braspag
 
       raise InvalidOrderId unless self.valid_order_id?(order_id)
 
-      request = ::HTTPI::Request.new(self.info_url)
-      request.body = {:loja => connection.merchant_id, :numeroPedido => order_id.to_s}
-
-      response = ::HTTPI.post(request)
+      data = {:loja => connection.merchant_id, :numeroPedido => order_id.to_s}
+      response = Braspag::Poster.new(self.info_url).do_post(:info_credit_card, data)
 
       response = Utils::convert_to_map(response.body, {
           :checking_number => "NumeroComprovante",
@@ -170,7 +127,7 @@ module Braspag
 
       raise InvalidHolder if params[:holder].to_s.size < 1 || params[:holder].to_s.size > 100
 
-      matches = params[:expiration].to_s.match /^(\d{2})\/(\d{2}|\d{4})$/
+      matches = params[:expiration].to_s.match /^(\d{2})\/(\d{2,4})$/
       raise InvalidExpirationDate unless matches
       begin
         year = matches[2].to_i
@@ -184,6 +141,24 @@ module Braspag
       raise InvalidSecurityCode if params[:security_code].to_s.size < 1 || params[:security_code].to_s.size > 4
 
       raise InvalidNumberPayments if params[:number_payments].to_i < 1 || params[:number_payments].to_i > 99
+    end
+
+    # <b>DEPRECATED:</b> Please use <tt>ProtectedCreditCard.save</tt> instead.
+    def self.save(params)
+      warn "[DEPRECATION] `CreditCard.save` is deprecated.  Please use `ProtectedCreditCard.save` instead."
+      ProtectedCreditCard.save(params)
+    end
+
+    # <b>DEPRECATED:</b> Please use <tt>ProtectedCreditCard.get</tt> instead.
+    def self.get(just_click_key)
+      warn "[DEPRECATION] `CreditCard.get` is deprecated.  Please use `ProtectedCreditCard.get` instead."
+      ProtectedCreditCard.get(just_click_key)
+    end
+
+    # <b>DEPRECATED:</b> Please use <tt>ProtectedCreditCard.just_click_shop</tt> instead.
+    def self.just_click_shop(params = {})
+      warn "[DEPRECATION] `CreditCard.just_click_shop` is deprecated.  Please use `ProtectedCreditCard.just_click_shop` instead."
+      ProtectedCreditCard.just_click_shop(params)
     end
 
     def self.info_url
