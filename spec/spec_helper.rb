@@ -1,46 +1,21 @@
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'rubygems'
-require 'rspec'
-require 'handsoap'
-require 'braspag'
+require 'bundler'
+Bundler.setup(:default)
+require 'httpi'
+require 'nokogiri'
+require 'json'
+require 'rbraspag'
 
-class ApplicationController
-end
+require 'fakeweb'
 
-class HttpDriver
-  def self.respond_with(content)
-    @body = content
+ENV["BRASPAG_ENV"] ||= "test"
+
+RSpec.configure do |config|
+  config.mock_with :rspec
+  config.after(:each) do
+    FakeWeb.clean_registry
   end
 
-  def self.send_http_request(request)
-    response_for @body
-  end
-
-  def self.body
-    @body
-  end
-end
-
-class Handsoap::Service
-  def http_driver_instance
-    HttpDriver
-  end
-end
-
-def response_for(body)
-  headers = { "content-type" => ["application/soap+xml; charset=utf-8"] }
-  Handsoap::Http::Response.new 200, headers, body, [HttpDriver]
-end
-
-def respond_with(content)
-  HttpDriver.respond_with content
-end
-
-def request_should_contain(expected)
-  HttpDriver.should_receive(:send_http_request) do |request|
-    request.body.lines.to_a.each do |line|
-      expected.should include(line)
-    end
-    response_for expected
-  end
+  HTTPI.log = false
+  FakeWeb.allow_net_connect = false
 end

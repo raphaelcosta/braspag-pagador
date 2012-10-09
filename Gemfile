@@ -1,9 +1,4 @@
 source "http://rubygems.org"
 
-gem "handsoap"
-gem "curb"
-
-group :test do
-  gem "rspec"
-  gem "nokogiri"
-end
+# Specify your gem's dependencies in rbraspag.gemspec
+gemspec

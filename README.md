@@ -1,14 +1,39 @@
-h2. INSTALLATION
+# rBraspag
 
-<pre><code>sudo gem install braspag</code></pre>
+rbraspag gem to use Braspag gateway
 
-h2. USAGE
+* This gem need RACK_ENV environment variable to identify the environment
 
-<pre><code>connection = Braspag::Connection.new '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}'
-gateway = Braspag::Gateway.new connection
-gateway.authorize! :orderId => 'test001', :customerName => 'Walter Bishop', :amount => '1000000,00', ...</code></pre>
+# How to install
 
-h2. LICENSE:
+## for Rails 3 app
+
+### Add on your Gemfile
+
+	gem "rbraspag"
+
+### Create a config/braspag.yml file
+
+	$ rails generate braspag:install
+
+### Set RACK_ENV (our suggest)
+
+	# add last line in config/environment.rb
+    # ...
+    # ENV["RACK_ENV"] ||= ENV["RAILS_ENV"]
+
+### Edit config/braspag.yml with your Braspag merchant_id
+
+# Examples
+
+## to create a Bill (Boleto/Bloqueto for brazilian guys)
+    @bill = Braspag::Bill.generate({
+      :order_id => 1,
+      :amount => 3,
+      :payment_method => 10
+    })
+
+# License
 
 (The MIT License)
 
@@ -32,3 +57,4 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+

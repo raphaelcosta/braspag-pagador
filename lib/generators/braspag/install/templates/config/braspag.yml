@@ -1,0 +1,17 @@
+development:
+  environment: "homologation"
+  merchant_id: "{YOUR_MERCHANT_ID_ON_BRASPAG}"
+  crypto_url: "http://localhost:9292"
+  crypto_key: "1234561246"
+
+test:
+  environment: "homologation"
+  merchant_id: "{YOUR_MERCHANT_ID_ON_BRASPAG}"
+  crypto_url: "http://localhost:9292"
+  crypto_key: "1234561246"
+
+production:
+  environment: "production"
+  merchant_id: "{YOUR_MERCHANT_ID_ON_BRASPAG}"
+  crypto_url: "http://localhost:9292"
+  crypto_key: "1234561246"
