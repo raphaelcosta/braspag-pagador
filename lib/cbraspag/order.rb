@@ -1,5 +1,38 @@
 module Braspag
   class Order
+    STATUS_PAYMENT = {
+      :starting => "1",
+      :close => "2",
+      :paid => "3",
+      :cancelled => "4"
+    }
+    
+    def self.info_url_credit_card
+      connection = Braspag::Connection.instance
+      connection.braspag_url + (connection.production? ? PRODUCTION_INFO_URI : HOMOLOGATION_INFO_URI)
+    end
+    
+    def self.info_credit_card(order_id)
+      connection = Braspag::Connection.instance
+
+      raise InvalidOrderId unless self.valid_order_id?(order_id)
+
+      data = {:loja => connection.merchant_id, :numeroPedido => order_id.to_s}
+      response = Braspag::Poster.new(self.info_url).do_post(:info_credit_card, data)
+
+      response = Utils::convert_to_map(response.body, {
+          :checking_number => "NumeroComprovante",
+          :certified => "Autenticada",
+          :autorization_number => "NumeroAutorizacao",
+          :card_number => "NumeroCartao",
+          :transaction_number => "NumeroTransacao"
+        })
+
+      raise UnknownError if response[:checking_number].nil?
+      response
+    end
+    
+    
     PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosPedido"
     HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosPedido"
 

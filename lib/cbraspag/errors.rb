@@ -1,7 +1,4 @@
 module Braspag
-  class InvalidConnection < Exception ; end
-  class InvalidMerchantId < Exception ; end
-  class InvalidConnection < Exception ; end
   class IncompleteParams < Exception ; end
   class InvalidOrderId < Exception ; end
   class InvalidCustomerName < Exception ; end
@@ -29,8 +26,7 @@ module Braspag
 
   class Connection
     class InvalidMerchantId < Exception ; end
-    class InvalidEnv < Exception ; end
-    class InvalidBraspagUrl < Exception ; end
+    class InvalidEnvironment < Exception ; end
   end
 
   class Order

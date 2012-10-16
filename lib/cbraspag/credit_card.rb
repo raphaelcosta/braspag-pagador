@@ -1,20 +1,7 @@
 module Braspag
-  class CreditCard < PaymentMethod
+  
+  class Connection
 
-    MAPPING = {
-      :merchant_id => "merchantId",
-      :order => 'order',
-      :order_id => "orderId",
-      :customer_name => "customerName",
-      :amount => "amount",
-      :payment_method => "paymentMethod",
-      :holder => "holder",
-      :card_number => "cardNumber",
-      :expiration => "expiration",
-      :security_code => "securityCode",
-      :number_payments => "numberPayments",
-      :type => "typePayment",
-    }
 
     AUTHORIZE_URI = "/webservices/pagador/Pagador.asmx/Authorize"
     CAPTURE_URI = "/webservices/pagador/Pagador.asmx/Capture"
@@ -22,7 +9,12 @@ module Braspag
     PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosCartao"
     HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosCartao"
 
-    def self.authorize(params = {})
+    def self.purchase(order, credit_card)
+      response = self.authorize(order, credit_card)
+      self.capture(order) if response.success?
+    end
+
+    def self.authorize(order, credit_card)
       connection = Braspag::Connection.instance
       params[:merchant_id] = connection.merchant_id
 
@@ -52,7 +44,7 @@ module Braspag
         })
     end
 
-    def self.capture(order_id)
+    def self.capture(order)
       connection = Braspag::Connection.instance
       merchant_id = connection.merchant_id
 
@@ -75,7 +67,7 @@ module Braspag
         })
     end
 
-    def self.void(order_id)
+    def self.void(order)
       connection = Braspag::Connection.instance
       merchant_id = connection.merchant_id
 
@@ -98,26 +90,37 @@ module Braspag
         })
     end
 
-    def self.info(order_id)
-      connection = Braspag::Connection.instance
-
-      raise InvalidOrderId unless self.valid_order_id?(order_id)
-
-      data = {:loja => connection.merchant_id, :numeroPedido => order_id.to_s}
-      response = Braspag::Poster.new(self.info_url).do_post(:info_credit_card, data)
-
-      response = Utils::convert_to_map(response.body, {
-          :checking_number => "NumeroComprovante",
-          :certified => "Autenticada",
-          :autorization_number => "NumeroAutorizacao",
-          :card_number => "NumeroCartao",
-          :transaction_number => "NumeroTransacao"
-        })
-
-      raise UnknownError if response[:checking_number].nil?
-      response
+    def self.authorize_url
+      Braspag::Connection.instance.braspag_url + AUTHORIZE_URI
     end
 
+    def self.capture_url
+      Braspag::Connection.instance.braspag_url + CAPTURE_URI
+    end
+
+    def self.cancellation_url
+      Braspag::Connection.instance.braspag_url + CANCELLATION_URI
+    end
+  end
+  
+  class CreditCard
+
+    
+    MAPPING = {
+      :merchant_id => "merchantId",
+      :order => 'order',
+      :order_id => "orderId",
+      :customer_name => "customerName",
+      :amount => "amount",
+      :payment_method => "paymentMethod",
+      :holder => "holder",
+      :card_number => "cardNumber",
+      :expiration => "expiration",
+      :security_code => "securityCode",
+      :number_payments => "numberPayments",
+      :type => "typePayment",
+    }
+    
     def self.check_params(params)
       super
 
@@ -143,39 +146,6 @@ module Braspag
       raise InvalidNumberPayments if params[:number_payments].to_i < 1 || params[:number_payments].to_i > 99
     end
 
-    # <b>DEPRECATED:</b> Please use <tt>ProtectedCreditCard.save</tt> instead.
-    def self.save(params)
-      warn "[DEPRECATION] `CreditCard.save` is deprecated.  Please use `ProtectedCreditCard.save` instead."
-      ProtectedCreditCard.save(params)
-    end
-
-    # <b>DEPRECATED:</b> Please use <tt>ProtectedCreditCard.get</tt> instead.
-    def self.get(just_click_key)
-      warn "[DEPRECATION] `CreditCard.get` is deprecated.  Please use `ProtectedCreditCard.get` instead."
-      ProtectedCreditCard.get(just_click_key)
-    end
-
-    # <b>DEPRECATED:</b> Please use <tt>ProtectedCreditCard.just_click_shop</tt> instead.
-    def self.just_click_shop(params = {})
-      warn "[DEPRECATION] `CreditCard.just_click_shop` is deprecated.  Please use `ProtectedCreditCard.just_click_shop` instead."
-      ProtectedCreditCard.just_click_shop(params)
-    end
-
-    def self.info_url
-      connection = Braspag::Connection.instance
-      connection.braspag_url + (connection.production? ? PRODUCTION_INFO_URI : HOMOLOGATION_INFO_URI)
-    end
-
-    def self.authorize_url
-      Braspag::Connection.instance.braspag_url + AUTHORIZE_URI
-    end
-
-    def self.capture_url
-      Braspag::Connection.instance.braspag_url + CAPTURE_URI
-    end
-
-    def self.cancellation_url
-      Braspag::Connection.instance.braspag_url + CANCELLATION_URI
-    end
+    
   end
 end

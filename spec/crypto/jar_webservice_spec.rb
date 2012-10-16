@@ -5,10 +5,6 @@ describe Braspag::Crypto::JarWebservice do
   let!(:crypt) {Braspag::Crypto::JarWebservice}
   let! (:key) {"5u0ZN5qk8eQNuuGPHrcsk0rfi7YclF6s+ZXCE+G4uG4ztfRJrrOALlf81ra7k7p7"}
 
-  after (:each) do
-    FakeWeb.clean_registry
-  end
-
   context "when encrypt data" do
 
       it "should return a string" do
