@@ -10,6 +10,95 @@ describe Braspag::Order do
     @connection = mock(:merchant_id => merchant_id)
     Braspag::Connection.stub(:instance => @connection)
   end
+  
+  pending ".info_url" do
+    it "should return the correct info url when connection environment is homologation" do
+      @connection.stub(:braspag_url => braspag_homologation_url)
+      @connection.should_receive(:production?)
+                 .and_return(false)
+
+      Braspag::CreditCard.info_url.should == "#{braspag_homologation_url}/pagador/webservice/pedido.asmx/GetDadosCartao"
+    end
+
+    it "should return the correct info url when connection environment is production" do
+      @connection.stub(:braspag_url => braspag_production_url)
+      @connection.should_receive(:production?)
+                 .and_return(true)
+
+      Braspag::CreditCard.info_url.should == "#{braspag_production_url}/webservices/pagador/pedido.asmx/GetDadosCartao"
+    end
+  end
+  
+  pending ".info" do
+    let(:info_url) { "http://braspag/bla" }
+
+    let(:invalid_xml) do
+      <<-EOXML
+      <DadosCartao xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.pagador.com.br/">
+        <NumeroComprovante></NumeroComprovante>
+        <Autenticada>false</Autenticada>
+        <NumeroAutorizacao>557593</NumeroAutorizacao>
+        <NumeroCartao>345678*****0007</NumeroCartao>
+        <NumeroTransacao>101001225645</NumeroTransacao>
+      </DadosCartao>
+      EOXML
+    end
+
+    let(:valid_xml) do
+      <<-EOXML
+      <DadosCartao xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.pagador.com.br/">
+        <NumeroComprovante>11111</NumeroComprovante>
+        <Autenticada>false</Autenticada>
+        <NumeroAutorizacao>557593</NumeroAutorizacao>
+        <NumeroCartao>345678*****0007</NumeroCartao>
+        <NumeroTransacao>101001225645</NumeroTransacao>
+      </DadosCartao>
+      EOXML
+    end
+
+    it "should raise an error when order id is not valid" do
+      Braspag::CreditCard.should_receive(:valid_order_id?)
+                         .with("bla")
+                         .and_return(false)
+
+      expect {
+        Braspag::CreditCard.info "bla"
+      }.to raise_error(Braspag::InvalidOrderId)
+    end
+
+    it "should raise an error when Braspag returned an invalid xml as response" do
+      FakeWeb.register_uri(:post, info_url, :body => invalid_xml)
+
+      Braspag::CreditCard.should_receive(:info_url)
+                         .and_return(info_url)
+
+      expect {
+        Braspag::CreditCard.info("orderid")
+      }.to raise_error(Braspag::UnknownError)
+    end
+
+    it "should return a Hash when Braspag returned a valid xml as response" do
+      FakeWeb.register_uri(:post, info_url, :body => valid_xml)
+
+      Braspag::CreditCard.should_receive(:info_url)
+                         .and_return(info_url)
+
+      response = Braspag::CreditCard.info("orderid")
+      response.should be_kind_of Hash
+
+      response.should == {
+        :checking_number => "11111",
+        :certified => "false",
+        :autorization_number => "557593",
+        :card_number => "345678*****0007",
+        :transaction_number => "101001225645"
+      }
+    end
+  end
 
   describe ".status" do
     let(:order_id) { "um order id qualquer" }

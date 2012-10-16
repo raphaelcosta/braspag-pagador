@@ -10,6 +10,8 @@ require 'cbraspag/poster'
 require 'cbraspag/connection'
 require 'cbraspag/utils'
 
+require 'cbraspag/credit_card'
+
 module Braspag
   def self.logger=(value)
     @logger = value

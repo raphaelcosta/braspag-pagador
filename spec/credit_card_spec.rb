@@ -1,18 +1,9 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
-require 'ostruct'
 
-describe Braspag::CreditCard do
-  let(:braspag_homologation_url) { "https://homologacao.pagador.com.br" }
-  let(:braspag_production_url) { "https://transaction.pagador.com.br" }
+describe Braspag::Connection do
   let(:merchant_id) { "um id qualquer" }
-  let(:logger) { mock(:info => nil) }
 
-  before do
-    @connection = mock(:merchant_id => merchant_id, :protected_card_url => 'https://www.cartaoprotegido.com.br/Services/TestEnvironment', :homologation? => false)
-    Braspag::Connection.stub(:instance => @connection)
-  end
-
-  describe ".authorize" do
+  pending ".authorize" do
     let(:params) do
       {
         :order_id => "um order id",
@@ -91,7 +82,7 @@ describe Braspag::CreditCard do
     end
   end
 
-  describe ".capture" do
+  pending ".capture" do
     let(:capture_url) { "http://foo.bar/bar/baz" }
     let(:order_id) { "um id qualquer" }
 
@@ -161,7 +152,7 @@ describe Braspag::CreditCard do
     end
   end
 
-  describe ".void" do
+  pending ".void" do
     let(:cancellation_url) { "http://foo.bar/bar/baz" }
     let(:order_id) { "um id qualquer" }
 
@@ -226,78 +217,12 @@ describe Braspag::CreditCard do
     end
   end
 
-  describe ".info" do
-    let(:info_url) { "http://braspag/bla" }
+end
 
-    let(:invalid_xml) do
-      <<-EOXML
-      <DadosCartao xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                   xmlns="http://www.pagador.com.br/">
-        <NumeroComprovante></NumeroComprovante>
-        <Autenticada>false</Autenticada>
-        <NumeroAutorizacao>557593</NumeroAutorizacao>
-        <NumeroCartao>345678*****0007</NumeroCartao>
-        <NumeroTransacao>101001225645</NumeroTransacao>
-      </DadosCartao>
-      EOXML
-    end
-
-    let(:valid_xml) do
-      <<-EOXML
-      <DadosCartao xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                   xmlns="http://www.pagador.com.br/">
-        <NumeroComprovante>11111</NumeroComprovante>
-        <Autenticada>false</Autenticada>
-        <NumeroAutorizacao>557593</NumeroAutorizacao>
-        <NumeroCartao>345678*****0007</NumeroCartao>
-        <NumeroTransacao>101001225645</NumeroTransacao>
-      </DadosCartao>
-      EOXML
-    end
-
-    it "should raise an error when order id is not valid" do
-      Braspag::CreditCard.should_receive(:valid_order_id?)
-                         .with("bla")
-                         .and_return(false)
-
-      expect {
-        Braspag::CreditCard.info "bla"
-      }.to raise_error(Braspag::InvalidOrderId)
-    end
-
-    it "should raise an error when Braspag returned an invalid xml as response" do
-      FakeWeb.register_uri(:post, info_url, :body => invalid_xml)
-
-      Braspag::CreditCard.should_receive(:info_url)
-                         .and_return(info_url)
-
-      expect {
-        Braspag::CreditCard.info("orderid")
-      }.to raise_error(Braspag::UnknownError)
-    end
-
-    it "should return a Hash when Braspag returned a valid xml as response" do
-      FakeWeb.register_uri(:post, info_url, :body => valid_xml)
-
-      Braspag::CreditCard.should_receive(:info_url)
-                         .and_return(info_url)
-
-      response = Braspag::CreditCard.info("orderid")
-      response.should be_kind_of Hash
-
-      response.should == {
-        :checking_number => "11111",
-        :certified => "false",
-        :autorization_number => "557593",
-        :card_number => "345678*****0007",
-        :transaction_number => "101001225645"
-      }
-    end
-  end
-
-  describe ".check_params" do
+describe Braspag::CreditCard do
+  
+  
+  pending ".check_params" do
     let(:params) do
       {
         :order_id => 12345,
@@ -395,53 +320,5 @@ describe Braspag::CreditCard do
       }.to raise_error Braspag::InvalidNumberPayments
     end
   end
-
-  describe ".info_url" do
-    it "should return the correct info url when connection environment is homologation" do
-      @connection.stub(:braspag_url => braspag_homologation_url)
-      @connection.should_receive(:production?)
-                 .and_return(false)
-
-      Braspag::CreditCard.info_url.should == "#{braspag_homologation_url}/pagador/webservice/pedido.asmx/GetDadosCartao"
-    end
-
-    it "should return the correct info url when connection environment is production" do
-      @connection.stub(:braspag_url => braspag_production_url)
-      @connection.should_receive(:production?)
-                 .and_return(true)
-
-      Braspag::CreditCard.info_url.should == "#{braspag_production_url}/webservices/pagador/pedido.asmx/GetDadosCartao"
-    end
-  end
-
-  describe ".authorize_url .capture_url .cancellation_url" do
-    it "should return the correct credit card creation url when connection environment is homologation" do
-      @connection.stub(:braspag_url => braspag_homologation_url)
-
-      Braspag::CreditCard.authorize_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/Authorize"
-      Braspag::CreditCard.capture_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/Capture"
-      Braspag::CreditCard.cancellation_url.should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/VoidTransaction"
-    end
-
-    it "should return the correct credit card creation url when connection environment is production" do
-      @connection.stub(:braspag_url => braspag_production_url)
-
-      Braspag::CreditCard.authorize_url.should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/Authorize"
-      Braspag::CreditCard.capture_url.should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/Capture"
-      Braspag::CreditCard.cancellation_url.should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/VoidTransaction"
-    end
-  end
-
-  describe ".save .get .just_click_shop" do
-    it "should delegate to ProtectedCreditCard class" do
-      Braspag::ProtectedCreditCard.should_receive(:save).with({})
-      Braspag::CreditCard.save({})
-
-      Braspag::ProtectedCreditCard.should_receive(:get).with('just_click_key')
-      Braspag::CreditCard.get('just_click_key')
-
-      Braspag::ProtectedCreditCard.should_receive(:just_click_shop).with({})
-      Braspag::CreditCard.just_click_shop({})
-    end
-  end
+  
 end

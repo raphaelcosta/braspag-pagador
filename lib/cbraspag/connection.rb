@@ -6,6 +6,11 @@ module Braspag
     PROTECTED_CARD_PRODUCTION_URL = "https://cartaoprotegido.braspag.com.br/Services"
     PROTECTED_CARD_HOMOLOGATION_URL = "https://homologacao.braspag.com.br/services/testenvironment"
 
+    AUTHORIZE_CARD_URI = "/webservices/pagador/Pagador.asmx/Authorize"
+    CAPTURE_CARD_URI = "/webservices/pagador/Pagador.asmx/Capture"
+    VOID_CARD_URI = "/webservices/pagador/Pagador.asmx/VoidTransaction"
+
+
     attr_reader :merchant_id, :env
 
     def initialize(merchant_id, env)
@@ -22,6 +27,20 @@ module Braspag
 
     def homologation?
       @env == :homologation
+    end
+    
+    def url_for(method_name)
+      braspag_url = production? ? PRODUCTION_URL : HOMOLOGATION_URL
+      protected_url = production? ? PROTECTED_CARD_PRODUCTION_URL : PROTECTED_CARD_HOMOLOGATION_URL
+      
+      case method_name
+      when :authorize
+        braspag_url + AUTHORIZE_CARD_URI
+      when :void
+        braspag_url + VOID_CARD_URI
+      when :capture
+        braspag_url + CAPTURE_CARD_URI
+      end
     end
   end
 end

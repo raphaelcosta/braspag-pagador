@@ -1,14 +1,5 @@
 module Braspag
-  
   class Connection
-
-
-    AUTHORIZE_URI = "/webservices/pagador/Pagador.asmx/Authorize"
-    CAPTURE_URI = "/webservices/pagador/Pagador.asmx/Capture"
-    CANCELLATION_URI = "/webservices/pagador/Pagador.asmx/VoidTransaction"
-    PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosCartao"
-    HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosCartao"
-
     def self.purchase(order, credit_card)
       response = self.authorize(order, credit_card)
       self.capture(order) if response.success?
@@ -90,17 +81,6 @@ module Braspag
         })
     end
 
-    def self.authorize_url
-      Braspag::Connection.instance.braspag_url + AUTHORIZE_URI
-    end
-
-    def self.capture_url
-      Braspag::Connection.instance.braspag_url + CAPTURE_URI
-    end
-
-    def self.cancellation_url
-      Braspag::Connection.instance.braspag_url + CANCELLATION_URI
-    end
   end
   
   class CreditCard

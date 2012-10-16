@@ -1,5 +1,8 @@
 module Braspag
   class Order
+    PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosCartao"
+    HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosCartao"
+    
     STATUS_PAYMENT = {
       :starting => "1",
       :close => "2",

@@ -56,5 +56,23 @@ describe Braspag::Connection do
   end
 
   
+  describe ".url_for" do
+    let(:braspag_homologation_url) { "https://homologacao.pagador.com.br" }
+    let(:braspag_production_url) { "https://transaction.pagador.com.br" }
+    
+    it "should return the correct credit card creation url when connection environment is homologation" do
+      connection = Braspag::Connection.new(merchant_id, :homologation)
+      connection.url_for(:authorize).should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/Authorize"
+      connection.url_for(:capture).should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/Capture"
+      connection.url_for(:void).should == "#{braspag_homologation_url}/webservices/pagador/Pagador.asmx/VoidTransaction"
+    end
+
+    it "should return the correct credit card creation url when connection environment is production" do
+      connection = Braspag::Connection.new(merchant_id, :production)
+      connection.url_for(:authorize).should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/Authorize"
+      connection.url_for(:capture).should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/Capture"
+      connection.url_for(:void).should == "#{braspag_production_url}/webservices/pagador/Pagador.asmx/VoidTransaction"
+    end
+  end
 
 end
