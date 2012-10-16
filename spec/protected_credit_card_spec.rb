@@ -1,8 +1,6 @@
 require 'spec_helper'
 
 describe Braspag::ProtectedCreditCard do
-  let(:braspag_homologation_protected_card_url) { "https://cartaoprotegido.braspag.com.br" }
-  let(:braspag_production_protected_card_url) { "https://www.cartaoprotegido.com.br" }
   let(:merchant_id) { "um id qualquer" }
 
   before do
@@ -266,12 +264,6 @@ describe Braspag::ProtectedCreditCard do
       end
     end
 
-    it ".save_protected_card_url .get_protected_card_url" do
-      @connection.stub(:protected_card_url => braspag_homologation_protected_card_url)
-
-      Braspag::ProtectedCreditCard.save_protected_card_url.should == "#{braspag_homologation_protected_card_url}/CartaoProtegido.asmx?wsdl"
-      Braspag::ProtectedCreditCard.get_protected_card_url.should == "#{braspag_homologation_protected_card_url}/CartaoProtegido.asmx/GetCreditCard"
-    end
 
   end
 end

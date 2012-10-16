@@ -194,16 +194,4 @@ describe Braspag::Eft do
       }.to_not raise_error Braspag::InvalidHasInterest
     end
   end
-
-  describe ".action_url" do
-    it "should return the correct eft creation url when connection environment is homologation" do
-      @connection.stub(:braspag_url => braspag_homologation_url)
-      Braspag::Eft.action_url.should == "#{braspag_homologation_url}/pagador/passthru.asp"
-    end
-
-    it "should return the correct eft creation url when connection environment is production" do
-      @connection.stub(:braspag_url => braspag_production_url)
-      Braspag::Eft.action_url.should == "#{braspag_production_url}/pagador/passthru.asp"
-    end
-  end
 end

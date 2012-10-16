@@ -11,23 +11,7 @@ describe Braspag::Order do
     Braspag::Connection.stub(:instance => @connection)
   end
   
-  pending ".info_url" do
-    it "should return the correct info url when connection environment is homologation" do
-      @connection.stub(:braspag_url => braspag_homologation_url)
-      @connection.should_receive(:production?)
-                 .and_return(false)
 
-      Braspag::CreditCard.info_url.should == "#{braspag_homologation_url}/pagador/webservice/pedido.asmx/GetDadosCartao"
-    end
-
-    it "should return the correct info url when connection environment is production" do
-      @connection.stub(:braspag_url => braspag_production_url)
-      @connection.should_receive(:production?)
-                 .and_return(true)
-
-      Braspag::CreditCard.info_url.should == "#{braspag_production_url}/webservices/pagador/pedido.asmx/GetDadosCartao"
-    end
-  end
   
   pending ".info" do
     let(:info_url) { "http://braspag/bla" }
@@ -187,21 +171,5 @@ describe Braspag::Order do
     end
   end
 
-  describe ".status_url" do
-    it "should return the correct info url when connection environment is homologation" do
-      @connection.stub(:braspag_url => braspag_homologation_url)
-      @connection.should_receive(:production?)
-                 .and_return(false)
 
-      Braspag::Order.status_url.should == "#{braspag_homologation_url}/pagador/webservice/pedido.asmx/GetDadosPedido"
-    end
-
-    it "should return the correct info url when connection environment is production" do
-      @connection.stub(:braspag_url => braspag_production_url)
-      @connection.should_receive(:production?)
-                 .and_return(true)
-
-      Braspag::Order.status_url.should == "#{braspag_production_url}/webservices/pagador/pedido.asmx/GetDadosPedido"
-    end
-  end
 end

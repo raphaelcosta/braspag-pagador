@@ -23,9 +23,6 @@ module Braspag
       :security_code => "SecurityCode"
     }
 
-    SAVE_PROTECTED_CARD_URI = "/CartaoProtegido.asmx?wsdl"
-    GET_PROTECTED_CARD_URI = "/CartaoProtegido.asmx/GetCreditCard"
-    JUST_CLICK_SHOP_URI = "/CartaoProtegido.asmx?wsdl"
 
     # saves credit card in Braspag PCI Compliant
     def self.save(params = {})
@@ -138,18 +135,6 @@ module Braspag
 
     def self.valid_just_click_key?(just_click_key)
       (just_click_key.is_a?(String) && just_click_key.size == 36)
-    end
-
-    def self.save_protected_card_url
-      Braspag::Connection.instance.protected_card_url + SAVE_PROTECTED_CARD_URI
-    end
-
-    def self.get_protected_card_url
-      Braspag::Connection.instance.protected_card_url + GET_PROTECTED_CARD_URI
-    end
-
-    def self.just_click_shop_url
-      Braspag::Connection.instance.protected_card_url + JUST_CLICK_SHOP_URI
     end
   end
 end

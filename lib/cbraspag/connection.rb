@@ -6,11 +6,6 @@ module Braspag
     PROTECTED_CARD_PRODUCTION_URL = "https://cartaoprotegido.braspag.com.br/Services"
     PROTECTED_CARD_HOMOLOGATION_URL = "https://homologacao.braspag.com.br/services/testenvironment"
 
-    AUTHORIZE_CARD_URI = "/webservices/pagador/Pagador.asmx/Authorize"
-    CAPTURE_CARD_URI = "/webservices/pagador/Pagador.asmx/Capture"
-    VOID_CARD_URI = "/webservices/pagador/Pagador.asmx/VoidTransaction"
-
-
     attr_reader :merchant_id, :env
 
     def initialize(merchant_id, env)
@@ -31,15 +26,39 @@ module Braspag
     
     def url_for(method_name)
       braspag_url = production? ? PRODUCTION_URL : HOMOLOGATION_URL
-      protected_url = production? ? PROTECTED_CARD_PRODUCTION_URL : PROTECTED_CARD_HOMOLOGATION_URL
+      protected_card_url = production? ? PROTECTED_CARD_PRODUCTION_URL : PROTECTED_CARD_HOMOLOGATION_URL
+
+      braspag_info_url = if production?
+        braspag_url + "/webservices/pagador/pedido.asmx"
+      else
+        braspag_url + "/pagador/webservice/pedido.asmx"
+      end
       
       case method_name
       when :authorize
-        braspag_url + AUTHORIZE_CARD_URI
+        braspag_url + "/webservices/pagador/Pagador.asmx/Authorize"
       when :void
-        braspag_url + VOID_CARD_URI
+        braspag_url + "/webservices/pagador/Pagador.asmx/VoidTransaction"
       when :capture
-        braspag_url + CAPTURE_CARD_URI
+        braspag_url + "/webservices/pagador/Pagador.asmx/Capture"
+      when :generate_billet
+        braspag_url + "/webservices/pagador/Boleto.asmx/CreateBoleto"
+      when :generate_eft
+        braspag_url + "/pagador/passthru.asp"
+      when :info_billet
+        braspag_info_url + "/GetDadosBoleto"
+      when :info_card
+        braspag_info_url + "/GetDadosCartao"
+      when :info
+        braspag_info_url + "/GetDadosPedido"
+      when :encrypt
+        braspag_url + "/BraspagGeneralService/BraspagGeneralService.asmx"
+      when :archive_card
+        protected_card_url + "/CartaoProtegido.asmx?wsdl"
+      when :get_card
+        protected_card_url + "/CartaoProtegido.asmx/GetCreditCard"
+      when :recurrency
+        protected_card_url + "/CartaoProtegido.asmx?wsdl"
       end
     end
   end

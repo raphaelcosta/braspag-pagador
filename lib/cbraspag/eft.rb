@@ -1,5 +1,5 @@
 module Braspag
-  class Eft < PaymentMethod
+  class Connection
 
     PAYMENT_METHODS = {
       :bradesco => 11,
@@ -21,9 +21,8 @@ module Braspag
       :has_interest => "TIPOPARCELADO"
     }
 
-    ACTION_URI = "/pagador/passthru.asp"
 
-    def self.generate(params, crypto_strategy = nil)
+    def self.generate_eft(params, crypto_strategy = nil)
       connection = Braspag::Connection.instance
       params[:merchant_id] = connection.merchant_id
 
@@ -83,8 +82,5 @@ module Braspag
       end
     end
 
-    def self.action_url
-      Braspag::Connection.instance.braspag_url + ACTION_URI
-    end
   end
 end

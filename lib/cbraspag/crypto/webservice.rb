@@ -82,11 +82,6 @@ STRING
       end
 
       protected
-      def self.uri
-        connection = Braspag::Connection.instance
-        "#{connection.braspag_url}/BraspagGeneralService/BraspagGeneralService.asmx"
-      end
-
       def self.convert_request_to_map(document)
         map = {}
         document.children.children.children.children.children.each do |n|

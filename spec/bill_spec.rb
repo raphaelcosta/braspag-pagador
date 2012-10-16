@@ -395,33 +395,5 @@ describe Braspag::Bill do
     end
   end
 
-  describe ".creation_url" do
-    it "should return the correct bill creation url when connection environment is homologation" do
-      @connection.stub(:braspag_url => braspag_homologation_url)
-      Braspag::Bill.creation_url.should == "#{braspag_homologation_url}/webservices/pagador/Boleto.asmx/CreateBoleto"
-    end
 
-    it "should return the correct bill creation url when connection environment is production" do
-      @connection.stub(:braspag_url => braspag_production_url)
-      Braspag::Bill.creation_url.should == "#{braspag_production_url}/webservices/pagador/Boleto.asmx/CreateBoleto"
-    end
-  end
-
-  describe ".info_url" do
-    it "should return the correct info url when connection environment is homologation" do
-      @connection.stub(:braspag_url => braspag_homologation_url)
-      @connection.should_receive(:production?)
-                 .and_return(false)
-
-      Braspag::Bill.info_url.should == "#{braspag_homologation_url}/pagador/webservice/pedido.asmx/GetDadosBoleto"
-    end
-
-    it "should return the correct info url when connection environment is production" do
-      @connection.stub(:braspag_url => braspag_production_url)
-      @connection.should_receive(:production?)
-                 .and_return(true)
-
-      Braspag::Bill.info_url.should == "#{braspag_production_url}/webservices/pagador/pedido.asmx/GetDadosBoleto"
-    end
-  end
 end

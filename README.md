@@ -460,17 +460,6 @@ cbraspag gem to use Braspag gateway
 
   Purchase order using recurrence
   
-  :request_id => "RequestId",
-  :merchant_id => "MerchantKey",
-  :customer_name => "CustomerName",
-  :order_id => "OrderId",
-  :amount => "Amount",
-  :payment_method => "PaymentMethod",
-  :number_installments => "NumberInstallments",
-  :payment_type => "PaymentType",
-  :just_click_key => "JustClickKey",
-  :security_code => "SecurityCode"
-  
   	require 'rubygems'
   	require 'cbraspag'
   		

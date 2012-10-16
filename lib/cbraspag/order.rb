@@ -1,7 +1,5 @@
 module Braspag
   class Order
-    PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosCartao"
-    HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosCartao"
     
     STATUS_PAYMENT = {
       :starting => "1",
@@ -10,9 +8,39 @@ module Braspag
       :cancelled => "4"
     }
     
-    def self.info_url_credit_card
+
+    def self.info(order_id)
       connection = Braspag::Connection.instance
-      connection.braspag_url + (connection.production? ? PRODUCTION_INFO_URI : HOMOLOGATION_INFO_URI)
+
+      raise InvalidOrderId unless self.valid_order_id?(order_id)
+
+      request = ::HTTPI::Request.new(self.info_url)
+      request.body = {
+        :loja => connection.merchant_id,
+        :numeroPedido => order_id.to_s
+      }
+
+      response = ::HTTPI.post(request)
+
+      response = Utils::convert_to_map(response.body, {
+          :document_number => "NumeroDocumento",
+          :payer => "Sacado",
+          :our_number => "NossoNumero",
+          :bill_line => "LinhaDigitavel",
+          :document_date => "DataDocumento",
+          :expiration_date => "DataVencimento",
+          :receiver => "Cedente",
+          :bank => "Banco",
+          :agency => "Agencia",
+          :account => "Conta",
+          :wallet => "Carteira",
+          :amount => "ValorDocumento",
+          :amount_invoice => "ValorPago",
+          :invoice_date => "DataCredito"
+        })
+
+      raise UnknownError if response[:document_number].nil?
+      response
     end
     
     def self.info_credit_card(order_id)
@@ -35,10 +63,6 @@ module Braspag
       response
     end
     
-    
-    PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosPedido"
-    HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosPedido"
-
     def self.status(order_id)
       connection = Braspag::Connection.instance
 
@@ -69,11 +93,6 @@ module Braspag
 
       raise InvalidData if response[:authorization].nil?
       response
-    end
-
-    def self.status_url
-      connection = Braspag::Connection.instance
-      connection.braspag_url + (connection.production? ? PRODUCTION_INFO_URI : HOMOLOGATION_INFO_URI)
     end
   end
 end

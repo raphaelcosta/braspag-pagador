@@ -1,37 +1,8 @@
 require "bigdecimal"
 
 module Braspag
-  class Bill < PaymentMethod
-
-    PAYMENT_METHODS = {
-      :bradesco => "06",
-      :cef => "07",
-      :hsbc => "08",
-      :bb => "09",
-      :real => "10",
-      :citibank => "13",
-      :itau => "14",
-      :unibanco => "26"
-    }
-
-    MAPPING = {
-      :merchant_id => "merchantId",
-      :order_id => "orderId",
-      :customer_name => "customerName",
-      :customer_id => "customerIdNumber",
-      :amount => "amount",
-      :payment_method => "paymentMethod",
-      :number => "boletoNumber",
-      :instructions => "instructions",
-      :expiration_date => "expirationDate",
-      :emails => "emails"
-    }
-
-    PRODUCTION_INFO_URI   = "/webservices/pagador/pedido.asmx/GetDadosBoleto"
-    HOMOLOGATION_INFO_URI = "/pagador/webservice/pedido.asmx/GetDadosBoleto"
-    CREATION_URI = "/webservices/pagador/Boleto.asmx/CreateBoleto"
-
-    def self.generate(params)
+  class Connection
+    def self.generate_bill(params)
       connection = Braspag::Connection.instance
       params[:merchant_id] = connection.merchant_id
 
@@ -81,6 +52,36 @@ module Braspag
 
       response
     end
+    
+  end
+  
+  class Bill
+
+    PAYMENT_METHODS = {
+      :bradesco => "06",
+      :cef => "07",
+      :hsbc => "08",
+      :bb => "09",
+      :real => "10",
+      :citibank => "13",
+      :itau => "14",
+      :unibanco => "26"
+    }
+
+    MAPPING = {
+      :merchant_id => "merchantId",
+      :order_id => "orderId",
+      :customer_name => "customerName",
+      :customer_id => "customerIdNumber",
+      :amount => "amount",
+      :payment_method => "paymentMethod",
+      :number => "boletoNumber",
+      :instructions => "instructions",
+      :expiration_date => "expirationDate",
+      :emails => "emails"
+    }
+
+
 
     def self.normalize_params(params)
       params = super
@@ -112,49 +113,6 @@ module Braspag
           raise InvalidExpirationDate
         end
       end
-    end
-
-    def self.info_url
-      connection = Braspag::Connection.instance
-      connection.braspag_url + (connection.production? ? PRODUCTION_INFO_URI : HOMOLOGATION_INFO_URI)
-    end
-
-    def self.creation_url
-      Braspag::Connection.instance.braspag_url + CREATION_URI
-    end
-
-    def self.info(order_id)
-      connection = Braspag::Connection.instance
-
-      raise InvalidOrderId unless self.valid_order_id?(order_id)
-
-      request = ::HTTPI::Request.new(self.info_url)
-      request.body = {
-        :loja => connection.merchant_id,
-        :numeroPedido => order_id.to_s
-      }
-
-      response = ::HTTPI.post(request)
-
-      response = Utils::convert_to_map(response.body, {
-          :document_number => "NumeroDocumento",
-          :payer => "Sacado",
-          :our_number => "NossoNumero",
-          :bill_line => "LinhaDigitavel",
-          :document_date => "DataDocumento",
-          :expiration_date => "DataVencimento",
-          :receiver => "Cedente",
-          :bank => "Banco",
-          :agency => "Agencia",
-          :account => "Conta",
-          :wallet => "Carteira",
-          :amount => "ValorDocumento",
-          :amount_invoice => "ValorPago",
-          :invoice_date => "DataCredito"
-        })
-
-      raise UnknownError if response[:document_number].nil?
-      response
     end
   end
 end
