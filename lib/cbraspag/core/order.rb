@@ -1,18 +1,13 @@
 module Braspag
   class Connection
     def self.get(order)
+      #check if order.is valid for get
       return ::Response
-      connection = Braspag::Connection.instance
-
-      raise InvalidOrderId unless Braspag::PaymentMethod.valid_order_id?(order_id)
-
-      request = ::HTTPI::Request.new(self.status_url)
-      request.body = {
-        :loja => connection.merchant_id, :numeroPedido => order_id.to_s
-      }
-
-      response = ::HTTPI.post(request)
-
+      
+      response = Braspag::Poster.new(self, self.url_for(:info)).do_post(:info, {
+        :loja => self.merchant_id, :numeroPedido => order.id.to_s
+      })
+      
       response = Utils::convert_to_map(response.body, {
         :authorization => "CodigoAutorizacao",
         :error_code => "CodigoErro",
@@ -29,7 +24,7 @@ module Braspag
         :tid => "BraspagTid"
       })
 
-      raise InvalidData if response[:authorization].nil?
+      # raise InvalidData if response[:authorization].nil?
       
       self.get_billet(order)
       self.get_credit_card(order)
