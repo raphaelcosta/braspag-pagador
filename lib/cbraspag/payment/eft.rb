@@ -1,16 +1,7 @@
 module Braspag
   class Connection
 
-    PAYMENT_METHODS = {
-      :bradesco => 11,
-      :itau => 12,
-      :banco_do_brasil => 15,
-      :banco_real => 16,
-      :banrisul => 30,
-      :unibanco => 31
-    }
-
-    MAPPING = {
+    MAPPING_EFT = {
       :merchant_id => "Id_Loja",
       :order_id => "VENDAID",
       :customer_name => "nome",
@@ -22,7 +13,9 @@ module Braspag
     }
 
 
-    def self.generate_eft(params, crypto_strategy = nil)
+    def self.generate_eft(order, eft)
+      return ::Response.new
+      
       connection = Braspag::Connection.instance
       params[:merchant_id] = connection.merchant_id
 
@@ -70,17 +63,22 @@ module Braspag
       params
     end
 
-    def self.check_params(params)
-      super
+  end
+  
+  class EFT
+    include ::ActiveAttr::Model
 
-      if params[:installments]
-        raise InvalidInstallments if params[:installments].to_i < 1 || params[:installments].to_i > 99
-      end
+    attr_accessor :crypto
+    
+    validates :crypto, :presence => { :on => :generate }
 
-      if params[:has_interest]
-        raise InvalidHasInterest if params[:has_interest] != "1" && params[:has_interest] != "0"
-      end
-    end
+    # :crypto => Braspag::Crypto::Webservice
+    # :crypto => Braspag::NoCrypto
+    # :crypto => Braspag::Crypto::JarWebservice.new(
+    #   :url => "http://0.0.0.0:9292"
+    #   :key => "123456123456"
+    # )
 
   end
+  
 end

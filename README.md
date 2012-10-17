@@ -36,12 +36,12 @@ cbraspag gem to use Braspag gateway
   	)
   	
   	order = Braspag::Order.new(
-  	  :payment_method    => Braspag::PaymentMethod::RedeCard,
+  	  :payment_method    => Braspag::PAYMENT_METHOD[:redecard],
   	  :id                => 11,
   	  :amount            => 10.00, # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer          => customer,
   	  :installments      => 1,
-  	  :installments_type => Braspag::Order::NO_INSTALLMENTS
+  	  :installments_type => Braspag::NO_INTEREST
   	)
   	
   	# Validating the card automatically detects the card type
@@ -75,13 +75,13 @@ cbraspag gem to use Braspag gateway
   	)
   	
   	customer = Braspag::Customer.new(
-  	  :id     => '12334', # (OPTIONAL)
+  	  :document     => '21473696240', # (OPTIONAL)
   	  :name   => 'Bob Dela Bobsen',
   	  :email  => 'bob@mailinator.com' # send email to consumer (OPTIONAL)
   	)
   	
   	order = Braspag::Order.new(
-  	  :payment_method  => Braspag::PaymentMethod::Bradesco,
+  	  :payment_method  => Braspag::PAYMENT_METHOD[:billet_bradesco],
   	  :id              => 11,
   	  :amount          => 10.00, # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer        => customer
@@ -125,7 +125,7 @@ cbraspag gem to use Braspag gateway
   	
   	#Without Crypto
   	eft = Braspag::EFT.new(
-  	  :crypto => Braspag::NoCrypto
+  	  :crypto => Braspag::Crypto::NoCrypto
   	)
   	
   	customer = Braspag::Customer.new(
@@ -133,7 +133,7 @@ cbraspag gem to use Braspag gateway
   	)
   	
   	order = Braspag::Order.new(
-  	  :payment_method  => Braspag::PaymentMethod::Santader,
+  	  :payment_method  => Braspag::PAYMENT_METHOD[:eft_itau],
   	  :id              => 1234,
   	  :amount          => '1000', # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer        => customer
@@ -144,7 +144,7 @@ cbraspag gem to use Braspag gateway
   	  response = gateway.generate(order, eft)
   	  
   	  if response.success?
-  	    puts "Successfully created eft, continue in:#{eft.url}"
+  	    puts "Successfully created eft, continue in:#{eft.code}"
   	  else
   	    raise StandardError, response.message
   	  end
@@ -177,12 +177,12 @@ cbraspag gem to use Braspag gateway
   	)
   	
   	order = Braspag::Order.new(
-  	  :payment_method    => Braspag::PaymentMethod::RedeCard,
+  	  :payment_method    => Braspag::PAYMENT_METHOD[:redecard],
   	  :id                => 11,
   	  :amount            => '1000', # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer          => customer,
   	  :installments      => 1,
-  	  :installments_type => Braspag::Order::NO_INSTALLMENTS
+  	  :installments_type => Braspag::NO_INTEREST
   	)
   	
   	# Validating the card automatically detects the card type
@@ -259,58 +259,68 @@ cbraspag gem to use Braspag gateway
 
   Sometimes your need get status in braspag
   
-  	> order = gateway.get(1234)
+  	> order = Order.new(:id => "1234")
+  	> response = gateway.get(order)
   	
-  	> puts order.authorization
-  	> "148519"
+  	> if response.success?
+  	>   puts order.authorization
+  	>   "148519"
   	
-  	> #IF HAS ERROR
-  	> puts order.error_code
-  	> "45"
+  	>   puts order.payment_method_name
+  	>   "Boleto Santander"
   	
-  	> #IF HAS ERROR
-  	> puts order.error_message
-  	> "XPXT ERROR"
+  	>   puts order.payment_method
+  	>   "06"
   	
-  	> puts order.payment_method_name
-  	> "Boleto Santander"
+  	>   puts Braspag::Converter.payment_method_name?(order.payment_method)
+  	>   :billet_bradesco
   	
-  	> puts order.payment_method
-  	> Braspag::PaymentMethod::Santader
+  	>   puts order.installments
+  	>   1
   	
-  	> puts order.installments
-  	> 1
+  	>   puts order.status
+  	>   4
   	
-  	> puts order.status
-  	> :cancelled
+  	>   puts Braspag::Converter.status_name?(order.status)
+  	>   :cancelled
   	
-  	> puts order.amount
-  	> 500
+  	>   puts order.amount
+  	>   500
   	
-  	> # Kind a datetime 
-  	> puts order.gateway_cancelled_at
-  	> 2012-10-13 03:30:15 -0300
+  	>   # Kind a datetime 
+  	>   puts order.gateway_cancelled_at
+  	>   2012-10-13 03:30:15 -0300
 
-  	> # Kind a datetime
-  	> puts order.gateway_paid_at
-  	> 2012-10-12 13:42:30 -0300
+  	>   # Kind a datetime
+  	>   puts order.gateway_paid_at
+  	>   2012-10-12 13:42:30 -0300
   	
-  	> # Kind a datetime 
-  	> puts order.gateway_created_at
-  	> 2012-10-11 17:44:23 -0300
+  	>   # Kind a datetime 
+  	>   puts order.gateway_created_at
+  	>   2012-10-11 17:44:23 -0300
   	
-  	> puts order.transaction_id
-  	> "342818"
+  	>   puts order.transaction_id
+  	>   "342818"
   	
-  	> puts order.gateway_id
-  	> "02ff02e2-f1ce-4c2b-a874-a20bb98fb97e<"
+  	>   puts order.gateway_id
+  	>   "02ff02e2-f1ce-4c2b-a874-a20bb98fb97e<"
   	
+  	> else
+  	>  puts response.code
+  	>  "XPTO"
+  	
+  	>  puts response.message
+  	>  puts "ERROR XPTO"
+  	> end
+  	
+
   
 ### CREDITCARD DETAILS
 
   If order is a credit card, extras fields returning:
   
-  	> order = gateway.get(1234)
+  	> order = Order.new(:id => "1234")
+  	> response = gateway.get(order)
   	
   	> puts order.credit_card.checking_number
   	> "342818"
@@ -341,7 +351,8 @@ cbraspag gem to use Braspag gateway
 
   If order is a billet, extras fields returning:
   
-  	> order = gateway.get(1234)
+  	> order = Order.new(:id => "1234")
+  	> response = gateway.get(order)
   	
   	> puts order.customer.name
   	> "Teste"
@@ -408,7 +419,7 @@ cbraspag gem to use Braspag gateway
   	
   	customer = Braspag::Customer.new(
   	  :name => 'Bob Dela Bobsen'
-  	  :id => '1123'
+  	  :document => '21473696240' #(OPTIONAL)
   	)
   	
   	# Validating the card automatically detects the card type
@@ -441,8 +452,8 @@ cbraspag gem to use Braspag gateway
   	)
   	
   	# Validating the card automatically detects the card type
-  	if credit_card.valid?(:get)
-  	  response = gateway.get(credit_card)
+  	if credit_card.valid?(:get_recurrency)
+  	  response = gateway.get_recurrency(credit_card)
   	  
   	  if response.success?
   	    puts "Successfully get credit!"
@@ -480,12 +491,12 @@ cbraspag gem to use Braspag gateway
   	)
   	
   	order = Braspag::Order.new(
-  	  :payment_method    => Braspag::PaymentMethod::RedeCard,
+  	  :payment_method    => Braspag::PAYMENT_METHOD[:redecard],
   	  :id                => 11,
   	  :amount            => 10.00, # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer          => customer,
   	  :installments      => 1,
-  	  :installments_type => Braspag::Order::NO_INSTALLMENTS
+  	  :installments_type => Braspag::NO_INTEREST
   	)
 	
   	# Validating the card automatically detects the card type

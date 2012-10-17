@@ -2,7 +2,23 @@ require "bigdecimal"
 
 module Braspag
   class Connection
-    def self.generate_bill(params)
+    
+    MAPPING_BILLET = {
+      :merchant_id => "merchantId",
+      :order_id => "orderId",
+      :customer_name => "customerName",
+      :customer_id => "customerIdNumber",
+      :amount => "amount",
+      :payment_method => "paymentMethod",
+      :number => "boletoNumber",
+      :instructions => "instructions",
+      :expiration_date => "expirationDate",
+      :emails => "emails"
+    }
+    
+    def self.generate_billet(order, billet)
+      return ::Response.new
+      
       connection = Braspag::Connection.instance
       params[:merchant_id] = connection.merchant_id
 
@@ -55,64 +71,13 @@ module Braspag
     
   end
   
-  class Bill
+  class Billet
+    include ::ActiveAttr::Model
 
-    PAYMENT_METHODS = {
-      :bradesco => "06",
-      :cef => "07",
-      :hsbc => "08",
-      :bb => "09",
-      :real => "10",
-      :citibank => "13",
-      :itau => "14",
-      :unibanco => "26"
-    }
-
-    MAPPING = {
-      :merchant_id => "merchantId",
-      :order_id => "orderId",
-      :customer_name => "customerName",
-      :customer_id => "customerIdNumber",
-      :amount => "amount",
-      :payment_method => "paymentMethod",
-      :number => "boletoNumber",
-      :instructions => "instructions",
-      :expiration_date => "expirationDate",
-      :emails => "emails"
-    }
-
-
-
-    def self.normalize_params(params)
-      params = super
-
-      if params[:expiration_date].respond_to?(:strftime)
-        params[:expiration_date] = params[:expiration_date].strftime("%d/%m/%y")
-      end
-
-      params
-    end
-
-    def self.check_params(params)
-      super
-
-      if params[:number]
-        raise InvalidNumber unless (1..255).include?(params[:number].to_s.size)
-      end
-
-      if params[:instructions]
-        raise InvalidInstructions unless (1..512).include?(params[:instructions].to_s.size)
-      end
-
-      if params[:expiration_date]
-        matches = params[:expiration_date].to_s.match /(\d{2})\/(\d{2})\/(\d{2})/
-        raise InvalidExpirationDate unless matches
-        begin
-          Date.new(matches[3].to_i, matches[2].to_i, matches[1].to_i)
-        rescue ArgumentError
-          raise InvalidExpirationDate
-        end
-      end
-    end
+    attr_accessor :id, :instructions, :due_date_on
+    
+    validates :id, :presence => { :on => :generate } #255 (OPTIONAL)
+    validates :instructions, :presence => { :on => :generate } #512 (OPTIONAL)
+    validates :due_date_on, :presence => { :on => :generate }
   end
 end

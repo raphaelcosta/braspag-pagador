@@ -1,5 +1,8 @@
 module Braspag
   class Connection
+
+    class InvalidMerchantId < Exception ; end
+    class InvalidEnvironment < Exception ; end
     
     PRODUCTION_URL = "https://transaction.pagador.com.br"
     HOMOLOGATION_URL = "https://homologacao.pagador.com.br"
@@ -7,8 +10,11 @@ module Braspag
     PROTECTED_CARD_HOMOLOGATION_URL = "https://homologacao.braspag.com.br/services/testenvironment"
 
     attr_reader :merchant_id, :env
+    attr_accessor :logger, :proxy_address
 
-    def initialize(merchant_id, env)
+    def initialize(params = {})
+      merchant_id = params[:merchant_id]
+      env = params[:environment]
       raise InvalidMerchantId unless merchant_id =~ /\{[a-z0-9]{8}-([a-z0-9]{4}-){3}[a-z0-9]{12}\}/i
       raise InvalidEnvironment unless (env == :homologation || env == :production)
       
@@ -60,6 +66,10 @@ module Braspag
       when :recurrency
         protected_card_url + "/CartaoProtegido.asmx?wsdl"
       end
+    end
+    
+    def generate(order, payment)
+      send(order.which_method_for?(payment))
     end
   end
 end

@@ -1,10 +1,10 @@
 module Braspag
-  class Utils
-    def self.convert_decimal_to_string(value)
+  class Converter
+    def self.decimal_to_string(value)
       ("%.2f" % value.to_f).gsub('.', ',')
     end
 
-    def self.convert_to_map(document, map = {})
+    def self.to_map(document, map = {})
       document = Nokogiri::XML(document)
 
       map.each do |key, value|
@@ -27,6 +27,14 @@ module Braspag
       end
 
       map
+    end
+    
+    def self.payment_method_name?(code)
+      Braspag::PAYMENT_METHOD.key(code.to_s.to_i)
+    end
+    
+    def self.status_name?(code)
+      Braspag::STATUS_PAYMENT.key(code.to_s.to_i)
     end
   end
 end

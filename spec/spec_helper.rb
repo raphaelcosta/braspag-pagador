@@ -1,10 +1,9 @@
 require 'rubygems'
 require 'bundler'
-Bundler.setup(:default)
-require 'httpi'
-require 'nokogiri'
-require 'json'
 require 'cbraspag'
+Bundler.setup(:default, :test, :development)
+
+require 'pry'
 
 RSpec.configure do |config|
   config.mock_with :rspec

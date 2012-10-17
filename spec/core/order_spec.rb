@@ -6,12 +6,6 @@ describe Braspag::Order do
   let(:braspag_production_url) { "https://transaction.pagador.com.br" }
   let(:merchant_id) { "um id qualquer" }
 
-  before do
-    @connection = mock(:merchant_id => merchant_id)
-    Braspag::Connection.stub(:instance => @connection)
-  end
-  
-
   
   pending ".info" do
     let(:info_url) { "http://braspag/bla" }
@@ -84,7 +78,7 @@ describe Braspag::Order do
     end
   end
 
-  describe ".status" do
+  pending ".status" do
     let(:order_id) { "um order id qualquer" }
     let(:status_url) { "http://foo.com/bar/baz/assererre" }
 
