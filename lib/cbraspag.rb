@@ -5,6 +5,7 @@ require 'httpi'
 require 'json'
 require 'nokogiri'
 require 'savon'
+require 'bigdecimal'
 
 require "cbraspag/version"
 require 'cbraspag/core/converter'

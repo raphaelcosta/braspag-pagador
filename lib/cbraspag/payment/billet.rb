@@ -16,7 +16,7 @@ module Braspag
       :emails => "emails"
     }
     
-    def self.generate_billet(order, billet)
+    def generate_billet(order, billet)
       return ::Response.new
       
       connection = Braspag::Connection.instance

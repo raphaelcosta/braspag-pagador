@@ -109,6 +109,7 @@ module Braspag
     end
     
     attr_accessor :id, :payment_method, :amount, :customer, :installments, :installments_type
+    attr_accessor :gateway_authorization, :gateway_id, :gateway_return_code, :gateway_status, :gateway_message, :gateway_amount
     
     [:purchase, :generate, :authorize, :capture, :void, :recurrency].each do |check_on|
       validates :id, :presence => { :on => check_on }
@@ -151,6 +152,33 @@ module Braspag
            Braspag::INTEREST[:no_iata]
         true
       end
+    end
+    
+    def convert_to(method)
+      self.send("to_#{method}").merge(self.customer.convert_to(method))
+    end
+    
+    def to_authorize
+      {
+        :order_id        => self.id.to_s,
+        :amount          => self.amount,
+        :payment_method  => self.payment_method,
+        :number_payments => self.installments,
+        :type            => self.installments_type,
+      }
+    end
+    
+    def populate!(method, response)
+      self.send("populate_#{method}!", response)
+    end
+    
+    def populate_authorize!(response)
+      self.gateway_authorization = response[:number]
+      self.gateway_id = response[:transaction_id]
+      self.gateway_return_code = response[:return_code]
+      self.gateway_status = response[:status]
+      self.gateway_message = response[:message]
+      self.gateway_amount = Converter::string_to_decimal(response[:amount])
     end
     
     private

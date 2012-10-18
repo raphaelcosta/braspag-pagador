@@ -1,83 +1,115 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Braspag::Connection do
-  pending ".authorize" do
-    let(:params) do
-      {
-        :order_id => "um order id",
-        :customer_name => "W" * 21,
-        :amount => "100.00",
-        :payment_method => :redecard,
-        :holder => "Joao Maria Souza",
-        :card_number => "9" * 10,
-        :expiration => "10/12",
-        :security_code => "123",
-        :number_payments => 1,
-        :type => 0
-      }
+  let(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
+  let(:connection) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
+  
+  context ".authorize" do
+    let(:customer) do
+      Braspag::Customer.new(:name => "W" * 21)
+    end
+    
+    let(:order) do
+      Braspag::Order.new(
+        :id                => "um order id",
+        :amount            => 1000.00,
+        :payment_method    => Braspag::PAYMENT_METHOD[:redecard],
+        :installments      => 1,
+        :installments_type => Braspag::INTEREST[:no],
+        :customer          => customer
+      )
+    end
+    
+    let(:credit_card) do
+      Braspag::CreditCard.new(
+        :holder_name        => "Joao Maria Souza",
+        :number             => "9" * 10,
+        :month              => "10",
+        :year               => "12",
+        :verification_value => "123"
+      )
+    end
+    
+    let(:valid_xml) do
+      <<-EOXML
+      <?xml version="1.0" encoding="utf-8"?>
+      <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns="https://www.pagador.com.br/webservice/pagador">
+        <amount>1.000,00</amount>
+        <message>Transaction Successful</message>
+        <authorisationNumber>733610</authorisationNumber>
+        <returnCode>0</returnCode>
+        <status>1</status>
+        <transactionId>01231234</transactionId>
+      </PagadorReturn>
+      EOXML
+    end
+    
+    let(:invalid_xml) do
+      <<-EOXML
+      <?xml version="1.0" encoding="utf-8"?>
+      <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                     xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+                     xmlns="https://www.pagador.com.br/webservice/pagador">
+        <amount>100</amount>
+        <authorisationNumber>null</authorisationNumber>
+        <message>Payment Server detected an error</message>
+        <returnCode>7</returnCode>
+        <status>2</status>
+        <transactionId>0</transactionId>
+      </PagadorReturn>
+      EOXML
     end
 
-    let(:params_with_merchant_id) do
-      params.merge!(:merchant_id => merchant_id)
+
+    it "should call gateway with correct data" do
+      Braspag::Poster.any_instance.should_receive(:do_post).with(:authorize, {
+            "merchantId"     => "#{merchant_id}", 
+            "orderId"        => "#{order.id}", 
+            "customerName"   => "#{customer.name}", 
+            "amount"         => "1000,00", 
+            "paymentMethod"  => 20, 
+            "holder"         => "#{credit_card.holder_name}", 
+            "cardNumber"     => "#{credit_card.number}", 
+            "expiration"     => "10/12", 
+            "securityCode"   => "123", 
+            "numberPayments" => order.installments, 
+            "typePayment"    => order.installments_type
+          }
+        ).and_return(mock(:body => valid_xml))
+      connection.authorize(order, credit_card)
+    end
+    
+    it "should populate data" do
+      Braspag::Poster.any_instance.should_receive(:do_post).and_return(mock(:body => valid_xml))
+      connection.authorize(order, credit_card)
+      
+      order.gateway_authorization.should eq('733610')
+      order.gateway_id.should eq('01231234')
+      order.gateway_return_code.should eq('0')
+      order.gateway_status.should eq('1')
+      order.gateway_message.should eq('Transaction Successful')
+      order.gateway_amount.should eq(1000.00)
+    end
+    
+    it "should return response object" do
+      Braspag::Poster.any_instance.should_receive(:do_post).and_return(mock(:body => valid_xml))
+      response = connection.authorize(order, credit_card)
+      
+      response.success?.should be(true)
+      response.message.should eq('Transaction Successful')
     end
 
-    let(:authorize_url) { "http://braspag/bla" }
-
-    before do
-      @connection.should_receive(:merchant_id)
-
-      Braspag::CreditCard.should_receive(:authorize_url)
-                         .and_return(authorize_url)
-
-      Braspag::CreditCard.should_receive(:check_params)
-                         .and_return(true)
+    it "should return error in response" do
+      Braspag::Poster.any_instance.should_receive(:do_post).and_return(mock(:body => invalid_xml))
+      response = connection.authorize(order, credit_card)
+      
+      response.success?.should be(false)
+      response.message.should eq('Payment Server detected an error')
+      response.params.should eq({"amount"=>"100", "number"=>"null", "message"=>"Payment Server detected an error", "return_code"=>"7", "status"=>"2", "transaction_id"=>"0"})
     end
 
-    context "with invalid params"
-
-    context "with valid params" do
-      let(:valid_xml) do
-        <<-EOXML
-        <?xml version="1.0" encoding="utf-8"?>
-        <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                       xmlns="https://www.pagador.com.br/webservice/pagador">
-          <amount>5</amount>
-          <message>Transaction Successful</message>
-          <authorisationNumber>733610</authorisationNumber>
-          <returnCode>7</returnCode>
-          <status>2</status>
-          <transactionId>0</transactionId>
-        </PagadorReturn>
-        EOXML
-      end
-
-      let(:request) { OpenStruct.new :url => authorize_url }
-
-      before do
-        Braspag::Connection.instance.should_receive(:homologation?)
-        ::HTTPI::Request.should_receive(:new).with(authorize_url).and_return(request)
-        ::HTTPI.should_receive(:post).with(request).and_return(mock(:body => valid_xml))
-      end
-
-      it "should return a Hash" do
-        response = Braspag::CreditCard.authorize(params)
-        response.should be_kind_of Hash
-        response.should == {
-          :amount => "5",
-          :message => "Transaction Successful",
-          :number => "733610",
-          :return_code => "7",
-          :status => "2",
-          :transaction_id => "0"
-        }
-      end
-
-      it "should post transation info" do
-        Braspag::CreditCard.authorize(params)
-        request.body.should == {"merchantId"=>"um id qualquer", "order"=>"", "orderId"=>"um order id", "customerName"=>"WWWWWWWWWWWWWWWWWWWWW", "amount"=>"100,00", "paymentMethod"=>20, "holder"=>"Joao Maria Souza", "cardNumber"=>"9999999999", "expiration"=>"10/12", "securityCode"=>"123", "numberPayments"=>1, "typePayment"=>0}
-      end
-    end
   end
 
   pending ".capture" do

@@ -1,60 +1,40 @@
 module Braspag
   class Connection
-    def self.purchase(order, credit_card)
+    def purchase(order, credit_card)
       response = self.authorize(order, credit_card)
       self.capture(order) if response.success?
     end
 
-    MAPPING_CARD = {
-      :merchant_id => "merchantId",
-      :order => 'order',
-      :order_id => "orderId",
-      :customer_name => "customerName",
-      :amount => "amount",
-      :payment_method => "paymentMethod",
-      :holder => "holder",
-      :card_number => "cardNumber",
-      :expiration => "expiration",
-      :security_code => "securityCode",
-      :number_payments => "numberPayments",
-      :type => "typePayment",
-    }
-
-
-    def self.authorize(order, credit_card)
-      return ::Response.new
+    def authorize(order, credit_card)
+      data = {:merchant_id => self.merchant_id}
+      data.merge!(credit_card.convert_to(:authorize).merge(order.convert_to(:authorize)))
       
-      connection = Braspag::Connection.instance
-      params[:merchant_id] = connection.merchant_id
+      
+      response = Braspag::Poster.new(self, self.url_for(:authorize))
+                                .do_post(:authorize, Converter::to(:authorize, data))
+      
+      response = Converter::to_map(response.body, {
+        :amount => nil,
+        :number => "authorisationNumber",
+        :message => 'message',
+        :return_code => 'returnCode',
+        :status => 'status',
+        :transaction_id => "transactionId"
+      })
+      
+      order.populate!(:authorize, response)
+      
+      status = (response[:status] == "0" || response[:status] == "1")
 
-      self.check_params(params)
-
-      data = {}
-      MAPPING.each do |k, v|
-        case k
-        when :payment_method
-          data[v] = Braspag::Connection.instance.homologation? ? PAYMENT_METHODS[:braspag] : PAYMENT_METHODS[params[:payment_method]]
-        when :amount
-          data[v] = Utils.convert_decimal_to_string(params[:amount])
-        else
-          data[v] = params[k] || ""
-        end
-      end
-
-      response = Braspag::Poster.new(self.authorize_url).do_post(:authorize, data)
-
-      Utils::convert_to_map(response.body, {
-          :amount => nil,
-          :number => "authorisationNumber",
-          :message => 'message',
-          :return_code => 'returnCode',
-          :status => 'status',
-          :transaction_id => "transactionId"
-        })
+      Response.new(status,
+                   response[:message],
+                   response,
+                   :test => homologation?,
+                   :authorization => response[:number])
     end
 
-    def self.capture(order)
-      return ::Response.new
+    def capture(order)
+      return Braspag::Response.new
       
       connection = Braspag::Connection.instance
       merchant_id = connection.merchant_id
@@ -78,7 +58,7 @@ module Braspag
         })
     end
 
-    def self.void(order)
+    def void(order, partial=nil)
       return ::Response.new
       
       connection = Braspag::Connection.instance
@@ -127,7 +107,7 @@ module Braspag
 
 
     # saves credit card in Braspag PCI Compliant
-    def self.archive(credit_card, customer, request_id)
+    def archive(credit_card, customer, request_id)
       return ::Response
 
       self.check_protected_card_params(params)
@@ -149,7 +129,7 @@ module Braspag
     end
 
     # request the credit card info in Braspag PCI Compliant
-    def self.get_recurrency(credit_card)
+    def get_recurrency(credit_card)
       return ::Response
 
       raise InvalidJustClickKey unless valid_just_click_key?(just_click_key)
@@ -172,7 +152,7 @@ module Braspag
       response
     end
 
-    def self.recurrency(order, credit_card, request_id)
+    def recurrency(order, credit_card, request_id)
       return ::Response
 
       self.check_just_click_shop_params(params)
@@ -242,6 +222,24 @@ module Braspag
 
     [:get_recurrency, :recurrency].each do |check_on|
       validates :id, :length => {:is => 36, :on => check_on}
+    end
+    
+    def convert_to(method)
+      self.send("to_#{method}")
+    end
+    
+    def to_authorize
+      year_normalize = year.to_s[-2, 2]
+      {
+        :holder          => self.holder_name.to_s,
+        :card_number     => self.number.to_s,
+        :expiration      => "#{self.month}/#{year_normalize}",
+        :security_code   => self.verification_value.to_s,
+      }
+    end
+    
+    def populate!(method, response)
+      
     end
   end
 end
