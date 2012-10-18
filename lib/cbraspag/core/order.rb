@@ -84,21 +84,39 @@ module Braspag
   class Order
     include ::ActiveAttr::Model
     
+    class AssociationValidator < ActiveModel::EachValidator
+      def validate_each(record, attribute, value)
+        unless value.respond_to?(:valid?) && value.try(:valid?, self.options[:on])
+          record.errors.add attribute, "invalid data"
+        end
+      end
+    end
+    
+    class PaymentMethodValidator < ActiveModel::EachValidator
+      def validate_each(record, attribute, value)
+        if Braspag::PAYMENT_METHOD.key(value).nil?
+          record.errors.add attribute, "invalid payment code"
+        end
+      end
+    end
+    
     attr_accessor :id, :payment_method, :amount, :customer, :installments, :installments_type
     
     [:purchase, :generate, :authorize, :capture, :void, :recurrency].each do |check_on|
       validates :id, :presence => { :on => check_on }
-      validates :id, :length => {:minimum => 1, :maximum => 50, :on => check_on }
-      #VALIDATES ID FOR PAYMENT_METHOD IF HAS
+      validates :id, :length => {:minimum => 1, :maximum => 20, :on => check_on }
+      validates :id, :format => { :with => /^[0-9]+$/, :on => check_on, :if => :payment_for_cielo? }
     end
     
     [:purchase, :generate, :authorize, :recurrency].each do |check_on|
       validates :payment_method, :presence => { :on => check_on }
+      validates :payment_method, :payment_method => { :on => check_on }
+
       validates :amount, :presence => { :on => check_on }
       validates :amount, :numericality => {:greater_than => 0, :on => check_on}
       
       validates :customer, :presence => { :on => check_on }
-      #VALIDATES CUSTOMER
+      validates :customer, :association => { :on => check_on }
     end
     
     [:purchase, :authorize, :recurrency].each do |check_on|
@@ -107,19 +125,31 @@ module Braspag
       validates :installments_type, :presence => { :on => check_on }
       
       #VALIDATES INSTALLMENTS_TYPE
-      #VALIDATES PAYMENT_METHOD
       #numberPayments ￼ ￼ ￼ ￼ Número de parcelas
       # (para pagamento à vista o valor
       # deve ser 01)
     end
     
     def which_method_for?(payment)
-      #TODO ADD FALLBACK FOR MAPPING IN CONNECTION
+      #TODO ADD FALLBACK FOR MAPPING
       case payment.class
       when Braspag::Billet
         :generate_billet
       when Braspag::EFT
         :generate_eft
+      end
+    end
+    
+    private
+    def payment_for_cielo?
+      case payment_method
+      when Braspag::PAYMENT_METHOD[:cielo_noauth_visa],
+           Braspag::PAYMENT_METHOD[:cielo_preauth_visa],
+           Braspag::PAYMENT_METHOD[:cielo_noauth_mastercard],
+           Braspag::PAYMENT_METHOD[:cielo_preauth_mastercard],
+           Braspag::PAYMENT_METHOD[:cielo_noauth_elo],
+           Braspag::PAYMENT_METHOD[:cielo_noauth_diners]
+        true
       end
     end
   end

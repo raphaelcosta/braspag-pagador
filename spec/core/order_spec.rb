@@ -1,5 +1,5 @@
 # encoding: utf-8
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Braspag::Order do
   let(:braspag_homologation_url) { "https://homologacao.pagador.com.br" }
@@ -165,5 +165,116 @@ describe Braspag::Order do
     end
   end
 
+  
+  [:purchase, :generate, :authorize, :capture, :void, :recurrency].each do |context_type|
+    context "on #{context_type}" do
+      it "should validate minimum 1 length of id" do
+        subject.id = ''
+        subject.valid?(context_type)
+        subject.errors.messages[:id].should include("is too short (minimum is 1 characters)")
+      end
 
+      it "should validate maximum 20 length of id" do
+        subject.id = '*' * 25
+        subject.valid?(context_type)
+        subject.errors.messages[:id].should include("is too long (maximum is 20 characters)")
+      end
+
+      it "should allow characters without payment_method"  do
+        subject.id = '*13*'
+        subject.valid?(context_type)
+        subject.errors.messages[:id].should eq(nil)
+      end
+      
+      [:cielo_noauth_visa, :cielo_preauth_visa, :cielo_noauth_mastercard, :cielo_preauth_mastercard, :cielo_noauth_elo, :cielo_noauth_diners ].each do |payment_method|
+        context "when has payment method for #{payment_method}" do
+          it "should not allow spaces" do
+            subject.payment_method = Braspag::PAYMENT_METHOD[payment_method]
+            subject.id = '123 4'
+            subject.valid?(context_type)
+            subject.errors.messages[:id].should include("is invalid")
+          end
+          it "should not allow characters" do
+            subject.payment_method = Braspag::PAYMENT_METHOD[payment_method]
+            subject.id = 'abcd'
+            subject.valid?(context_type)
+            subject.errors.messages[:id].should include("is invalid")
+          end
+
+          it "should not allow special characters" do
+            subject.payment_method = Braspag::PAYMENT_METHOD[payment_method]
+            subject.id = '*-[]'
+            subject.valid?(context_type)
+            subject.errors.messages[:id].should include("is invalid")
+          end
+        end
+      end
+    end
+  end
+  
+  [:purchase, :generate, :authorize, :recurrency].each do |context_type|
+    it "should not allow blank for payment_method" do
+      subject.payment_method = ''
+      subject.valid?(context_type)
+      subject.errors.messages[:payment_method].should include("can't be blank")
+    end
+    
+    it "should not allow blank for amount" do
+      subject.amount = ''
+      subject.valid?(context_type)
+      subject.errors.messages[:amount].should include("can't be blank")
+    end
+    
+    it "should validate minimum 1 of amount" do
+      subject.amount = 0
+      subject.valid?(context_type)
+      subject.errors.messages[:amount].should include("must be greater than 0")
+    end
+    
+    it "should not allow blank for customer" do
+      subject.customer = ''
+      subject.valid?(context_type)
+      subject.errors.messages[:customer].should include("can't be blank")
+    end
+
+    it "should not allow invalid customer" do
+      subject.customer = Braspag::Customer.new
+      subject.valid?(context_type)
+      subject.errors.messages[:customer].should include("invalid data")
+    end
+    
+    it "should accept only valid payment method" do
+      subject.payment_method = 0
+      subject.valid?(context_type)
+      subject.errors.messages[:payment_method].should include("invalid payment code")
+    end
+  end
+
+  [:purchase, :authorize, :recurrency].each do |context_type|
+    it "should not allow blank for installments" do
+      subject.installments = ''
+      subject.valid?(context_type)
+      subject.errors.messages[:installments].should include("can't be blank")
+    end
+    
+    it "should validate minimum 1 of installments" do
+      subject.installments = 0
+      subject.valid?(context_type)
+      subject.errors.messages[:installments].should include("must be greater than 0")
+    end
+    
+    
+    it "should validate maxium 99 of installments" do
+      subject.installments = 100
+      subject.valid?(context_type)
+      subject.errors.messages[:installments].should include("must be less than 100")
+    end
+    
+    
+    it "should not allow blank for installments_type" do
+      subject.installments_type = ''
+      subject.valid?(context_type)
+      subject.errors.messages[:installments_type].should include("can't be blank")
+    end
+  end
 end

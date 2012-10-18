@@ -1,6 +1,6 @@
 module  Braspag
   class Response
-    attr_reader :message, :code
+    attr_accessor :message, :code
     def success?
       true
     end
