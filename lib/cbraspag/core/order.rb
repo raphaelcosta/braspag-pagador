@@ -100,6 +100,14 @@ module Braspag
       end
     end
     
+    class InstallmentsTypeValidator < ActiveModel::EachValidator
+      def validate_each(record, attribute, value)
+        if Braspag::INTEREST.key(value).nil?
+          record.errors.add attribute, "invalid installments type"
+        end
+      end
+    end
+    
     attr_accessor :id, :payment_method, :amount, :customer, :installments, :installments_type
     
     [:purchase, :generate, :authorize, :capture, :void, :recurrency].each do |check_on|
@@ -122,12 +130,9 @@ module Braspag
     [:purchase, :authorize, :recurrency].each do |check_on|
       validates :installments, :presence => { :on => check_on }
       validates :installments, :numericality => {:only_integer => true, :greater_than => 0, :less_than => 100, :on => check_on}
+      validates :installments, :format => { :with => /1/, :on => check_on, :if => :no_interest? }
       validates :installments_type, :presence => { :on => check_on }
-      
-      #VALIDATES INSTALLMENTS_TYPE
-      #numberPayments ￼ ￼ ￼ ￼ Número de parcelas
-      # (para pagamento à vista o valor
-      # deve ser 01)
+      validates :installments_type, :installments_type => { :on => check_on }
     end
     
     def which_method_for?(payment)
@@ -137,6 +142,14 @@ module Braspag
         :generate_billet
       when Braspag::EFT
         :generate_eft
+      end
+    end
+    
+    def no_interest?
+      case installments_type
+      when Braspag::INTEREST[:no],
+           Braspag::INTEREST[:no_iata]
+        true
       end
     end
     

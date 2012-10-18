@@ -25,12 +25,14 @@ require 'cbraspag/payment/eft'
 
 module Braspag
   
-  NO_INTEREST = "0"
-  INTEREST_MERCHANT = "1"
-  INTEREST_CUSTOMER = "2"
-  INTEREST_MERCHANT_IATA = "3"
-  INTEREST_CUSTOMER_IATA = "4"
-  NO_INTEREST_IATA = "5"
+  INTEREST = {
+    :no            => 0,
+    :merchant      => 1,
+    :customer      => 2,
+    :merchant_iata => 3,
+    :customer_iata => 4,
+    :no_iata       => 5
+  }
   
   STATUS_PAYMENT = {
     :starting  => 1,

@@ -41,7 +41,7 @@ cbraspag gem to use Braspag gateway
   	  :amount            => 10.00, # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer          => customer,
   	  :installments      => 1,
-  	  :installments_type => Braspag::NO_INTEREST
+  	  :installments_type => Braspag::INTEREST[:no]
   	)
   	
   	# Validating the card automatically detects the card type
@@ -182,7 +182,7 @@ cbraspag gem to use Braspag gateway
   	  :amount            => '1000', # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer          => customer,
   	  :installments      => 1,
-  	  :installments_type => Braspag::NO_INTEREST
+  	  :installments_type => Braspag::INTEREST[:no]
   	)
   	
   	# Validating the card automatically detects the card type
@@ -496,7 +496,7 @@ cbraspag gem to use Braspag gateway
   	  :amount            => 10.00, # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer          => customer,
   	  :installments      => 1,
-  	  :installments_type => Braspag::NO_INTEREST
+  	  :installments_type => Braspag::INTEREST[:no]
   	)
 	
   	# Validating the card automatically detects the card type

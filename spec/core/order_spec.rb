@@ -213,68 +213,87 @@ describe Braspag::Order do
   end
   
   [:purchase, :generate, :authorize, :recurrency].each do |context_type|
-    it "should not allow blank for payment_method" do
-      subject.payment_method = ''
-      subject.valid?(context_type)
-      subject.errors.messages[:payment_method].should include("can't be blank")
-    end
+    context "on #{context_type}" do
+      it "should not allow blank for payment_method" do
+        subject.payment_method = ''
+        subject.valid?(context_type)
+        subject.errors.messages[:payment_method].should include("can't be blank")
+      end
     
-    it "should not allow blank for amount" do
-      subject.amount = ''
-      subject.valid?(context_type)
-      subject.errors.messages[:amount].should include("can't be blank")
-    end
+      it "should not allow blank for amount" do
+        subject.amount = ''
+        subject.valid?(context_type)
+        subject.errors.messages[:amount].should include("can't be blank")
+      end
     
-    it "should validate minimum 1 of amount" do
-      subject.amount = 0
-      subject.valid?(context_type)
-      subject.errors.messages[:amount].should include("must be greater than 0")
-    end
+      it "should validate minimum 1 of amount" do
+        subject.amount = 0
+        subject.valid?(context_type)
+        subject.errors.messages[:amount].should include("must be greater than 0")
+      end
     
-    it "should not allow blank for customer" do
-      subject.customer = ''
-      subject.valid?(context_type)
-      subject.errors.messages[:customer].should include("can't be blank")
-    end
+      it "should not allow blank for customer" do
+        subject.customer = ''
+        subject.valid?(context_type)
+        subject.errors.messages[:customer].should include("can't be blank")
+      end
 
-    it "should not allow invalid customer" do
-      subject.customer = Braspag::Customer.new
-      subject.valid?(context_type)
-      subject.errors.messages[:customer].should include("invalid data")
-    end
+      it "should not allow invalid customer" do
+        subject.customer = Braspag::Customer.new
+        subject.valid?(context_type)
+        subject.errors.messages[:customer].should include("invalid data")
+      end
     
-    it "should accept only valid payment method" do
-      subject.payment_method = 0
-      subject.valid?(context_type)
-      subject.errors.messages[:payment_method].should include("invalid payment code")
+      it "should accept only valid payment method" do
+        subject.payment_method = 0
+        subject.valid?(context_type)
+        subject.errors.messages[:payment_method].should include("invalid payment code")
+      end
     end
   end
 
   [:purchase, :authorize, :recurrency].each do |context_type|
-    it "should not allow blank for installments" do
-      subject.installments = ''
-      subject.valid?(context_type)
-      subject.errors.messages[:installments].should include("can't be blank")
-    end
+    context "on #{context_type}" do
+      it "should not allow blank for installments" do
+        subject.installments = ''
+        subject.valid?(context_type)
+        subject.errors.messages[:installments].should include("can't be blank")
+      end
     
-    it "should validate minimum 1 of installments" do
-      subject.installments = 0
-      subject.valid?(context_type)
-      subject.errors.messages[:installments].should include("must be greater than 0")
-    end
-    
-    
-    it "should validate maxium 99 of installments" do
-      subject.installments = 100
-      subject.valid?(context_type)
-      subject.errors.messages[:installments].should include("must be less than 100")
-    end
+      it "should validate minimum 1 of installments" do
+        subject.installments = 0
+        subject.valid?(context_type)
+        subject.errors.messages[:installments].should include("must be greater than 0")
+      end
     
     
-    it "should not allow blank for installments_type" do
-      subject.installments_type = ''
-      subject.valid?(context_type)
-      subject.errors.messages[:installments_type].should include("can't be blank")
+      it "should validate maxium 99 of installments" do
+        subject.installments = 100
+        subject.valid?(context_type)
+        subject.errors.messages[:installments].should include("must be less than 100")
+      end
+    
+      it "should not allow blank for installments_type" do
+        subject.installments_type = ''
+        subject.valid?(context_type)
+        subject.errors.messages[:installments_type].should include("can't be blank")
+      end
+    
+      it "should accept only valid installments_type" do
+        subject.installments_type = 100
+        subject.valid?(context_type)
+        subject.errors.messages[:installments_type].should include("invalid installments type")
+      end
+    
+    
+      context "when installments_type is NO_INTEREST" do
+        it "should installments is one" do
+          subject.installments_type = Braspag::INTEREST[:no]
+          subject.installments = 3
+          subject.valid?(context_type)
+          subject.errors.messages[:installments].should include("is invalid")
+        end
+      end
     end
   end
 end
