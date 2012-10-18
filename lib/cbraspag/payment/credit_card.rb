@@ -209,41 +209,39 @@ module Braspag
 
     attr_accessor :holder_name, :number, :month, :year, :verification_value, :alias, :id
 
+    class ExpiratorValidator < ActiveModel::EachValidator
+      def validate_each(record, attribute, value)
+        begin
+          year = record.year.try(:to_i)
+          year = "20#{year}".to_i if year && year.to_s.size == 2
+
+          month = record.month.try(:to_i)
+
+          Date.new(year, month) if year && month
+        rescue ArgumentError
+          record.errors.add attribute, "invalid date"
+        end
+      end
+    end
+
+
     [:purchase, :authorize, :archive].each do |check_on|
-      validates :holder_name, :presence => { :on => check_on }
       validates :holder_name, :length => {:minimum => 1, :maximum => 100, :on => check_on}
 
       validates :number, :presence => { :on => check_on }
       
       validates :month, :presence => { :on => check_on }
-      validates :month, :length => {:minimum => 1, :maximum => 2, :on => check_on}
+      validates :month, :expirator => { :on => check_on }
       validates :year, :presence => { :on => check_on }
-      validates :year, :length => {:is => 4, :on => check_on}
-      
-      #TODO CHECKAR SE A DATA é real
+      validates :year, :expirator => { :on => check_on }
     end
 
     [:purchase, :authorize, :recurrency].each do |check_on|
-      validates :verification_value, :presence => { :on => check_on }
       validates :verification_value, :length => {:minimum => 1, :maximum => 4, :on => check_on}
     end
 
     [:get_recurrency, :recurrency].each do |check_on|
-      validates :id, :presence => { :on => check_on }
       validates :id, :length => {:is => 36, :on => check_on}
-    end
-    
-    
-   def self.data(params)
-     begin
-       year = matches[2].to_i
-       year = "20#{year}" if year.size == 2
-
-       Date.new(year.to_i, matches[1].to_i)
-     rescue ArgumentError
-       raise InvalidExpirationDate
-     end
-
     end
   end
 end

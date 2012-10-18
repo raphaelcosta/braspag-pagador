@@ -394,9 +394,7 @@ describe Braspag::Connection do
 end
 
 describe Braspag::Billet do
-  
   context "on generate" do
-    
     it "should allow blank for id" do
       subject.id = ''
       subject.valid?(:generate)
