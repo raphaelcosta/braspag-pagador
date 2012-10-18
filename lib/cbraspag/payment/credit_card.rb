@@ -8,19 +8,12 @@ module Braspag
     def authorize(order, credit_card)
       data = {:merchant_id => self.merchant_id}
       data.merge!(credit_card.convert_to(:authorize).merge(order.convert_to(:authorize)))
-      
+      data = Converter::to(:authorize, data)
       
       response = Braspag::Poster.new(self, self.url_for(:authorize))
-                                .do_post(:authorize, Converter::to(:authorize, data))
+                                .do_post(:authorize, data)
       
-      response = Converter::to_map(response.body, {
-        :amount => nil,
-        :number => "authorisationNumber",
-        :message => 'message',
-        :return_code => 'returnCode',
-        :status => 'status',
-        :transaction_id => "transactionId"
-      })
+      response = Converter::from(:authorize, response.body)
       
       order.populate!(:authorize, response)
       
@@ -34,28 +27,21 @@ module Braspag
     end
 
     def capture(order)
-      return Braspag::Response.new
+      data = {:merchant_id => self.merchant_id}
+      data.merge!(order.convert_to(:capture))
+      data = Converter::to(:capture, data)
       
-      connection = Braspag::Connection.instance
-      merchant_id = connection.merchant_id
+      response = Poster.new(self, self.url_for(:capture))
+                                .do_post(:capture, data)
+      response = Converter::from(:capture, response.body)
 
-      raise InvalidOrderId unless self.valid_order_id?(order_id)
-
-      data = {
-        MAPPING[:order_id] => order_id,
-        MAPPING[:merchant_id] => merchant_id
-      }
-
-      response = Braspag::Poster.new(self.capture_url).do_post(:capture, data)
-
-      Utils::convert_to_map(response.body, {
-          :amount => nil,
-          :number => "authorisationNumber",
-          :message => 'message',
-          :return_code => 'returnCode',
-          :status => 'status',
-          :transaction_id => "transactionId"
-        })
+      order.populate!(:capture, response)
+      status = (response[:status] == "0")
+      Response.new(status,
+                   response[:message],
+                   response,
+                   :test => homologation?,
+                   :authorization => response[:number])
     end
 
     def void(order, partial=nil)

@@ -73,5 +73,37 @@ module Braspag
         :type => "typePayment",
       }, params)
     end
+    
+    def self.to_capture(params)
+      self.to_hash({
+        :merchant_id => "merchantId",
+        :order_id => "orderId"
+      }, params)
+    end
+    
+    def self.from(method, data)
+      self.send("from_#{method}", data)
+    end
+    
+    def self.from_authorize(data)
+      to_map(data, {
+        :amount => nil,
+        :number => "authorisationNumber",
+        :message => 'message',
+        :return_code => 'returnCode',
+        :status => 'status',
+        :transaction_id => "transactionId"
+      })
+    end
+    
+    def self.from_capture(data)
+      to_map(data, {
+        :amount => nil,
+        :message => 'message',
+        :return_code => 'returnCode',
+        :status => 'status',
+        :transaction_id => "transactionId"
+      })
+    end
   end
 end

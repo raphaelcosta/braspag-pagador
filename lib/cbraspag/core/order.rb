@@ -110,6 +110,7 @@ module Braspag
     
     attr_accessor :id, :payment_method, :amount, :customer, :installments, :installments_type
     attr_accessor :gateway_authorization, :gateway_id, :gateway_return_code, :gateway_status, :gateway_message, :gateway_amount
+    attr_accessor :gateway_capture_return_code, :gateway_capture_status, :gateway_capture_message, :gateway_capture_amount
     
     [:purchase, :generate, :authorize, :capture, :void, :recurrency].each do |check_on|
       validates :id, :presence => { :on => check_on }
@@ -155,7 +156,9 @@ module Braspag
     end
     
     def convert_to(method)
-      self.send("to_#{method}").merge(self.customer.convert_to(method))
+      data = self.send("to_#{method}")
+      data.merge!(self.customer.convert_to(method)) if self.customer
+      data
     end
     
     def to_authorize
@@ -165,6 +168,12 @@ module Braspag
         :payment_method  => self.payment_method,
         :number_payments => self.installments,
         :type            => self.installments_type,
+      }
+    end
+    
+    def to_capture
+      {
+        :order_id        => self.id.to_s
       }
     end
     
@@ -180,6 +189,15 @@ module Braspag
       self.gateway_message = response[:message]
       self.gateway_amount = Converter::string_to_decimal(response[:amount])
     end
+
+    def populate_capture!(response)
+      self.gateway_id = response[:transaction_id]
+      self.gateway_capture_return_code = response[:return_code]
+      self.gateway_capture_status = response[:status]
+      self.gateway_capture_message = response[:message]
+      self.gateway_capture_amount = Converter::string_to_decimal(response[:amount])
+    end
+
     
     private
     def payment_for_cielo?
