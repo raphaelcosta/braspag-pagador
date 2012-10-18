@@ -1,16 +1,11 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Braspag::Eft do
+describe Braspag::Connection do
   let(:braspag_homologation_url) { "https://homologacao.pagador.com.br" }
   let(:braspag_production_url) { "https://transaction.pagador.com.br" }
   let(:merchant_id) { "um id qualquer" }
 
-  before do
-    @connection = mock(:merchant_id => merchant_id)
-    Braspag::Connection.stub(:instance => @connection)
-  end
-
-  describe ".generate" do
+  pending ".generate" do
     let(:params) do
       {
         :order_id => 11,
@@ -73,7 +68,7 @@ describe Braspag::Eft do
     end
   end
 
-  describe ".normalize_params" do
+  pending ".normalize_params" do
     it "should convert amount to BigDecimal" do
       result = Braspag::Eft.normalize_params({ :amount => "100.2" })
       result.should be_kind_of Hash
@@ -109,7 +104,7 @@ describe Braspag::Eft do
     end
   end
 
-  describe ".check_params" do
+  pending ".check_params" do
     let(:params) do
       {
         :order_id => "111",
@@ -194,4 +189,37 @@ describe Braspag::Eft do
       }.to_not raise_error Braspag::InvalidHasInterest
     end
   end
+end
+
+
+describe Braspag::EFT do
+  
+  context "on generate" do
+    it "should not allow blank for crypto" do
+      subject.crypto = ''
+      subject.valid?(:generate)
+      subject.errors.messages[:crypto].should include("can't be blank")
+    end
+
+    it "should not allow invalid crypto" do
+      subject.crypto = 1234
+      subject.valid?(:generate)
+      subject.errors.messages[:crypto].should include("invalid crypto")
+    end
+    
+    [ Braspag::Crypto::Webservice.new, 
+      Braspag::Crypto::NoCrypto.new, 
+      Braspag::Crypto::JarWebservice.new(
+        :url => "http://0.0.0.0:9292",
+        :key => "123456123456"
+      )
+    ].each do |crypto|
+      it "should accept valid crypto: #{crypto.class}" do
+        subject.crypto = crypto
+        subject.valid?(:generate)
+        subject.errors.messages[:crypto].should be(nil)
+      end
+    end
+  end
+  
 end

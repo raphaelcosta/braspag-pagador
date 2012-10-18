@@ -230,42 +230,19 @@ module Braspag
 
     [:get_recurrency, :recurrency].each do |check_on|
       validates :id, :presence => { :on => check_on }
+      validates :id, :length => {:is => 36, :on => check_on}
     end
     
-    def self.valid_just_click_key?(just_click_key)
-      (just_click_key.is_a?(String) && just_click_key.size == 36)
-    end
     
-   def self.check_protected_card_params(params)
-      [:request_id, :customer_name, :holder, :card_number, :expiration].each do |param|
-        raise IncompleteParams if params[param].nil?
-      end
+   def self.data(params)
+     begin
+       year = matches[2].to_i
+       year = "20#{year}" if year.size == 2
 
-      raise InvalidHolder if params[:holder].to_s.size < 1 || params[:holder].to_s.size > 100
-
-      matches = params[:expiration].to_s.match /^(\d{2})\/(\d{2,4})$/
-      raise InvalidExpirationDate unless matches
-      begin
-        year = matches[2].to_i
-        year = "20#{year}" if year.size == 2
-
-        Date.new(year.to_i, matches[1].to_i)
-      rescue ArgumentError
-        raise InvalidExpirationDate
-      end
-    end
-
-    def self.check_just_click_shop_params(params)
-      just_click_shop_attributes = [:request_id, :customer_name, :order_id, :amount, :payment_method,
-      :number_installments, :payment_type, :just_click_key, :security_code]
-
-      just_click_shop_attributes.each do |param|
-        raise IncompleteParams if params[param].nil?
-      end
-
-      raise InvalidSecurityCode if params[:security_code].to_s.size < 1 || params[:security_code].to_s.size > 4
-
-      raise InvalidNumberInstallments if params[:number_installments].to_i < 1 || params[:number_installments].to_i > 99
+       Date.new(year.to_i, matches[1].to_i)
+     rescue ArgumentError
+       raise InvalidExpirationDate
+     end
 
     end
   end

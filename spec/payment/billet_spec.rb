@@ -1,17 +1,12 @@
 # encoding: utf-8
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Braspag::Bill do
+describe Braspag::Connection do
   let(:braspag_homologation_url) { "https://homologacao.pagador.com.br" }
   let(:braspag_production_url) { "https://transaction.pagador.com.br" }
   let(:merchant_id) { "um id qualquer" }
 
-  before do
-    @connection = mock(:merchant_id => merchant_id)
-    Braspag::Connection.stub(:instance => @connection)
-  end
-
-  describe ".generate" do
+  pending ".generate" do
     let(:params) do
       {
         :order_id => 11,
@@ -194,7 +189,7 @@ describe Braspag::Bill do
     end
   end
 
-  describe ".normalize_params" do
+  pending ".normalize_params" do
     it "should format the expiration_date param" do
       params = { :expiration_date => Date.new(2011, 12, 10) }
 
@@ -214,7 +209,7 @@ describe Braspag::Bill do
     end
   end
 
-  describe ".check_params" do
+  pending ".check_params" do
     let(:params) do
       {
         :order_id => "111",
@@ -297,7 +292,7 @@ describe Braspag::Bill do
     end
   end
 
-  describe ".valid_order_id?" do
+  pending ".valid_order_id?" do
     it "should return false when order id is greater than 50 chars" do
       Braspag::Bill.valid_order_id?("A"*51).should be_false
     end
@@ -312,7 +307,7 @@ describe Braspag::Bill do
     end
   end
 
-  describe ".info" do
+  pending ".info" do
     let(:info_url) { "http://braspag/bla" }
     let(:invalid_xml) do
       <<-EOXML
@@ -397,3 +392,7 @@ describe Braspag::Bill do
 
 
 end
+
+describe Braspag::Billet do
+end
+

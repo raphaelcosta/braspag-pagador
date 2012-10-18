@@ -67,17 +67,23 @@ module Braspag
   
   class EFT
     include ::ActiveAttr::Model
+    
+    class CryptoValidator < ActiveModel::EachValidator
+      def validate_each(record, attribute, value)
+        unless (
+          value.kind_of?(Braspag::Crypto::Webservice) ||
+          value.kind_of?(Braspag::Crypto::NoCrypto) ||
+          value.kind_of?(Braspag::Crypto::JarWebservice)
+        )
+          record.errors.add attribute, "invalid crypto"
+        end
+      end
+    end
 
     attr_accessor :crypto
     
     validates :crypto, :presence => { :on => :generate }
-
-    # :crypto => Braspag::Crypto::Webservice
-    # :crypto => Braspag::NoCrypto
-    # :crypto => Braspag::Crypto::JarWebservice.new(
-    #   :url => "http://0.0.0.0:9292"
-    #   :key => "123456123456"
-    # )
+    validates :crypto, :crypto => { :on => :generate }
 
   end
   
