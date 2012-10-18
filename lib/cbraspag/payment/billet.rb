@@ -73,11 +73,23 @@ module Braspag
   
   class Billet
     include ::ActiveAttr::Model
-
-    attr_accessor :id, :instructions, :due_date_on
     
-    validates :id, :presence => { :on => :generate } #255 (OPTIONAL)
-    validates :instructions, :presence => { :on => :generate } #512 (OPTIONAL)
+    class DueDateValidator < ActiveModel::EachValidator
+      def validate_each(record, attribute, value)
+        unless (
+          value.kind_of?(Time) || value.kind_of?(Date)
+        )
+          record.errors.add attribute, "invalid date"
+        end
+      end
+    end
+    
+    attr_accessor :id, :instructions, :due_date_on
+
+    validates :id, :length => {:minimum => 1, :maximum => 255, :on => :generate, :allow_blank => true }
+    validates :instructions, :length => {:minimum => 1, :maximum => 512, :on => :generate, :allow_blank => true }
     validates :due_date_on, :presence => { :on => :generate }
+    validates :due_date_on, :due_date => { :on => :generate }
+    
   end
 end

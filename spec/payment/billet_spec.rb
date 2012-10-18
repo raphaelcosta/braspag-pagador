@@ -394,5 +394,50 @@ describe Braspag::Connection do
 end
 
 describe Braspag::Billet do
+  
+  context "on generate" do
+    
+    it "should allow blank for id" do
+      subject.id = ''
+      subject.valid?(:generate)
+      subject.errors.messages[:id].should be(nil)
+    end
+    
+    it "should validate maximum 255 length of id" do
+      subject.id = '*' * 260
+      subject.valid?(:generate)
+      subject.errors.messages[:id].should include("is too long (maximum is 255 characters)")
+    end
+    
+    it "should allow blank for instructions" do
+      subject.instructions = ''
+      subject.valid?(:generate)
+      subject.errors.messages[:instructions].should be(nil)
+    end
+    
+    it "should validate maximum 512 length of instructions" do
+      subject.instructions = '*' * 520
+      subject.valid?(:generate)
+      subject.errors.messages[:instructions].should include("is too long (maximum is 512 characters)")
+    end
+    
+    it "should not allow blank for due_date_on" do
+      subject.due_date_on = ''
+      subject.valid?(:generate)
+      subject.errors.messages[:due_date_on].should include("can't be blank")
+    end
+    
+    it "should not allow invalid date for due_date_on" do
+      subject.due_date_on = '12345'
+      subject.valid?(:generate)
+      subject.errors.messages[:due_date_on].should include("invalid date")
+    end
+    
+    it "should allow date for due_date_on" do
+      subject.due_date_on = Date.parse('07/03/1988')
+      subject.valid?(:generate)
+      subject.errors.messages[:due_date_on].should be(nil)
+    end
+  end
 end
 
