@@ -9,8 +9,7 @@ module Braspag
     PROTECTED_CARD_PRODUCTION_URL = "https://cartaoprotegido.braspag.com.br/Services"
     PROTECTED_CARD_HOMOLOGATION_URL = "https://homologacao.braspag.com.br/services/testenvironment"
 
-    attr_reader :merchant_id, :env
-    attr_accessor :logger, :proxy_address
+    attr_reader :merchant_id, :env, :logger, :proxy_address
 
     def initialize(params = {})
       merchant_id = params[:merchant_id]
@@ -20,6 +19,8 @@ module Braspag
       
       @merchant_id = merchant_id
       @env = env
+      @logger = params[:logger]
+      @proxy_address = params[:proxy_address]
     end
 
     def production?

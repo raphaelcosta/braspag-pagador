@@ -3,7 +3,6 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Braspag::Connection do
   let(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
-  let(:environment) { :test }
   
   it "should accept a valid merchant" do
     expect {
