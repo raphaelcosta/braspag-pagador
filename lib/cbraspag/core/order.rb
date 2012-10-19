@@ -111,6 +111,7 @@ module Braspag
     attr_accessor :id, :payment_method, :amount, :customer, :installments, :installments_type
     attr_accessor :gateway_authorization, :gateway_id, :gateway_return_code, :gateway_status, :gateway_message, :gateway_amount
     attr_accessor :gateway_capture_return_code, :gateway_capture_status, :gateway_capture_message, :gateway_capture_amount
+    attr_accessor :gateway_void_return_code, :gateway_void_status, :gateway_void_message, :gateway_void_amount
     
     [:purchase, :generate, :authorize, :capture, :void, :recurrency].each do |check_on|
       validates :id, :presence => { :on => check_on }
@@ -177,6 +178,12 @@ module Braspag
       }
     end
     
+    def to_void
+      {
+        :order_id        => self.id.to_s
+      }
+    end
+    
     def populate!(method, response)
       self.send("populate_#{method}!", response)
     end
@@ -191,11 +198,21 @@ module Braspag
     end
 
     def populate_capture!(response)
-      self.gateway_id = response[:transaction_id]
+      #TODO: CHECK IF IS NECESSARY
+      # self.gateway_capture_id = response[:transaction_id]
       self.gateway_capture_return_code = response[:return_code]
       self.gateway_capture_status = response[:status]
       self.gateway_capture_message = response[:message]
       self.gateway_capture_amount = Converter::string_to_decimal(response[:amount])
+    end
+    
+    def populate_void!(response)
+      #TODO: CHECK IF IS NECESSARY
+      # self.gateway_void_id = response[:transaction_id]
+      self.gateway_void_return_code = response[:return_code]
+      self.gateway_void_status = response[:status]
+      self.gateway_void_message = response[:message]
+      self.gateway_void_amount = Converter::string_to_decimal(response[:amount])
     end
 
     

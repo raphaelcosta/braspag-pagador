@@ -81,6 +81,13 @@ module Braspag
       }, params)
     end
     
+    def self.to_void(params)
+      self.to_hash({
+        :merchant_id => "merchantId",
+        :order_id => "orderId"
+      }, params)
+    end
+    
     def self.from(method, data)
       self.send("from_#{method}", data)
     end
@@ -98,6 +105,17 @@ module Braspag
     
     def self.from_capture(data)
       to_map(data, {
+        :amount => nil,
+        :message => 'message',
+        :return_code => 'returnCode',
+        :status => 'status',
+        :transaction_id => "transactionId"
+      })
+    end
+    
+    def self.from_void(data)
+      to_map(data, {
+        :order_id => "orderId",
         :amount => nil,
         :message => 'message',
         :return_code => 'returnCode',

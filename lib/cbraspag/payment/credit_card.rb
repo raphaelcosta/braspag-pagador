@@ -1,8 +1,9 @@
 module Braspag
   class Connection
     def purchase(order, credit_card)
-      response = self.authorize(order, credit_card)
-      self.capture(order) if response.success?
+      resp = self.authorize(order, credit_card)
+      resp = self.capture(order) if resp.success?
+      resp
     end
 
     def authorize(order, credit_card)
@@ -45,28 +46,21 @@ module Braspag
     end
 
     def void(order, partial=nil)
-      return ::Response.new
+      data = {:merchant_id => self.merchant_id}
+      data.merge!(order.convert_to(:void))
+      data = Converter::to(:void, data)
       
-      connection = Braspag::Connection.instance
-      merchant_id = connection.merchant_id
+      response = Poster.new(self, self.url_for(:void))
+                                .do_post(:void, data)
+      response = Converter::from(:void, response.body)
 
-      raise InvalidOrderId unless self.valid_order_id?(order_id)
-
-      data = {
-        MAPPING[:order] => order_id,
-        MAPPING[:merchant_id] => merchant_id
-      }
-
-      response = Braspag::Poster.new(self.cancellation_url).do_post(:void, data)
-
-      Utils::convert_to_map(response.body, {
-          :amount => nil,
-          :number => "authorisationNumber",
-          :message => 'message',
-          :return_code => 'returnCode',
-          :status => 'status',
-          :transaction_id => "transactionId"
-        })
+      order.populate!(:void, response)
+      status = (response[:status] == "0")
+      
+      Response.new(status,
+                   response[:message],
+                   response,
+                   :test => homologation?)
     end
 
     PROTECTED_CARD_MAPPING = {

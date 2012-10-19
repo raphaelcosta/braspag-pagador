@@ -184,69 +184,81 @@ describe Braspag::Connection do
       response.params.should eq({"amount"=>"100", "message"=>"Payment Server detected an error", "return_code"=>"7", "status"=>"2", "transaction_id"=>"0"})
     end
   end
-
-  pending ".void" do
-    let(:cancellation_url) { "http://foo.bar/bar/baz" }
-    let(:order_id) { "um id qualquer" }
-
-    before do
-      @connection.should_receive(:merchant_id)
+  
+  context ".void" do
+    let(:order) do
+      Braspag::Order.new(
+        :id => "um order id"
+      )
+    end
+    
+    let(:valid_xml) do
+      <<-EOXML
+      <?xml version="1.0" encoding="utf-8"?>
+      <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns="https://www.pagador.com.br/webservice/pagador">
+       <orderId>1234</orderId>
+       <transactionId>0</transactionId>
+       <amount>100</amount>
+       <message>Approved</message>
+       <returnCode>0</returnCode>
+       <status>0</status>
+      </PagadorReturn>
+      EOXML
+    end
+    
+    let(:invalid_xml) do
+      <<-EOXML
+      <?xml version="1.0" encoding="utf-8"?>
+      <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                     xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+                     xmlns="https://www.pagador.com.br/webservice/pagador">
+        <orderId>1234</orderId>
+        <amount>100</amount>
+        <message>Payment Server detected an error</message>
+        <returnCode>7</returnCode>
+        <status>2</status>
+        <transactionId>0</transactionId>
+      </PagadorReturn>
+      EOXML
     end
 
-    context "invalid order id" do
-      it "should raise an error" do
-        Braspag::CreditCard.should_receive(:valid_order_id?)
-                           .with(order_id)
-                           .and_return(false)
 
-        expect {
-          Braspag::CreditCard.void(order_id)
-        }.to raise_error(Braspag::InvalidOrderId)
-      end
+    it "should call gateway with correct data" do
+      Braspag::Poster.any_instance.should_receive(:do_post).with(:void, {
+            "merchantId"     => "#{merchant_id}", 
+            "orderId"        => "#{order.id}"
+          }
+        ).and_return(mock(:body => valid_xml))
+      connection.void(order)
+    end
+    
+    it "should populate data" do
+      Braspag::Poster.any_instance.should_receive(:do_post).and_return(mock(:body => valid_xml))
+      connection.void(order)
+      
+      order.gateway_void_return_code.should eq('0')
+      order.gateway_void_status.should eq('0')
+      order.gateway_void_message.should eq('Approved')
+      order.gateway_void_amount.should eq(100.00)
+    end
+    
+    it "should return response object" do
+      Braspag::Poster.any_instance.should_receive(:do_post).and_return(mock(:body => valid_xml))
+      response = connection.void(order)
+      
+      response.success?.should be(true)
+      response.message.should eq('Approved')
     end
 
-    context "valid order id" do
-      let(:valid_xml) do
-        <<-EOXML
-          <?xml version="1.0" encoding="utf-8"?>
-          <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                         xmlns="https://www.pagador.com.br/webservice/pagador">
-            <amount>2</amount>
-            <message>Approved</message>
-            <returnCode>0</returnCode>
-            <status>0</status>
-          </PagadorReturn>
-        EOXML
-      end
-
-      let(:request) { OpenStruct.new :url => cancellation_url }
-
-      before do
-        Braspag::CreditCard.should_receive(:cancellation_url)
-                           .and_return(cancellation_url)
-
-        ::HTTPI::Request.should_receive(:new).with(cancellation_url).and_return(request)
-        ::HTTPI.should_receive(:post).with(request).and_return(mock(:body => valid_xml))
-      end
-
-      it "should return a Hash" do
-        response = Braspag::CreditCard.void("order id qualquer")
-        response.should be_kind_of Hash
-        response.should == {
-          :amount => "2",
-          :number => nil,
-          :message => "Approved",
-          :return_code => "0",
-          :status => "0",
-          :transaction_id => nil
-        }
-      end
-
-      it "should post void info" do
-        Braspag::CreditCard.void("order id qualquer")
-        request.body.should == {"order"=>"order id qualquer", "merchantId"=>"um id qualquer"}
-      end
+    it "should return error in response" do
+      Braspag::Poster.any_instance.should_receive(:do_post).and_return(mock(:body => invalid_xml))
+      response = connection.void(order)
+      
+      response.success?.should be(false)
+      response.message.should eq('Payment Server detected an error')
+      response.params.should eq({"order_id"=>"1234", "amount"=>"100", "message"=>"Payment Server detected an error", "return_code"=>"7", "status"=>"2", "transaction_id"=>"0"})
     end
   end
 

@@ -50,7 +50,7 @@ cbraspag gem to use Braspag gateway
   	  response = gateway.purchase(order, credit_card)
   	
   	  if response.success?
-  	    puts "Successfully charged $#{sprintf("%.2f", order.amount / 100)} to the credit card #{credit_card.display_number}"
+  	    puts "Successfully charged $#{sprintf("%.2f", order.amount / 100)} to the credit card #{order.gateway_id}"
   	  else
   	    raise StandardError, response.message
   	  end
@@ -191,7 +191,7 @@ cbraspag gem to use Braspag gateway
   	  response = gateway.authorize(order, credit_card)
   	
   	  if response.success?
-  	    puts "Successfully authorized $#{sprintf("%.2f", order.amount / 100)} to the credit card #{credit_card.display_number}"
+  	    puts "Successfully authorized $#{sprintf("%.2f", order.amount / 100)} to the credit card #{order.gateway_id}"
   	  else
   	    raise StandardError, response.message
   	  end
