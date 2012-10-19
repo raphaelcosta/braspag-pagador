@@ -7,16 +7,7 @@ module Braspag
     end
 
     def authorize(order, credit_card)
-      data = {:merchant_id => self.merchant_id}
-      data.merge!(credit_card.convert_to(:authorize).merge(order.convert_to(:authorize)))
-      data = Converter::to(:authorize, data)
-      
-      response = Braspag::Poster.new(self, self.url_for(:authorize))
-                                .do_post(:authorize, data)
-      
-      response = Converter::from(:authorize, response.body)
-      
-      order.populate!(:authorize, response)
+      response = self.post(:authorize, order, credit_card)
       
       status = (response[:status] == "0" || response[:status] == "1")
 
@@ -28,15 +19,8 @@ module Braspag
     end
 
     def capture(order)
-      data = {:merchant_id => self.merchant_id}
-      data.merge!(order.convert_to(:capture))
-      data = Converter::to(:capture, data)
+      response = self.post(:capture, order)
       
-      response = Poster.new(self, self.url_for(:capture))
-                                .do_post(:capture, data)
-      response = Converter::from(:capture, response.body)
-
-      order.populate!(:capture, response)
       status = (response[:status] == "0")
       Response.new(status,
                    response[:message],
@@ -46,15 +30,8 @@ module Braspag
     end
 
     def void(order, partial=nil)
-      data = {:merchant_id => self.merchant_id}
-      data.merge!(order.convert_to(:void))
-      data = Converter::to(:void, data)
+      response = self.post(:void, order)
       
-      response = Poster.new(self, self.url_for(:void))
-                                .do_post(:void, data)
-      response = Converter::from(:void, response.body)
-
-      order.populate!(:void, response)
       status = (response[:status] == "0")
       
       Response.new(status,

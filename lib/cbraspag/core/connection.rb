@@ -72,5 +72,29 @@ module Braspag
     def generate(order, payment)
       send(order.which_method_for?(payment))
     end
+    
+    def convert_to(method)
+      {:merchant_id => self.merchant_id}
+    end
+    
+    def post(method, *args)
+      data = convert_to(method)
+      args.each do |field|
+        data.merge!(field.convert_to(method))
+      end
+
+      data = Converter::to(method, data)
+      
+      response = Braspag::Poster.new(self, self.url_for(method))
+                                .do_post(method, data)
+      
+      response = Converter::from(method, response.body)
+      
+      args.each do |field|
+        field.populate!(method, response)
+      end
+      
+      response
+    end
   end
 end
