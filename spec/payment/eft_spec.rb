@@ -5,7 +5,7 @@ describe Braspag::Connection do
   let(:braspag_production_url) { "https://transaction.pagador.com.br" }
   let(:merchant_id) { "um id qualquer" }
 
-  pending ".generate" do
+  pending ".generate_eft" do
     let(:params) do
       {
         :order_id => 11,
@@ -67,9 +67,6 @@ describe Braspag::Connection do
       Braspag::Eft.generate(params, crypto).should == html
     end
   end
-
-  
-  
 end
 
 
