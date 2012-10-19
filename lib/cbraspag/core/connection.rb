@@ -69,10 +69,6 @@ module Braspag
       end
     end
     
-    def generate(order, payment)
-      send(order.which_method_for?(payment))
-    end
-    
     def convert_to(method)
       {:merchant_id => self.merchant_id}
     end

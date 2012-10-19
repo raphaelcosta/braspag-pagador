@@ -22,6 +22,7 @@ module Braspag
       response = self.post(:capture, order)
       
       status = (response[:status] == "0")
+      
       Response.new(status,
                    response[:message],
                    response,

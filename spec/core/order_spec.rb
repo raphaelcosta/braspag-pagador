@@ -7,6 +7,89 @@ describe Braspag::Order do
   let(:merchant_id) { "um id qualquer" }
 
   
+  pending ".info_billet" do
+    let(:info_url) { "http://braspag/bla" }
+    let(:invalid_xml) do
+      <<-EOXML
+      <?xml version="1.0" encoding="utf-8"?>
+      <DadosBoleto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                   xsi:nil="true"
+                   xmlns="http://www.pagador.com.br/" />
+      EOXML
+    end
+
+    let(:valid_xml) do
+      <<-EOXML
+      <?xml version="1.0" encoding="utf-8"?>
+      <DadosBoleto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.pagador.com.br/">
+      <NumeroDocumento>999</NumeroDocumento>
+      <Sacado/>
+      <NossoNumero>999</NossoNumero>
+      <LinhaDigitavel>35690.00361 03962.070003 00000.009993 4 50160000001000</LinhaDigitavel>
+      <DataDocumento>22/6/2011</DataDocumento>
+      <DataVencimento>2/7/2011</DataVencimento>
+      <Cedente>Gonow Tecnologia e Acessoria Empresarial Ltda</Cedente>
+      <Banco>356-5</Banco>
+      <Agencia>0003</Agencia>
+      <Conta>6039620</Conta>
+      <Carteira>57</Carteira>
+      <ValorDocumento>10,00</ValorDocumento>
+      </DadosBoleto>
+      EOXML
+    end
+
+    it "should raise an error when order id is not valid" do
+      Braspag::Bill.should_receive(:valid_order_id?)
+                   .with("bla")
+                   .and_return(false)
+
+      expect {
+        Braspag::Bill.info "bla"
+      }.to raise_error(Braspag::InvalidOrderId)
+    end
+
+    it "should raise an error when Braspag returned an invalid xml as response" do
+      FakeWeb.register_uri(:post, info_url, :body => invalid_xml)
+
+      Braspag::Bill.should_receive(:info_url)
+                   .and_return(info_url)
+
+      expect {
+        Braspag::Bill.info("orderid")
+      }.to raise_error(Braspag::UnknownError)
+    end
+
+    it "should return a Hash when Braspag returned a valid xml as response" do
+      FakeWeb.register_uri(:post, info_url, :body => valid_xml)
+
+      Braspag::Bill.should_receive(:info_url)
+                   .and_return(info_url)
+
+      response = Braspag::Bill.info("orderid")
+      response.should be_kind_of Hash
+
+      response.should == {
+        :document_number => "999",
+        :payer => nil,
+        :our_number => "999",
+        :bill_line => "35690.00361 03962.070003 00000.009993 4 50160000001000",
+        :document_date => "22/6/2011",
+        :expiration_date => "2/7/2011",
+        :receiver => "Gonow Tecnologia e Acessoria Empresarial Ltda",
+        :bank => "356-5",
+        :agency => "0003",
+        :account => "6039620",
+        :wallet => "57",
+        :amount => "10,00",
+        :amount_invoice => nil,
+        :invoice_date => nil
+      }
+    end
+  end
+  
   pending ".info" do
     let(:info_url) { "http://braspag/bla" }
 

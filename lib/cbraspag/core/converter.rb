@@ -88,6 +88,21 @@ module Braspag
       }, params)
     end
     
+    def self.to_generate_billet(params)
+      self.to_hash({
+        :merchant_id => "merchantId",
+        :order_id => "orderId",
+        :customer_name => "customerName",
+        :customer_id => "customerIdNumber",
+        :amount => "amount",
+        :payment_method => "paymentMethod",
+        :number => "boletoNumber",
+        :instructions => "instructions",
+        :expiration_date => "expirationDate",
+        :emails => "emails"
+      }, params)
+    end
+    
     def self.from(method, data)
       self.send("from_#{method}", data)
     end
@@ -121,6 +136,24 @@ module Braspag
         :return_code => 'returnCode',
         :status => 'status',
         :transaction_id => "transactionId"
+      })
+    end
+    
+    def self.from_generate_billet(data)
+      to_map(data, {
+        :url => nil,
+        :amount => nil,
+        :number => "boletoNumber",
+        :expiration_date => Proc.new { |document|
+          begin
+            Date.parse(document.search("expirationDate").first.to_s)
+          rescue
+            nil
+          end
+        },
+        :return_code => "returnCode",
+        :status => nil,
+        :message => nil
       })
     end
   end

@@ -138,16 +138,6 @@ module Braspag
       validates :installments_type, :installments_type => { :on => check_on }
     end
     
-    def which_method_for?(payment)
-      #TODO ADD FALLBACK FOR MAPPING
-      case payment.class
-      when Braspag::Billet
-        :generate_billet
-      when Braspag::EFT
-        :generate_eft
-      end
-    end
-    
     def no_interest?
       case installments_type
       when Braspag::INTEREST[:no],
@@ -184,6 +174,14 @@ module Braspag
       }
     end
     
+    def to_generate_billet
+      {
+        :order_id        => self.id.to_s,
+        :amount          => self.amount,
+        :payment_method  => self.payment_method
+      }
+    end
+    
     def populate!(method, response)
       self.send("populate_#{method}!", response)
     end
@@ -214,7 +212,12 @@ module Braspag
       self.gateway_void_message = response[:message]
       self.gateway_void_amount = Converter::string_to_decimal(response[:amount])
     end
-
+    
+    def populate_generate_billet!(response)
+      self.gateway_return_code = response[:return_code]
+      self.gateway_status = response[:status]
+      self.gateway_amount = BigDecimal.new(response[:amount].to_s) if response[:amount]
+    end
     
     private
     def payment_for_cielo?

@@ -71,7 +71,7 @@ cbraspag gem to use Braspag gateway
   	billet = Braspag::Billet.new(
   	  :id           => '123456', # (optional if configured in gateway)
   	  :instructions => 'does not accepted after due date', # (optional)
-  	  :due_date_on  => Date.parse('2012-01-01'),
+  	  :due_date_on  => Date.parse('2012-01-01')
   	)
   	
   	customer = Braspag::Customer.new(
@@ -89,7 +89,7 @@ cbraspag gem to use Braspag gateway
   	
   	# Validating the card automatically detects the card type
   	if billet.valid?(:generate) && customer.valid?(:generate) && order.valid?(:generate)
-  	  response = gateway.generate(order, billet)
+  	  response = gateway.generate_billet(order, billet)
   	  
   	  if response.success?
   	    puts "Successfully created billet, open in:#{billet.url}"
@@ -141,7 +141,7 @@ cbraspag gem to use Braspag gateway
   	
   	# Validating the card automatically detects the card type
   	if eft.valid?(:generate) && customer.valid?(:generate) && order.valid?(:generate)
-  	  response = gateway.generate(order, eft)
+  	  response = gateway.generate_eft(order, eft)
   	  
   	  if response.success?
   	    puts "Successfully created eft, continue in:#{eft.code}"

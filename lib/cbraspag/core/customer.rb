@@ -16,8 +16,17 @@ module Braspag
     
     def to_authorize
       {
-        :customer_name => self.name.to_s,
+        :customer_name => self.name.to_s
       }
+    end
+    
+    def to_generate_billet
+      {
+        :customer_name => self.name.to_s,
+        :customer_id   => self.document.to_s,
+        :emails        => self.email.to_s
+      }
+      
     end
        
     def populate!(method)
