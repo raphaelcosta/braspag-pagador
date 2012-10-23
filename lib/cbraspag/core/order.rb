@@ -147,7 +147,8 @@ module Braspag
     end
     
     def convert_to(method)
-      data = self.send("to_#{method}")
+      data = {}
+      data = self.send("to_#{method}") if self.respond_to?("to_#{method}")
       data.merge!(self.customer.convert_to(method)) if self.customer
       data
     end

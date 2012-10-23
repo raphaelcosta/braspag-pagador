@@ -11,7 +11,9 @@ module Braspag
     end
     
     def convert_to(method)
-      self.send("to_#{method}")
+      data = {}
+      data = self.send("to_#{method}") if self.respond_to?("to_#{method}")
+      data
     end
     
     def to_authorize
@@ -26,7 +28,6 @@ module Braspag
         :customer_id   => self.document.to_s,
         :emails        => self.email.to_s
       }
-      
     end
        
     def populate!(method)
