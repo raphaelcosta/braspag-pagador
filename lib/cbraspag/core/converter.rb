@@ -84,7 +84,7 @@ module Braspag
     def self.to_void(params)
       self.to_hash({
         :merchant_id => "merchantId",
-        :order_id => "orderId"
+        :order_id => "order"
       }, params)
     end
     
