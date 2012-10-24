@@ -33,10 +33,10 @@ module Braspag
     def void(order, partial=nil)
       response = self.post(:void, order)
       
-      status = (response[:gateway_void_status] == "0")
+      status = (response[:status] == "0")
       
       Response.new(status,
-                   response[:gateway_void_message],
+                   response[:message],
                    response,
                    :test => homologation?)
     end

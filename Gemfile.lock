@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cbraspag (0.9.1)
+    cbraspag (0.9.3)
       active_attr (>= 0.6)
       httpi (>= 0.9.6)
       json (>= 1.6.1)
