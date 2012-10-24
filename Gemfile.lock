@@ -3,6 +3,7 @@ PATH
   specs:
     cbraspag (0.9.3)
       active_attr (>= 0.6)
+      activemerchant (>= 1.28.0)
       httpi (>= 0.9.6)
       json (>= 1.6.1)
       nokogiri (>= 1.4.7)
@@ -14,6 +15,17 @@ GEM
     active_attr (0.6.0)
       activemodel (>= 3.0.2, < 4.1)
       activesupport (>= 3.0.2, < 4.1)
+    active_utils (1.0.5)
+      activesupport (>= 2.3.11)
+      i18n
+    activemerchant (1.28.0)
+      active_utils (>= 1.0.2)
+      activesupport (>= 2.3.11)
+      builder (>= 2.0.0)
+      i18n
+      json (>= 1.5.1)
+      money
+      nokogiri
     activemodel (3.2.8)
       activesupport (= 3.2.8)
       builder (~> 3.0.0)
@@ -33,6 +45,9 @@ GEM
     i18n (0.6.1)
     json (1.7.5)
     method_source (0.8)
+    money (5.0.0)
+      i18n (~> 0.4)
+      json
     multi_json (1.3.6)
     nokogiri (1.5.5)
     nori (1.1.3)

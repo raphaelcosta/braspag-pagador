@@ -2,8 +2,6 @@ module Braspag
   class Connection
     def self.get(order)
       #check if order.is valid for get
-      return ::Response
-      
       response = Braspag::Poster.new(self, self.url_for(:info)).do_post(:info, {
         :loja => self.merchant_id, :numeroPedido => order.id.to_s
       })

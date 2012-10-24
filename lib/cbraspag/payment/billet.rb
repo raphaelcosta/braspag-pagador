@@ -7,7 +7,7 @@ module Braspag
       
       status = (response[:status] == "0")
 
-      Response.new(status,
+      ActiveMerchant::Billing::Response.new(status,
                    response[:message],
                    response,
                    :test => homologation?,

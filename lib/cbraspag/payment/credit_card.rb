@@ -11,7 +11,7 @@ module Braspag
       
       status = (response[:status] == "0" || response[:status] == "1")
 
-      Response.new(status,
+      ActiveMerchant::Billing::Response.new(status,
                    response[:message],
                    response,
                    :test => homologation?,
@@ -23,7 +23,7 @@ module Braspag
       
       status = (response[:status] == "0")
       
-      Response.new(status,
+      ActiveMerchant::Billing::Response.new(status,
                    response[:message],
                    response,
                    :test => homologation?,
@@ -35,7 +35,7 @@ module Braspag
       
       status = (response[:status] == "0")
       
-      Response.new(status,
+      ActiveMerchant::Billing::Response.new(status,
                    response[:message],
                    response,
                    :test => homologation?)
@@ -66,7 +66,6 @@ module Braspag
 
     # saves credit card in Braspag PCI Compliant
     def archive(credit_card, customer, request_id)
-      return ::Response
 
       self.check_protected_card_params(params)
 
@@ -88,7 +87,6 @@ module Braspag
 
     # request the credit card info in Braspag PCI Compliant
     def get_recurrency(credit_card)
-      return ::Response
 
       raise InvalidJustClickKey unless valid_just_click_key?(just_click_key)
 
@@ -111,7 +109,6 @@ module Braspag
     end
 
     def recurrency(order, credit_card, request_id)
-      return ::Response
 
       self.check_just_click_shop_params(params)
 

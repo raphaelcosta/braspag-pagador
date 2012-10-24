@@ -6,12 +6,12 @@ require 'json'
 require 'nokogiri'
 require 'savon'
 require 'bigdecimal'
+require 'active_merchant'
 
 require "cbraspag/version"
 require 'cbraspag/core/converter'
 require 'cbraspag/core/connection'
 require 'cbraspag/core/poster'
-require 'cbraspag/core/response'
 require 'cbraspag/core/customer'
 require 'cbraspag/core/order'
 

@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
+  s.add_dependency 'activemerchant', '>= 1.28.0'
   s.add_dependency 'active_attr', '>= 0.6'
   s.add_dependency 'httpi', '>= 0.9.6'
   s.add_dependency 'json', '>= 1.6.1'

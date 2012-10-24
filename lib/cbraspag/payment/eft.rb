@@ -14,7 +14,6 @@ module Braspag
 
 
     def self.generate_eft(order, eft)
-      return ::Response.new
       
       connection = Braspag::Connection.instance
       params[:merchant_id] = connection.merchant_id
