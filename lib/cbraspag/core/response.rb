@@ -19,6 +19,8 @@ module  Braspag
       @test = options[:test] || false
       @authorization = options[:authorization]
       @fraud_review = options[:fraud_review]
+      @avs_result = {:code => nil}
+      @cvv_result = {:code => nil}
     end
   end
   
