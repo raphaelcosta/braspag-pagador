@@ -228,7 +228,7 @@ describe Braspag::Connection do
     it "should call gateway with correct data" do
       Braspag::Poster.any_instance.should_receive(:do_post).with(:void, {
             "merchantId"     => "#{merchant_id}", 
-            "orderId"        => "#{order.id}"
+            "order"        => "#{order.id}"
           }
         ).and_return(mock(:body => valid_xml))
       connection.void(order)
