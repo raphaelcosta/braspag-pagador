@@ -21,10 +21,10 @@ describe Braspag::Converter do
       Braspag::Converter.string_to_decimal("10,00").should eq(10.00)
       Braspag::Converter.string_to_decimal("1,00").should eq(1.00)
       Braspag::Converter.string_to_decimal("0,10").should eq(0.1)
-      Braspag::Converter.string_to_decimal("0,01").should eq(0.00)
+      Braspag::Converter.string_to_decimal("0,01").should eq(0.01)
       Braspag::Converter.string_to_decimal("9,99").should eq(9.99)
       Braspag::Converter.string_to_decimal("10,9").should eq(10.90)
-      Braspag::Converter.string_to_decimal("9,1111").should eq(9.11)
+      Braspag::Converter.string_to_decimal("9,1111").should eq(9.1111)
     end
   end
 
@@ -43,6 +43,13 @@ describe Braspag::Converter do
       it "should return a Hash" do
         keys = { :foo => nil, :meu_elemento => "bar", :outro_elemento => "baz" }
         expected = { :foo => "blabla", :meu_elemento => "bleble", :outro_elemento => nil }
+
+        Braspag::Converter::hash_from_xml(document, keys).should == expected
+      end
+      
+      it "should return a Hash with invalid key" do
+        keys = { :foo => "invalid", :meu_elemento => "bar", :outro_elemento => "baz" }
+        expected = { :foo => nil, :meu_elemento => "bleble", :outro_elemento => nil }
 
         Braspag::Converter::hash_from_xml(document, keys).should == expected
       end
@@ -96,4 +103,21 @@ describe Braspag::Converter do
     end
   end
   
+  describe "payment_method_type?" do
+    it "should response nil when invalid method" do
+      Braspag::Converter.payment_method_type?(999).should be(nil)
+    end
+    
+    it "should response billet" do
+      Braspag::Converter.payment_method_type?(6).should be(:billet)
+    end
+    
+    it "should response eft" do
+      Braspag::Converter.payment_method_type?(16).should be(:eft)
+    end
+    
+    it "should response credit_card" do
+      Braspag::Converter.payment_method_type?(997).should be(:credit_card)
+    end
+  end
 end
