@@ -5,7 +5,8 @@ module Braspag
     end
     
     def self.string_to_decimal(value)
-      BigDecimal.new(value.to_s.gsub(".",""))
+      BigDecimal.new(value.to_s.gsub(",","."))
+      BigDecimal.new(value.to_s.gsub(".",","))
     end
 
     def self.hash_from_xml(document, map = {})

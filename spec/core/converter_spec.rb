@@ -3,13 +3,28 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 describe Braspag::Converter do
   describe ".decimal_to_string" do
     it "should convert decimal to string with comma as decimal separator" do
-      Braspag::Converter.decimal_to_string(10).should == "10,00"
-      Braspag::Converter.decimal_to_string(1).should == "1,00"
-      Braspag::Converter.decimal_to_string(0.1).should == "0,10"
-      Braspag::Converter.decimal_to_string(0.01).should == "0,01"
-      Braspag::Converter.decimal_to_string(9.99999).should == "10,00" # round up
-      Braspag::Converter.decimal_to_string(10.9).should == "10,90"
-      Braspag::Converter.decimal_to_string(9.1111).should == "9,11"
+      Braspag::Converter.decimal_to_string(10).should eq("10,00")
+      Braspag::Converter.decimal_to_string(1).should eq("1,00")
+      Braspag::Converter.decimal_to_string(0.1).should eq("0,10")
+      Braspag::Converter.decimal_to_string(0.01).should eq("0,01")
+      Braspag::Converter.decimal_to_string(9.99999).should eq("10,00") # round up
+      Braspag::Converter.decimal_to_string(10.9).should eq("10,90")
+      Braspag::Converter.decimal_to_string(9.1111).should eq("9,11")
+      Braspag::Converter.decimal_to_string("10,00").should eq("10,00")
+    end
+  end
+  
+  describe ".string_to_decimal" do
+    it "should string with comma as decimal separator to decimal" do
+      Braspag::Converter.string_to_decimal("1000,00").should eq(1000.00)
+      Braspag::Converter.string_to_decimal("1.000,00").should eq(1000.00)
+      Braspag::Converter.string_to_decimal("10,00").should eq(10.00)
+      Braspag::Converter.string_to_decimal("1,00").should eq(1.00)
+      Braspag::Converter.string_to_decimal("0,10").should eq(0.1)
+      Braspag::Converter.string_to_decimal("0,01").should eq(0.00)
+      Braspag::Converter.string_to_decimal("9,99").should eq(9.99)
+      Braspag::Converter.string_to_decimal("10,9").should eq(10.90)
+      Braspag::Converter.string_to_decimal("9,1111").should eq(9.11)
     end
   end
 
