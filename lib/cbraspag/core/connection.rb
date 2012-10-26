@@ -78,7 +78,7 @@ module Braspag
         self.convert(method_name, :to, args)
       )
       
-      convert(method_name, :from, args + [response] )
+      self.convert(method_name, :from, args + [response] )
     end
     
     def convert(method_name, direction, args)

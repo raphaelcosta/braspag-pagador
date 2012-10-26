@@ -19,6 +19,7 @@ module Braspag
     
     class DueDateValidator < ActiveModel::EachValidator
       def validate_each(record, attribute, value)
+        # unless value.class.in? [Date, Time]
         unless (
           value.kind_of?(Time) || value.kind_of?(Date)
         )

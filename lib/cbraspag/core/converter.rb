@@ -1,6 +1,7 @@
 module Braspag
   class Converter
     def self.decimal_to_string(value)
+      #TODO: CHANGE ANOTHER FOR CONVERSION
       ("%.2f" % value.to_f).gsub('.', ',')
     end
     

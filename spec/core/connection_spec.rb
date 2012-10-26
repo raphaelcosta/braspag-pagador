@@ -92,4 +92,58 @@ describe Braspag::Connection do
       connection.url_for(:recurrency).should == "#{braspag_production_protected_card_url}/CartaoProtegido.asmx?wsdl"
     end
   end
+  
+  describe ".post" do
+    it "should convert data" do
+      connection = Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation)
+      
+      mock1 = mock
+      mock2 = mock
+      resp = mock
+      convert_to = mock
+      
+      connection.should_receive(:convert).with(
+        :info,
+        :to,
+        [mock1, mock2]
+      ).and_return(convert_to)
+      
+      connection.should_receive(:convert).with(
+        :info,
+        :from,
+        [mock1, mock2, resp]
+      )
+      
+      Braspag::Poster.any_instance.should_receive(:do_post).with(
+        :info,
+        convert_to
+      ).and_return(resp)
+      
+      connection.post(:info, mock1, mock2)
+    end
+  end
+  
+  describe ".convert" do
+    let (:connection) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation) }
+    {
+      :authorize => Braspag::CreditCard,
+      :void => Braspag::CreditCard,
+      :capture => Braspag::CreditCard,
+      :archive_card => Braspag::CreditCard,
+      :get_card => Braspag::CreditCard,
+      :recurrency => Braspag::CreditCard,
+      :generate_billet => Braspag::Billet,
+      :generate_eft => Braspag::EFT,
+      :info_billet => Braspag::Order,
+      :info_credit_card => Braspag::Order,
+      :info => Braspag::Order,
+      :encrypt => Braspag::Crypto::Webservice
+    }.each do |method_name, kclass|
+      it "should call method when convert #{method_name} to #{kclass}" do
+        args = [mock, mock]
+        kclass.should_receive("to_#{method_name}".to_sym).with(connection, args[0], args[1])
+        connection.convert(method_name, :to, args)
+      end
+    end
+  end
 end
