@@ -4,7 +4,6 @@ module Braspag
   class Connection
     def generate_billet(order, billet)
       response = self.post(:generate_billet, order, billet)
-      
       status = (response[:status] == "0")
 
       ActiveMerchant::Billing::Response.new(status,
@@ -35,24 +34,44 @@ module Braspag
     validates :due_date_on, :presence => { :on => :generate }
     validates :due_date_on, :due_date => { :on => :generate }
     
-    def convert_to(method)
-      self.send("to_#{method}")
-    end
-    
-    def to_generate_billet
+    def self.to_generate_billet(connection, order, billet)
       {
-        :number => self.id.to_s,
-        :instructions => self.instructions.to_s,
-        :expiration_date => self.due_date_on.strftime("%d/%m/%y")
+        "merchantId"       => connection.merchant_id,
+        "boletoNumber"     => billet.id.to_s,
+        "instructions"     => billet.instructions.to_s,
+        "expirationDate"   => billet.due_date_on.strftime("%d/%m/%y"),
+        "customerName"     => order.customer.name.to_s,
+        "customerIdNumber" => order.customer.document.to_s,
+        "emails"           => order.customer.email.to_s,
+        "orderId"          => order.id.to_s,
+        "amount"           => Braspag::Converter::decimal_to_string(order.amount),
+        "paymentMethod"    => order.payment_method
       }
     end
     
-    def populate!(method, response)
-      self.send("populate_#{method}!", response)
-    end
-    
-    def populate_generate_billet!(response)
-      self.url = response[:url]
+    def self.from_generate_billet(connection, order, billet, params)
+      response = Braspag::Converter::hash_from_xml(params.body, {
+        :url => nil,
+        :amount => nil,
+        :number => "boletoNumber",
+        :expiration_date => Proc.new { |document|
+          begin
+            Date.parse(document.search("expirationDate").first.to_s)
+          rescue
+            nil
+          end
+        },
+        :return_code => "returnCode",
+        :status => nil,
+        :message => nil
+      })
+      
+      order.gateway_return_code = response[:return_code]
+      order.gateway_status = response[:status]
+      order.gateway_amount = BigDecimal.new(response[:amount].to_s) if response[:amount]
+      billet.url = response[:url]
+      
+      response
     end
   end
 end

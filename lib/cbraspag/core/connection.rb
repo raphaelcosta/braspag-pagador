@@ -54,7 +54,7 @@ module Braspag
         braspag_url + "/pagador/passthru.asp"
       when :info_billet
         braspag_info_url + "/GetDadosBoleto"
-      when :info_card
+      when :info_credit_card
         braspag_info_url + "/GetDadosCartao"
       when :info
         braspag_info_url + "/GetDadosPedido"
@@ -69,28 +69,33 @@ module Braspag
       end
     end
     
-    def convert_to(method)
-      {:merchant_id => self.merchant_id}
+    def post(method_name, *args)
+      response = Braspag::Poster.new(
+        self, 
+        self.url_for(method_name)
+      ).do_post(
+        method_name, 
+        self.convert(method_name, :to, args)
+      )
+      
+      convert(method_name, :from, args + [response] )
     end
     
-    def post(method, *args)
-      data = convert_to(method)
-      args.each do |field|
-        data.merge!(field.convert_to(method))
-      end
-
-      data = Converter::to(method, data)
-      
-      response = Braspag::Poster.new(self, self.url_for(method))
-                                .do_post(method, data)
-      
-      response = Converter::from(method, response.body)
-      
-      args.each do |field|
-        field.populate!(method, response)
+    def convert(method_name, direction, args)
+      target = case method_name
+      when :authorize, :void, :capture, :archive_card, :get_card, :recurrency
+        CreditCard
+      when :generate_billet
+        Billet
+      when :generate_eft
+        EFT
+      when :info_billet, :info_credit_card, :info
+        Order
+      when :encrypt
+        Crypto::Webservice
       end
       
-      response
-    end
+      target.send("#{direction}_#{method_name}", *([self] + args))
+    end    
   end
 end

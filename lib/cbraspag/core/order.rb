@@ -1,82 +1,26 @@
 module Braspag
   class Connection
     def self.get(order)
-      #check if order.is valid for get
-      response = Braspag::Poster.new(self, self.url_for(:info)).do_post(:info, {
-        :loja => self.merchant_id, :numeroPedido => order.id.to_s
-      })
+      response = self.post(:info, order)
       
-      response = Utils::convert_to_map(response.body, {
-        :authorization => "CodigoAutorizacao",
-        :error_code => "CodigoErro",
-        :error_message => "MensagemErro",
-        :payment_method => "CodigoPagamento",
-        :payment_method_name => "FormaPagamento",
-        :installments => "NumeroParcelas",
-        :status => "Status",
-        :amount => "Valor",
-        :cancelled_at => "DataCancelamento",
-        :paid_at => "DataPagamento",
-        :order_date => "DataPedido",
-        :transaction_id => "TransId",
-        :tid => "BraspagTid"
-      })
-
-      # raise InvalidData if response[:authorization].nil?
+      # populate in error
+      # :error_code => "CodigoErro",
+      # :error_message => "MensagemErro",
       
-      self.get_billet(order)
-      self.get_credit_card(order)
-      response
+      
+      case order.payment_method_type?
+      when :billet
+        self.post(:info_billet, order)
+      when :credit_card
+        self.post(:info_credit_card, order)
+      end
+      
+      ActiveMerchant::Billing::Response.new(!response[:status].nil?,
+                   'OK',
+                   response,
+                   :test => homologation?)
+      
     end
-    
-    private
-    def self.get_billet(order)
-
-      request = ::HTTPI::Request.new(self.info_url)
-      request.body = {
-        :loja => connection.merchant_id,
-        :numeroPedido => order_id.to_s
-      }
-
-      response = ::HTTPI.post(request)
-
-      response = Utils::convert_to_map(response.body, {
-          :document_number => "NumeroDocumento",
-          :payer => "Sacado",
-          :our_number => "NossoNumero",
-          :bill_line => "LinhaDigitavel",
-          :document_date => "DataDocumento",
-          :expiration_date => "DataVencimento",
-          :receiver => "Cedente",
-          :bank => "Banco",
-          :agency => "Agencia",
-          :account => "Conta",
-          :wallet => "Carteira",
-          :amount => "ValorDocumento",
-          :amount_invoice => "ValorPago",
-          :invoice_date => "DataCredito"
-        })
-
-      raise UnknownError if response[:document_number].nil?
-      response
-    end
-    
-    def self.get_credit_card(order)
-      data = {:loja => self.merchant_id, :numeroPedido => order.id.to_s}
-      response = Braspag::Poster.new(self, self.info_url).do_post(:info_credit_card, data)
-
-      response = Utils::convert_to_map(response.body, {
-          :checking_number => "NumeroComprovante",
-          :certified => "Autenticada",
-          :autorization_number => "NumeroAutorizacao",
-          :card_number => "NumeroCartao",
-          :transaction_number => "NumeroTransacao"
-        })
-
-      raise UnknownError if response[:checking_number].nil?
-      response
-    end
-    
   end
   
   class Order
@@ -141,81 +85,13 @@ module Braspag
       when Braspag::INTEREST[:no],
            Braspag::INTEREST[:no_iata]
         true
+      else
+        false
       end
     end
     
-    def convert_to(method)
-      data = {}
-      data = self.send("to_#{method}") if self.respond_to?("to_#{method}")
-      data.merge!(self.customer.convert_to(method)) if self.customer
-      data
-    end
-    
-    def to_authorize
-      {
-        :order_id        => self.id.to_s,
-        :amount          => self.amount,
-        :payment_method  => self.payment_method,
-        :number_payments => self.installments,
-        :type            => self.installments_type,
-      }
-    end
-    
-    def to_capture
-      {
-        :order_id        => self.id.to_s
-      }
-    end
-    
-    def to_void
-      {
-        :order_id        => self.id.to_s
-      }
-    end
-    
-    def to_generate_billet
-      {
-        :order_id        => self.id.to_s,
-        :amount          => self.amount,
-        :payment_method  => self.payment_method
-      }
-    end
-    
-    def populate!(method, response)
-      self.send("populate_#{method}!", response)
-    end
-    
-    def populate_authorize!(response)
-      self.gateway_authorization = response[:number]
-      self.gateway_id = response[:transaction_id]
-      self.gateway_return_code = response[:return_code]
-      self.gateway_status = response[:status]
-      self.gateway_message = response[:message]
-      self.gateway_amount = Converter::string_to_decimal(response[:amount])
-    end
-
-    def populate_capture!(response)
-      #TODO: CHECK IF IS NECESSARY
-      # self.gateway_capture_id = response[:transaction_id]
-      self.gateway_capture_return_code = response[:return_code]
-      self.gateway_capture_status = response[:status]
-      self.gateway_capture_message = response[:message]
-      self.gateway_capture_amount = Converter::string_to_decimal(response[:amount])
-    end
-    
-    def populate_void!(response)
-      #TODO: CHECK IF IS NECESSARY
-      # self.gateway_void_id = response[:transaction_id]
-      self.gateway_void_return_code = response[:return_code]
-      self.gateway_void_status = response[:status]
-      self.gateway_void_message = response[:message]
-      self.gateway_void_amount = Converter::string_to_decimal(response[:amount])
-    end
-    
-    def populate_generate_billet!(response)
-      self.gateway_return_code = response[:return_code]
-      self.gateway_status = response[:status]
-      self.gateway_amount = BigDecimal.new(response[:amount].to_s) if response[:amount]
+    def payment_method_type?
+      Converter.payment_method_type?(self.payment_method)
     end
     
     private
@@ -229,6 +105,127 @@ module Braspag
            Braspag::PAYMENT_METHOD[:cielo_noauth_diners]
         true
       end
+    end
+    
+    def self.to_info(connection, order)
+      {
+        "loja"          => connection.merchant_id,
+        "numeroPedido"  => order.id.to_s
+      }
+    end
+    
+    def self.from_info(connection, order, response)
+      response = Conveter::hash_from_xml(response, {
+        :authorization => "CodigoAutorizacao",
+        :error_code => "CodigoErro",
+        :error_message => "MensagemErro",
+        :payment_method => "CodigoPagamento",
+        :payment_method_name => "FormaPagamento",
+        :installments => "NumeroParcelas",
+        :status => "Status",
+        :amount => "Valor",
+        :cancelled_at => "DataCancelamento",
+        :paid_at => "DataPagamento",
+        :order_date => "DataPedido",
+        :transaction_id => "TransId",
+        :tid => "BraspagTid"
+      })
+      
+      order.authorization = response[:authorization]
+      order.payment_method_name = response[:payment_method_name]
+      order.payment_method = response[:payment_method]
+      order.installments = response[:installments]
+      order.status = response[:status]
+      order.amount = response[:amount]
+      order.gateway_cancelled_at = response[:cancelled_at]
+      order.gateway_paid_at = response[:paid_at]
+      order.gateway_created_at = response[:order_date]
+      order.transaction_id = response[:transaction_id]
+      order.gateway_id = response[:tid]
+
+      response
+    end
+    
+    def self.to_info_credit_card(connection, order)
+      {
+        "loja"          => connection.merchant_id,
+        "numeroPedido"  => order.id.to_s
+      }
+    end
+    
+    def self.from_info_credit_card(connection, order, response)
+      response = Conveter::hash_from_xml(response, {
+          :checking_number => "NumeroComprovante",
+          :certified => "Autenticada",
+          :autorization_number => "NumeroAutorizacao",
+          :card_number => "NumeroCartao",
+          :transaction_number => "NumeroTransacao",
+
+          :avs_response => "RetornoAVS",
+          :issuing => "Emissor",
+          :authenticated_number => "NumeroAutenticacao"
+      })
+      
+      order.build_credit_card if order.credit_card.nil?
+      
+      order.credit_card.checking_number = response[:checking_number]
+      order.credit_card.avs = response[:certified]
+      order.credit_card.autorization_number = response[:autorization_number]
+      order.credit_card.card_number = response[:card_number]
+      order.credit_card.transaction_number = response[:transaction_number]
+      order.credit_card.avs_response = response[:avs_response]
+      order.credit_card.issuing = response[:issuing]
+      order.credit_card.authenticated_number = response[:authenticated_number]
+      
+      response
+    end
+    
+    def self.to_info_billet(connection, order)
+      {
+        "loja"          => connection.merchant_id,
+        "numeroPedido"  => order.id.to_s
+      }
+    end
+    
+    def self.from_info_billet(connection, order, response)
+      response = Conveter::hash_from_xml(response, {
+          :document_number => "NumeroDocumento",
+          :payer => "Sacado",
+          :our_number => "NossoNumero",
+          :bill_line => "LinhaDigitavel",
+          :document_date => "DataDocumento",
+          :expiration_date => "DataVencimento",
+          :receiver => "Cedente",
+          :bank => "Banco",
+          :agency => "Agencia",
+          :account => "Conta",
+          :wallet => "Carteira",
+          :amount => "ValorDocumento",
+          :amount_invoice => "ValorPago",
+          :invoice_date => "DataCredito"
+      })
+      
+      order.build_customer if order.customer.nil?
+      order.customer.name = response[:payer]
+
+      order.build_billet if order.billet.nil?
+      order.billet.id = response[:our_number]
+      order.billet.code = response[:bill_line]
+      
+      order.billet.created_at = response[:document_date]
+      order.billet.due_date_on = response[:expiration_date]
+      
+      order.billet.receiver = response[:receiver]
+      
+      order.billet.bank = response[:bank]
+      order.billet.agency = response[:agency]
+      order.billet.account = response[:account]
+      order.billet.wallet = response[:wallet]
+      order.billet.amount = response[:amount]
+      order.billet.amount_paid = response[:amount_invoice]
+      order.billet.paid_at = response[:invoice_date]
+    
+      response
     end
   end
 end

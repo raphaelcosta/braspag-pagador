@@ -40,104 +40,7 @@ module Braspag
                    response,
                    :test => homologation?)
     end
-
-    PROTECTED_CARD_MAPPING = {
-      :request_id => "RequestId",
-      :merchant_id => "MerchantKey",
-      :customer_name => "CustomerName",
-      :holder => "CardHolder",
-      :card_number => "CardNumber",
-      :expiration => "CardExpiration"
-    }
-
-    JUST_CLICK_MAPPING = {
-      :request_id => "RequestId",
-      :merchant_id => "MerchantKey",
-      :customer_name => "CustomerName",
-      :order_id => "OrderId",
-      :amount => "Amount",
-      :payment_method => "PaymentMethod",
-      :number_installments => "NumberInstallments",
-      :payment_type => "PaymentType",
-      :just_click_key => "JustClickKey",
-      :security_code => "SecurityCode"
-    }
-
-
-    # saves credit card in Braspag PCI Compliant
-    def archive(credit_card, customer, request_id)
-
-      self.check_protected_card_params(params)
-
-      data = { 'saveCreditCardRequestWS' => {} }
-
-      PROTECTED_CARD_MAPPING.each do |k, v|
-        data['saveCreditCardRequestWS'][v] = params[k] || ""
-      end
-
-
-     client = Savon::Client.new(self.save_protected_card_url)
-     response = client.request(:web, :save_credit_card) do
-       soap.body = data
-     end
-
-      response.to_hash[:save_credit_card_response][:save_credit_card_result]
-
-    end
-
-    # request the credit card info in Braspag PCI Compliant
-    def get_recurrency(credit_card)
-
-      raise InvalidJustClickKey unless valid_just_click_key?(just_click_key)
-
-      data = { 'getCreditCardRequestWS' => {:loja => connection.merchant_id, :justClickKey => just_click_key} }
-
-      request = ::HTTPI::Request.new(self.get_protected_card_url)
-      request.body = { 'getCreditCardRequestWS' => {:loja => connection.merchant_id, :justClickKey => just_click_key} }
-
-      response = ::HTTPI.post(request)
-
-      response = Utils::convert_to_map(response.body, {
-          :holder => "CardHolder",
-          :card_number => "CardNumber",
-          :expiration => "CardExpiration",
-          :masked_card_number => "MaskedCardNumber"
-        })
-
-      raise UnknownError if response[:card_number].nil?
-      response
-    end
-
-    def recurrency(order, credit_card, request_id)
-
-      self.check_just_click_shop_params(params)
-
-      order_id = params[:order_id]
-      raise InvalidOrderId unless self.valid_order_id?(order_id)
-
-      data = { 'justClickShopRequestWS' => {} }
-
-      JUST_CLICK_MAPPING.each do |k, v|
-        case k
-        when :payment_method
-          data['justClickShopRequestWS'][v] = Braspag::Connection.instance.homologation? ? PAYMENT_METHODS[:braspag] : PAYMENT_METHODS[params[:payment_method]]
-        else
-          data['justClickShopRequestWS'][v] = params[k] || ""
-        end
-      end
-
-      client = Savon::Client.new(self.just_click_shop_url)
-      response = client.request(:web, :just_click_shop) do
-        soap.body = data
-      end
-
-      response.to_hash[:just_click_shop_response][:just_click_shop_result]
-
-    end
-
-    
   end
-  
   
   class CreditCard
     include ::ActiveAttr::Model
@@ -178,23 +81,95 @@ module Braspag
     [:get_recurrency, :recurrency].each do |check_on|
       validates :id, :length => {:is => 36, :on => check_on}
     end
-    
-    def convert_to(method)
-      self.send("to_#{method}")
-    end
-    
-    def to_authorize
-      year_normalize = year.to_s[-2, 2]
+        
+    def self.to_authorize(connection, order, credit_card)
+      year_normalize = credit_card.year.to_s[-2, 2]
       {
-        :holder          => self.holder_name.to_s,
-        :card_number     => self.number.to_s,
-        :expiration      => "#{self.month}/#{year_normalize}",
-        :security_code   => self.verification_value.to_s,
+        "merchantId"     => connection.merchant_id,
+        "holder"         => credit_card.holder_name.to_s,
+        "cardNumber"     => credit_card.number.to_s,
+        "expiration"     => "#{credit_card.month}/#{year_normalize}",
+        "securityCode"   => credit_card.verification_value.to_s,
+        "customerName"   => order.customer.name.to_s,
+        "orderId"        => order.id.to_s,
+        "amount"         => Conveter::decimal_to_string(order.amount),
+        "paymentMethod"  => order.payment_method,
+        "numberPayments" => order.installments,
+        "type"           => order.installments_type
       }
     end
     
-    def populate!(method, response)
+    def self.from_authorize(connection, order, credit_card, response)
+      response = Conveter::hash_from_xml(response, {
+              :amount         => nil,
+              :number         => "authorisationNumber",
+              :message        => nil,
+              :return_code    => 'returnCode',
+              :status         => nil,
+              :transaction_id => "transactionId"
+      })
       
+      order.gateway_authorization = response[:number]
+      order.gateway_id = response[:transaction_id]
+      order.gateway_return_code = response[:return_code]
+      order.gateway_status = response[:status]
+      order.gateway_message = response[:message]
+      order.gateway_amount = Converter::string_to_decimal(response[:amount])
+      
+      response
     end
+    
+    def self.to_capture(connection, order)
+      {
+        "merchantId"  => connection.merchant_id,
+        "orderId"     => order.id.to_s
+      }
+    end
+    
+    def self.from_capture(connection, order, response)
+      response = Conveter::hash_from_xml(response, {
+              :amount => nil,
+              :message => 'message',
+              :return_code => 'returnCode',
+              :status => 'status',
+              :transaction_id => "transactionId"
+      })
+      
+      #TODO: CHECK IF IS NECESSARY
+      # order.gateway_capture_id = response[:transaction_id]
+      order.gateway_capture_return_code = response[:return_code]
+      order.gateway_capture_status = response[:status]
+      order.gateway_capture_message = response[:message]
+      order.gateway_capture_amount = Converter::string_to_decimal(response[:amount])
+      
+      response
+    end
+    
+    def self.to_void(connection, order)
+      {
+        "merchantId" => connection.merchant_id,
+        "order"      => order.id.to_s
+      }
+    end
+    
+    def self.from_void(connection, order, response)
+      response = Conventer::hash_from_xml(response, {
+              :order_id => "orderId",
+              :amount => nil,
+              :message => 'message',
+              :return_code => 'returnCode',
+              :status => 'status',
+              :transaction_id => "transactionId"
+      })
+      
+      #TODO: CHECK IF IS NECESSARY
+      # order.gateway_void_id = response[:transaction_id]
+      order.gateway_void_return_code = response[:return_code]
+      order.gateway_void_status = response[:status]
+      order.gateway_void_message = response[:message]
+      order.gateway_void_amount = Converter::string_to_decimal(response[:amount])
+      
+      response
+    end 
   end
 end

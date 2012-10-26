@@ -73,6 +73,10 @@ GEM
       nokogiri (>= 1.4.0)
       nori (~> 1.1.0)
       wasabi (~> 2.5.0)
+    simplecov (0.6.4)
+      multi_json (~> 1.0)
+      simplecov-html (~> 0.5.3)
+    simplecov-html (0.5.3)
     slop (3.3.3)
     wasabi (2.5.1)
       httpi (~> 1.0)
@@ -86,3 +90,4 @@ DEPENDENCIES
   pry
   rake
   rspec
+  simplecov

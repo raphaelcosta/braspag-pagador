@@ -8,6 +8,9 @@ cbraspag gem to use Braspag gateway
   - Compatible with Active Merchant response object
   - Support multiple connections easy
 
+## RUN INTEGRATION TEST
+  
+    BRASPAG_MERCHANT_ID={YOUR_MECHANT_ID} be rspec -t integration
 
 ## Usage CreditCard
 
@@ -371,7 +374,7 @@ cbraspag gem to use Braspag gateway
   	> puts order.billet.due_date_on
   	> 2012-10-13
   	
-  	> puts order.billet.transferor
+  	> puts order.billet.receiver
   	> "Codeminer42"
   	
   	> puts order.billet.bank

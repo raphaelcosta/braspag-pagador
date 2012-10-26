@@ -8,7 +8,7 @@ module Braspag
       BigDecimal.new(value.to_s.gsub(".",""))
     end
 
-    def self.to_map(document, map = {})
+    def self.hash_from_xml(document, map = {})
       document = Nokogiri::XML(document)
 
       map.each do |key, value|
@@ -36,125 +36,21 @@ module Braspag
     def self.payment_method_name?(code)
       Braspag::PAYMENT_METHOD.key(code.to_s.to_i)
     end
+
+    def self.payment_method_type?(code)
+      key = Braspag::PAYMENT_METHOD.key(code.to_s.to_i)
+      return nil if key.nil?
+      if key.match(/billet_/)
+        :billet
+      elsif key.match(/eft_/)
+        :eft
+      else
+        :credit_card
+      end
+    end
     
     def self.status_name?(code)
       Braspag::STATUS_PAYMENT.key(code.to_s.to_i)
-    end
-    
-    def self.to_hash(format, params)
-      data = {}
-      format.each do |k, v|
-        case k
-        when :amount
-          data[v] = self.decimal_to_string(params[:amount])
-        else
-          data[v] = params[k] || ""
-        end
-      end
-      data
-    end
-    
-    def self.to(method, data)
-      self.send("to_#{method}", data)
-    end
-    
-    def self.to_authorize(params)
-      self.to_hash({
-        :merchant_id => "merchantId",
-        :order_id => "orderId",
-        :customer_name => "customerName",
-        :amount => "amount",
-        :payment_method => "paymentMethod",
-        :holder => "holder",
-        :card_number => "cardNumber",
-        :expiration => "expiration",
-        :security_code => "securityCode",
-        :number_payments => "numberPayments",
-        :type => "typePayment",
-      }, params)
-    end
-    
-    def self.to_capture(params)
-      self.to_hash({
-        :merchant_id => "merchantId",
-        :order_id => "orderId"
-      }, params)
-    end
-    
-    def self.to_void(params)
-      self.to_hash({
-        :merchant_id => "merchantId",
-        :order_id => "order"
-      }, params)
-    end
-    
-    def self.to_generate_billet(params)
-      self.to_hash({
-        :merchant_id => "merchantId",
-        :order_id => "orderId",
-        :customer_name => "customerName",
-        :customer_id => "customerIdNumber",
-        :amount => "amount",
-        :payment_method => "paymentMethod",
-        :number => "boletoNumber",
-        :instructions => "instructions",
-        :expiration_date => "expirationDate",
-        :emails => "emails"
-      }, params)
-    end
-    
-    def self.from(method, data)
-      self.send("from_#{method}", data)
-    end
-    
-    def self.from_authorize(data)
-      to_map(data, {
-        :amount => nil,
-        :number => "authorisationNumber",
-        :message => 'message',
-        :return_code => 'returnCode',
-        :status => 'status',
-        :transaction_id => "transactionId"
-      })
-    end
-    
-    def self.from_capture(data)
-      to_map(data, {
-        :amount => nil,
-        :message => 'message',
-        :return_code => 'returnCode',
-        :status => 'status',
-        :transaction_id => "transactionId"
-      })
-    end
-    
-    def self.from_void(data)
-      to_map(data, {
-        :order_id => "orderId",
-        :amount => nil,
-        :message => 'message',
-        :return_code => 'returnCode',
-        :status => 'status',
-        :transaction_id => "transactionId"
-      })
-    end
-    
-    def self.from_generate_billet(data)
-      to_map(data, {
-        :url => nil,
-        :amount => nil,
-        :number => "boletoNumber",
-        :expiration_date => Proc.new { |document|
-          begin
-            Date.parse(document.search("expirationDate").first.to_s)
-          rescue
-            nil
-          end
-        },
-        :return_code => "returnCode",
-        :status => nil,
-        :message => nil
-      })
     end
   end
 end

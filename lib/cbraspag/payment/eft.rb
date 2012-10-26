@@ -15,11 +15,8 @@ module Braspag
 
     def self.generate_eft(order, eft)
       
-      connection = Braspag::Connection.instance
       params[:merchant_id] = connection.merchant_id
 
-      params = self.normalize_params(params)
-      self.check_params(params)
 
       data = {}
 
@@ -50,18 +47,6 @@ module Braspag
 
       html
     end
-
-    def self.normalize_params(params)
-      params = super
-
-      params[:installments] = params[:installments].to_i unless params[:installments].nil?
-      params[:installments] ||= 1
-
-      params[:has_interest] = params[:has_interest] == true ? "1" : "0"
-
-      params
-    end
-
   end
   
   class EFT

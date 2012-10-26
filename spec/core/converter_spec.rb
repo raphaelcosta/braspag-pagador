@@ -13,7 +13,7 @@ describe Braspag::Converter do
     end
   end
 
-  describe ".to_map" do
+  describe ".hash_from_xml" do
     let(:document) do
       <<-XML
       <root>
@@ -29,7 +29,7 @@ describe Braspag::Converter do
         keys = { :foo => nil, :meu_elemento => "bar", :outro_elemento => "baz" }
         expected = { :foo => "blabla", :meu_elemento => "bleble", :outro_elemento => nil }
 
-        Braspag::Converter::to_map(document, keys).should == expected
+        Braspag::Converter::hash_from_xml(document, keys).should == expected
       end
     end
 
@@ -40,7 +40,7 @@ describe Braspag::Converter do
         keys = { :foo => proc, :meu_elemento => "bar", :outro_elemento => "baz" }
         expected = { :foo => "value returned by Proc", :meu_elemento => "bleble", :outro_elemento => nil }
 
-        Braspag::Converter::to_map(document, keys).should == expected
+        Braspag::Converter::hash_from_xml(document, keys).should == expected
       end
     end
   end
