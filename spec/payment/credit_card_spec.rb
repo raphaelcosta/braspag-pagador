@@ -219,4 +219,44 @@ describe Braspag::CreditCard do
     end
   end
   
+  context "on authorize credit card" do
+  
+    # def self.to_authorize(connection, order, credit_card)
+    #       year_normalize = credit_card.year.to_s[-2, 2]
+    #       {
+    #         "merchantId"     => connection.merchant_id,
+    #         "holder"         => credit_card.holder_name.to_s,
+    #         "cardNumber"     => credit_card.number.to_s,
+    #         "expiration"     => "#{credit_card.month}/#{year_normalize}",
+    #         "securityCode"   => credit_card.verification_value.to_s,
+    #         "customerName"   => order.customer.name.to_s,
+    #         "orderId"        => order.id.to_s,
+    #         "amount"         => Conveter::decimal_to_string(order.amount),
+    #         "paymentMethod"  => order.payment_method,
+    #         "numberPayments" => order.installments,
+    #         "type"           => order.installments_type
+    #       }
+    #     end
+    #     
+    #     def self.from_authorize(connection, order, credit_card, response)
+    #       response = Conveter::hash_from_xml(response, {
+    #               :amount         => nil,
+    #               :number         => "authorisationNumber",
+    #               :message        => nil,
+    #               :return_code    => 'returnCode',
+    #               :status         => nil,
+    #               :transaction_id => "transactionId"
+    #       })
+    #       
+    #       order.gateway_authorization = response[:number]
+    #       order.gateway_id = response[:transaction_id]
+    #       order.gateway_return_code = response[:return_code]
+    #       order.gateway_status = response[:status]
+    #       order.gateway_message = response[:message]
+    #       order.gateway_amount = Converter::string_to_decimal(response[:amount])
+    #       
+    #       response
+    #     end
+  end
+  
 end

@@ -2,8 +2,6 @@
 
 cbraspag gem to use Braspag gateway
   
-  - Bult-in crypto server
-  - Bult-in fake server
   - Support most operations in gateway
   - Compatible with Active Merchant response object
   - Support multiple connections easy
