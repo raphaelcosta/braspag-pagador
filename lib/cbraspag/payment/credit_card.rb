@@ -95,7 +95,7 @@ module Braspag
         "amount"         => Braspag::Converter::decimal_to_string(order.amount),
         "paymentMethod"  => order.payment_method,
         "numberPayments" => order.installments,
-        "type"           => order.installments_type
+        "typePayment"    => order.installments_type
       }
     end
     

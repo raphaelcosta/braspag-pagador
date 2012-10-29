@@ -219,44 +219,167 @@ describe Braspag::CreditCard do
     end
   end
   
-  context "on authorize credit card" do
-  
-    # def self.to_authorize(connection, order, credit_card)
-    #       year_normalize = credit_card.year.to_s[-2, 2]
-    #       {
-    #         "merchantId"     => connection.merchant_id,
-    #         "holder"         => credit_card.holder_name.to_s,
-    #         "cardNumber"     => credit_card.number.to_s,
-    #         "expiration"     => "#{credit_card.month}/#{year_normalize}",
-    #         "securityCode"   => credit_card.verification_value.to_s,
-    #         "customerName"   => order.customer.name.to_s,
-    #         "orderId"        => order.id.to_s,
-    #         "amount"         => Conveter::decimal_to_string(order.amount),
-    #         "paymentMethod"  => order.payment_method,
-    #         "numberPayments" => order.installments,
-    #         "type"           => order.installments_type
-    #       }
-    #     end
-    #     
-    #     def self.from_authorize(connection, order, credit_card, response)
-    #       response = Conveter::hash_from_xml(response, {
-    #               :amount         => nil,
-    #               :number         => "authorisationNumber",
-    #               :message        => nil,
-    #               :return_code    => 'returnCode',
-    #               :status         => nil,
-    #               :transaction_id => "transactionId"
-    #       })
-    #       
-    #       order.gateway_authorization = response[:number]
-    #       order.gateway_id = response[:transaction_id]
-    #       order.gateway_return_code = response[:return_code]
-    #       order.gateway_status = response[:status]
-    #       order.gateway_message = response[:message]
-    #       order.gateway_amount = Converter::string_to_decimal(response[:amount])
-    #       
-    #       response
-    #     end
+  let(:customer) do
+    Braspag::Customer.new(:name => "W" * 21)
+  end
+
+  let(:order) do
+    Braspag::Order.new(
+      :id                => "um order id",
+      :amount            => 1000.00,
+      :payment_method    => Braspag::PAYMENT_METHOD[:redecard],
+      :installments      => 1,
+      :installments_type => Braspag::INTEREST[:no],
+      :customer          => customer
+    )
+  end
+
+  let(:credit_card) do
+    Braspag::CreditCard.new(
+      :holder_name        => "Joao Maria Souza",
+      :number             => "9" * 10,
+      :month              => "10",
+      :year               => "12",
+      :verification_value => "123"
+    )
   end
   
+  context "on authorize credit card" do
+    let(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
+    let(:connection) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
+
+    let(:valid_xml) do
+      <<-EOXML
+      <?xml version="1.0" encoding="utf-8"?>
+      <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns="https://www.pagador.com.br/webservice/pagador">
+        <amount>1.000,00</amount>
+        <message>Transaction Successful</message>
+        <authorisationNumber>733610</authorisationNumber>
+        <returnCode>0</returnCode>
+        <status>1</status>
+        <transactionId>01231234</transactionId>
+      </PagadorReturn>
+      EOXML
+    end
+
+    it "should convert objects to hash" do
+      Braspag::CreditCard.to_authorize(connection, order, credit_card).should eq({
+        "merchantId"     => "#{merchant_id}", 
+        "orderId"        => "#{order.id}", 
+        "customerName"   => "#{customer.name}", 
+        "amount"         => "1000,00", 
+        "paymentMethod"  => 20, 
+        "holder"         => "#{credit_card.holder_name}", 
+        "cardNumber"     => "#{credit_card.number}", 
+        "expiration"     => "10/12", 
+        "securityCode"   => "123", 
+        "numberPayments" => order.installments, 
+        "typePayment"    => order.installments_type
+      })
+    end
+    
+    it "should populate data" do
+      resp = Braspag::CreditCard.from_authorize(connection, order, credit_card, mock(:body => valid_xml))
+      
+      order.gateway_authorization.should eq('733610')
+      order.gateway_id.should eq('01231234')
+      order.gateway_return_code.should eq('0')
+      order.gateway_status.should eq('1')
+      order.gateway_message.should eq('Transaction Successful')
+      order.gateway_amount.should eq(1000.00)
+      
+      resp.should eq({
+        :amount=>"1.000,00", 
+        :number=>"733610",
+        :message=>"Transaction Successful",
+        :return_code=>"0",
+        :status=>"1",
+        :transaction_id=>"01231234"})
+    end
+  end
+  
+  context "on capture credit card" do
+    let(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
+    let(:connection) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
+    
+    let(:valid_xml) do
+          <<-EOXML
+      <?xml version="1.0" encoding="utf-8"?>
+      <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns="https://www.pagador.com.br/webservice/pagador">
+        <amount>2</amount>
+        <message>Approved</message>
+        <returnCode>0</returnCode>
+        <status>0</status>
+      </PagadorReturn>
+      EOXML
+    end
+    
+    it "should convert objects to hash" do
+      Braspag::CreditCard.to_capture(connection, order).should eq({
+        "merchantId"     => "#{merchant_id}", 
+        "orderId"        => "#{order.id}"
+      })
+    end
+    
+    it "should populate data" do
+      resp = Braspag::CreditCard.from_capture(connection, order, mock(:body => valid_xml))
+      
+      order.gateway_capture_return_code.should eq('0')
+      order.gateway_capture_status.should eq('0')
+      order.gateway_capture_message.should eq('Approved')
+      order.gateway_capture_amount.should eq(2.00)
+
+      
+      resp.should eq({
+        :amount=>"2", 
+        :message=>"Approved", 
+        :return_code=>"0", 
+        :status=>"0", 
+        :transaction_id=>nil
+      })
+    end
+  end
+  
+  context "on void credit card" do
+    let(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
+    let(:connection) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
+    
+    let(:valid_xml) do
+      <<-EOXML
+      <?xml version="1.0" encoding="utf-8"?>
+      <PagadorReturn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns="https://www.pagador.com.br/webservice/pagador">
+       <orderId>1234</orderId>
+       <transactionId>0</transactionId>
+       <amount>100</amount>
+       <message>Approved</message>
+       <returnCode>0</returnCode>
+       <status>0</status>
+      </PagadorReturn>
+      EOXML
+    end
+    
+    it "should convert objects to hash" do
+      Braspag::CreditCard.to_void(connection, order).should eq({
+        "merchantId"     => "#{merchant_id}", 
+        "order"        => "#{order.id}"
+      })
+    end
+    
+    it "should populate data" do
+      resp = Braspag::CreditCard.from_void(connection, order, mock(:body => valid_xml))
+      
+      order.gateway_void_return_code.should eq('0')
+      order.gateway_void_status.should eq('0')
+      order.gateway_void_message.should eq('Approved')
+      order.gateway_void_amount.should eq(100.00)
+      
+      resp.should eq({:order_id=>"1234", :amount=>"100", :message=>"Approved", :return_code=>"0", :status=>"0", :transaction_id=>"0"})
+    end
+  end
 end
