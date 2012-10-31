@@ -1,24 +1,166 @@
 # encoding: utf-8
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Braspag::Order do
-  let(:braspag_homologation_url) { "https://homologacao.pagador.com.br" }
-  let(:braspag_production_url) { "https://transaction.pagador.com.br" }
-  let(:merchant_id) { "um id qualquer" }
-
+describe Braspag::Connection do
+  let(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
+  let(:connection) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
+  let(:order) { Braspag::Order.new(:id => "XPTO") }
   
-  pending ".info_billet" do
-    let(:info_url) { "http://braspag/bla" }
+  context ".get" do
+    it "should return authorize when authroize response failed" do
+      auth = mock(:success? => false)
+      connection.stub(:authorize).and_return(auth)
+      connection.get(mock).should eq(auth)
+    end
+    
+    it "should return capture when authorize response success" do
+      cap = mock(:success? => true)
+      connection.stub(:authorize).and_return(mock(:success? => true))
+      connection.stub(:capture).and_return(cap)
+      connection.get(mock).should eq(cap)
+    end
+  end
+end
+
+describe Braspag::Order do
+  let(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
+  let(:connection) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
+
+  describe ".payment_method_type?" do
+    it "should return payment method type" do
+      order = subject
+      order.payment_method = 6
+      order.payment_method_type?.should eq(:billet)
+    end
+  end
+
+  context "on info" do
+    let(:valid_xml) do
+      <<-EOXML
+      <?xml version="1.0" encoding="utf-8"?>
+      <DadosPedido xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.pagador.com.br/">
+        <CodigoAutorizacao>885796</CodigoAutorizacao>
+        <CodigoPagamento>18</CodigoPagamento>
+        <FormaPagamento>American Express 2P</FormaPagamento>
+        <NumeroParcelas>1</NumeroParcelas>
+        <Status>3</Status>
+        <Valor>0.01</Valor>
+        <DataCancelamento>7/8/2011 1:19:38 PM</DataCancelamento>
+        <DataPagamento>7/8/2011 1:19:38 PM</DataPagamento>
+        <DataPedido>7/8/2011 1:06:06 PM</DataPedido>
+        <TransId>398591</TransId>
+        <BraspagTid>5a1d4463-1d11-4571-a877-763aba0ef7ff</BraspagTid>
+      </DadosPedido>
+      EOXML
+    end
+    
     let(:invalid_xml) do
       <<-EOXML
       <?xml version="1.0" encoding="utf-8"?>
-      <DadosBoleto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      <DadosPedido xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                    xsi:nil="true"
                    xmlns="http://www.pagador.com.br/" />
       EOXML
     end
-
+    
+    let(:error_xml) do
+      <<-EOXML
+      <?xml version="1.0" encoding="utf-8"?>
+      <DadosPedido xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                   xmlns="http://www.pagador.com.br/">
+        <CodigoErro>885796</CodigoErro>
+        <MensagemErro>Deu um erro terrivel</MensagemErro>
+      </DadosPedido>
+      EOXML
+    end
+    
+    let(:order) { Braspag::Order.new(:id => "XPTO") }
+    
+    it "should convert objects to hash" do
+      Braspag::Order.to_info(connection, order).should eq({
+        "loja"          => "#{merchant_id}", 
+        "numeroPedido"  => "#{order.id}"
+      })
+    end
+    
+    it "should populate data" do
+      resp = Braspag::Order.from_info(connection, order, mock(:body => valid_xml))
+      
+      order.authorization.should eq('885796')
+      order.payment_method_name.should eq('American Express 2P')
+      order.payment_method.should eq('18')
+      order.installments.should eq('1')
+      order.status.should eq('3')
+      order.amount.should eq(0.01)
+      order.gateway_cancelled_at.should eq(Time.parse('2011-08-07 13:19:38 -0300'))
+      order.gateway_paid_at.should eq(Time.parse('2011-08-07 13:19:38 -0300'))
+      order.gateway_created_at.should eq(Time.parse('2011-08-07 13:06:06 -0300'))
+      order.transaction_id.should eq('398591')
+      order.gateway_id.should eq('5a1d4463-1d11-4571-a877-763aba0ef7ff')
+      
+      resp.should eq({
+        :authorization       => "885796",
+        :error_code          => nil,
+        :error_message       => nil,
+        :payment_method      => "18",
+        :payment_method_name => "American Express 2P",
+        :installments        => "1", 
+        :status              => "3",
+        :amount              => "0.01",
+        :cancelled_at        => Time.parse('2011-08-07 13:19:38 -0300'),
+        :paid_at             => Time.parse('2011-08-07 13:19:38 -0300'),
+        :order_date          => Time.parse('2011-08-07 13:06:06 -0300'),
+        :transaction_id      => "398591",
+        :tid                 => "5a1d4463-1d11-4571-a877-763aba0ef7ff"
+      })
+    end
+    
+    it "should populate data accepts invalid xml" do
+      resp = Braspag::Order.from_info(connection, order, mock(:body => invalid_xml))
+      
+      resp.should eq({
+        :authorization       => nil,
+        :error_code          => nil,
+        :error_message       => nil,
+        :payment_method      => nil,
+        :payment_method_name => nil,
+        :installments        => nil,
+        :status              => nil,
+        :amount              => nil,
+        :cancelled_at        => nil,
+        :paid_at             => nil,
+        :order_date          => nil,
+        :transaction_id      => nil,
+        :tid                 => nil
+      })
+    end
+    
+    it "should populate data for error" do
+      resp = Braspag::Order.from_info(connection, order, mock(:body => error_xml))
+      
+      resp.should eq({
+        :authorization       => nil,
+        :error_code          => "885796",
+        :error_message       => "Deu um erro terrivel",
+        :payment_method      => nil,
+        :payment_method_name => nil,
+        :installments        => nil,
+        :status              => nil,
+        :amount              => nil,
+        :cancelled_at        => nil,
+        :paid_at             => nil,
+        :order_date          => nil,
+        :transaction_id      => nil,
+        :tid                 => nil
+      })
+    end
+  end
+  
+  context "on info for billet" do
     let(:valid_xml) do
       <<-EOXML
       <?xml version="1.0" encoding="utf-8"?>
@@ -26,92 +168,112 @@ describe Braspag::Order do
                    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                    xmlns="http://www.pagador.com.br/">
       <NumeroDocumento>999</NumeroDocumento>
-      <Sacado/>
+      <Sacado>XPTO</Sacado>
       <NossoNumero>999</NossoNumero>
       <LinhaDigitavel>35690.00361 03962.070003 00000.009993 4 50160000001000</LinhaDigitavel>
       <DataDocumento>22/6/2011</DataDocumento>
       <DataVencimento>2/7/2011</DataVencimento>
-      <Cedente>Gonow Tecnologia e Acessoria Empresarial Ltda</Cedente>
+      <DataCredito>2/7/2011</DataCredito>
+      <Cedente>Acessoria Empresarial Ltda</Cedente>
       <Banco>356-5</Banco>
       <Agencia>0003</Agencia>
       <Conta>6039620</Conta>
       <Carteira>57</Carteira>
       <ValorDocumento>10,00</ValorDocumento>
+      <ValorPago>10,00</ValorPago>
       </DadosBoleto>
       EOXML
     end
-
-    it "should raise an error when order id is not valid" do
-      Braspag::Bill.should_receive(:valid_order_id?)
-                   .with("bla")
-                   .and_return(false)
-
-      expect {
-        Braspag::Bill.info "bla"
-      }.to raise_error(Braspag::InvalidOrderId)
-    end
-
-    it "should raise an error when Braspag returned an invalid xml as response" do
-      FakeWeb.register_uri(:post, info_url, :body => invalid_xml)
-
-      Braspag::Bill.should_receive(:info_url)
-                   .and_return(info_url)
-
-      expect {
-        Braspag::Bill.info("orderid")
-      }.to raise_error(Braspag::UnknownError)
-    end
-
-    it "should return a Hash when Braspag returned a valid xml as response" do
-      FakeWeb.register_uri(:post, info_url, :body => valid_xml)
-
-      Braspag::Bill.should_receive(:info_url)
-                   .and_return(info_url)
-
-      response = Braspag::Bill.info("orderid")
-      response.should be_kind_of Hash
-
-      response.should == {
-        :document_number => "999",
-        :payer => nil,
-        :our_number => "999",
-        :bill_line => "35690.00361 03962.070003 00000.009993 4 50160000001000",
-        :document_date => "22/6/2011",
-        :expiration_date => "2/7/2011",
-        :receiver => "Gonow Tecnologia e Acessoria Empresarial Ltda",
-        :bank => "356-5",
-        :agency => "0003",
-        :account => "6039620",
-        :wallet => "57",
-        :amount => "10,00",
-        :amount_invoice => nil,
-        :invoice_date => nil
-      }
-    end
-  end
-  
-  pending ".info" do
-    let(:info_url) { "http://braspag/bla" }
-
+    
     let(:invalid_xml) do
       <<-EOXML
-      <DadosCartao xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      <?xml version="1.0" encoding="utf-8"?>
+      <DadosBoleto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                    xmlns="http://www.pagador.com.br/">
-        <NumeroComprovante></NumeroComprovante>
-        <Autenticada>false</Autenticada>
-        <NumeroAutorizacao>557593</NumeroAutorizacao>
-        <NumeroCartao>345678*****0007</NumeroCartao>
-        <NumeroTransacao>101001225645</NumeroTransacao>
-      </DadosCartao>
+      </DadosBoleto>
       EOXML
     end
+    
+    let(:order) { Braspag::Order.new(:id => "XPTO") }
+    
+    it "should convert objects to hash" do
+      Braspag::Order.to_info_billet(connection, order).should eq({
+        "loja"          => "#{merchant_id}", 
+        "numeroPedido"  => "#{order.id}"
+      })
+    end
+    
+    it "should populate data" do
+      resp = Braspag::Order.from_info_billet(connection, order, mock(:body => valid_xml))
 
+      order.customer.name.should eq('XPTO')
+
+      order.billet.id.should eq('999')
+      order.billet.code.should eq('35690.00361 03962.070003 00000.009993 4 50160000001000')
+      
+      order.billet.created_at.should eq(Date.parse('2011-06-22'))
+      order.billet.due_date_on.should eq(Date.parse('2011-07-2'))
+      
+      order.billet.receiver.should eq('Acessoria Empresarial Ltda')
+      
+      order.billet.bank.should eq('356-5')
+      order.billet.agency.should eq('0003')
+      order.billet.account.should eq('6039620')
+      order.billet.wallet.should eq('57')
+      order.billet.amount.should eq(10.00)
+      order.billet.amount_paid.should eq(10.00)
+      order.billet.paid_at.should eq(Date.parse('2011-07-02'))
+
+      resp.should eq({
+        :document_number=>"999",
+        :payer=>"XPTO",
+        :our_number=>"999",
+        :bill_line=>"35690.00361 03962.070003 00000.009993 4 50160000001000",
+        :document_date=>Date.parse('2011-06-22'),
+        :expiration_date=>Date.parse('2011-07-2'),
+        :receiver=>"Acessoria Empresarial Ltda",
+        :bank=>"356-5",
+        :agency=>"0003",
+        :account=>"6039620",
+        :wallet=>"57",
+        :amount=>"10,00",
+        :amount_invoice=>"10,00",
+        :invoice_date=> Date.parse('2011-07-02')
+      })
+    end
+    
+    it "should not raise error for invalid xml" do
+      resp = Braspag::Order.from_info_billet(connection, order, mock(:body => invalid_xml))
+
+      resp.should eq({
+        :document_number => nil,
+        :payer => nil,
+        :our_number => nil,
+        :bill_line => nil,
+        :document_date => nil,
+        :expiration_date => nil,
+        :receiver => nil,
+        :bank=> nil,
+        :agency=> nil,
+        :account=> nil,
+        :wallet=> nil,
+        :amount=> nil,
+        :amount_invoice=> nil,
+        :invoice_date=> nil
+      })
+    end
+  end
+
+  context "on info for credit card" do
     let(:valid_xml) do
       <<-EOXML
       <DadosCartao xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                    xmlns="http://www.pagador.com.br/">
+        <RetornoAVS>12</RetornoAVS>
+        <Emissor>VISA</Emissor>
+        <NumeroAutenticacao>12345</NumeroAutenticacao>
         <NumeroComprovante>11111</NumeroComprovante>
         <Autenticada>false</Autenticada>
         <NumeroAutorizacao>557593</NumeroAutorizacao>
@@ -120,134 +282,40 @@ describe Braspag::Order do
       </DadosCartao>
       EOXML
     end
-
-    it "should raise an error when order id is not valid" do
-      Braspag::CreditCard.should_receive(:valid_order_id?)
-                         .with("bla")
-                         .and_return(false)
-
-      expect {
-        Braspag::CreditCard.info "bla"
-      }.to raise_error(Braspag::InvalidOrderId)
+    
+    let(:order) { Braspag::Order.new(:id => "XPTO") }
+    
+    it "should convert objects to hash" do
+      Braspag::Order.to_info_credit_card(connection, order).should eq({
+        "loja"          => "#{merchant_id}", 
+        "numeroPedido"  => "#{order.id}"
+      })
     end
+    
+    it "should populate data" do
+      resp = Braspag::Order.from_info_credit_card(connection, order, mock(:body => valid_xml))
 
-    it "should raise an error when Braspag returned an invalid xml as response" do
-      FakeWeb.register_uri(:post, info_url, :body => invalid_xml)
+      order.credit_card.checking_number.should eq('11111')
+      order.credit_card.avs.should eq('false')
+      order.credit_card.autorization_number.should eq('557593')
+      order.credit_card.number.should eq('345678*****0007')
+      order.credit_card.transaction_number.should eq('101001225645')
+      order.credit_card.avs_response.should eq('12')
+      order.credit_card.issuing.should eq('VISA')
+      order.credit_card.authenticated_number.should eq('12345')
 
-      Braspag::CreditCard.should_receive(:info_url)
-                         .and_return(info_url)
-
-      expect {
-        Braspag::CreditCard.info("orderid")
-      }.to raise_error(Braspag::UnknownError)
-    end
-
-    it "should return a Hash when Braspag returned a valid xml as response" do
-      FakeWeb.register_uri(:post, info_url, :body => valid_xml)
-
-      Braspag::CreditCard.should_receive(:info_url)
-                         .and_return(info_url)
-
-      response = Braspag::CreditCard.info("orderid")
-      response.should be_kind_of Hash
-
-      response.should == {
-        :checking_number => "11111",
-        :certified => "false",
-        :autorization_number => "557593",
-        :card_number => "345678*****0007",
-        :transaction_number => "101001225645"
-      }
+      resp.should eq({
+        :checking_number      => "11111",
+        :certified            => "false",
+        :autorization_number  => "557593",
+        :card_number          => "345678*****0007",
+        :transaction_number   => "101001225645",
+        :avs_response         => "12",
+        :issuing              => "VISA",
+        :authenticated_number => "12345"
+      })
     end
   end
-
-  pending ".status" do
-    let(:order_id) { "um order id qualquer" }
-    let(:status_url) { "http://foo.com/bar/baz/assererre" }
-
-    context "with invalid order id" do
-      let(:invalid_xml) do
-        <<-EOXML
-        <?xml version="1.0" encoding="utf-8"?>
-        <DadosBoleto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xsi:nil="true"
-                     xmlns="http://www.pagador.com.br/" />
-        EOXML
-      end
-
-      it "should raise an error when order id is not valid" do
-        Braspag::PaymentMethod.should_receive(:valid_order_id?)
-                              .with(order_id)
-                              .and_return(false)
-
-        expect {
-          Braspag::Order.status(order_id)
-        }.to raise_error(Braspag::InvalidOrderId)
-      end
-
-      it "should raise an error when Braspag returns an invalid xml" do
-        FakeWeb.register_uri(:post, status_url, :body => invalid_xml)
-
-        Braspag::Order.should_receive(:status_url)
-                      .and_return(status_url)
-
-        expect {
-          Braspag::Order.status(order_id)
-        }.to raise_error(Braspag::Order::InvalidData)
-      end
-    end
-
-    context "with valid order id" do
-      let(:valid_xml) do
-        <<-EOXML
-        <?xml version="1.0" encoding="utf-8"?>
-        <DadosPedido xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns="http://www.pagador.com.br/">
-          <CodigoAutorizacao>885796</CodigoAutorizacao>
-          <CodigoPagamento>18</CodigoPagamento>
-          <FormaPagamento>American Express 2P</FormaPagamento>
-          <NumeroParcelas>1</NumeroParcelas>
-          <Status>3</Status>
-          <Valor>0.01</Valor>
-          <DataPagamento>7/8/2011 1:19:38 PM</DataPagamento>
-          <DataPedido>7/8/2011 1:06:06 PM</DataPedido>
-          <TransId>398591</TransId>
-          <BraspagTid>5a1d4463-1d11-4571-a877-763aba0ef7ff</BraspagTid>
-        </DadosPedido>
-        EOXML
-      end
-
-      before do
-        Braspag::Order.should_receive(:status_url)
-                      .and_return(status_url)
-
-        FakeWeb.register_uri(:post, status_url, :body => valid_xml)
-        @response = Braspag::Order.status(order_id)
-      end
-
-      it "should return a Hash" do
-        @response.should be_kind_of Hash
-        @response.should == {
-          :authorization => "885796",
-          :error_code => nil,
-          :error_message => nil,
-          :payment_method => "18",
-          :payment_method_name => "American Express 2P",
-          :installments => "1",
-          :status => "3",
-          :amount => "0.01",
-          :cancelled_at => nil,
-          :paid_at => "7/8/2011 1:19:38 PM",
-          :order_date => "7/8/2011 1:06:06 PM",
-          :transaction_id => "398591",
-          :tid => "5a1d4463-1d11-4571-a877-763aba0ef7ff"
-        }
-      end
-    end
-  end
-
   
   [:purchase, :generate, :authorize, :capture, :void, :recurrency].each do |context_type|
     context "on #{context_type}" do

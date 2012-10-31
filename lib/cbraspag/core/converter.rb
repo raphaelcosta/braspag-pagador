@@ -5,9 +5,15 @@ module Braspag
       ("%.2f" % value.to_f).gsub('.', ',')
     end
     
-    def self.string_to_decimal(value)
-      BigDecimal.new(value.to_s.gsub(".","").gsub(",","."))
+    def self.string_to_decimal(value, mode = :br)
+      case mode
+      when :br
+        BigDecimal.new(value.to_s.gsub(".","").gsub(",","."))
+      when :eua
+        BigDecimal.new(value.to_s.gsub(",",""))
+      end
     end
+    
 
     def self.hash_from_xml(document, map = {})
       document = Nokogiri::XML(document)

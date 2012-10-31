@@ -28,7 +28,8 @@ module Braspag
       end
     end
     
-    attr_accessor :id, :instructions, :due_date_on, :url
+    attr_accessor :id, :instructions, :due_date_on, :url, :code, :created_at, :due_date_on
+    attr_accessor :receiver, :bank, :agency, :account, :wallet, :amount, :amount_paid, :paid_at
 
     validates :id, :length => {:minimum => 1, :maximum => 255, :on => :generate, :allow_blank => true }
     validates :instructions, :length => {:minimum => 1, :maximum => 512, :on => :generate, :allow_blank => true }

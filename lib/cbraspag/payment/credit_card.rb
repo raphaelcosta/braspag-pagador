@@ -46,6 +46,8 @@ module Braspag
     include ::ActiveAttr::Model
 
     attr_accessor :holder_name, :number, :month, :year, :verification_value, :alias, :id
+    attr_accessor :checking_number, :avs, :autorization_number, :transaction_number
+    attr_accessor :avs_response, :issuing, :authenticated_number
 
     class ExpiratorValidator < ActiveModel::EachValidator
       def validate_each(record, attribute, value)
@@ -170,6 +172,6 @@ module Braspag
       order.gateway_void_amount = Braspag::Converter::string_to_decimal(response[:amount])
       
       response
-    end 
+    end
   end
 end

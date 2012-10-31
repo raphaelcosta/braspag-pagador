@@ -3,10 +3,15 @@ module Braspag
     def self.get(order)
       response = self.post(:info, order)
       
-      # populate in error
-      # :error_code => "CodigoErro",
-      # :error_message => "MensagemErro",
-      
+      if (  response.size == 0 || 
+            !response.fetch(:error_code, nil).nil? || 
+            !response.fetch(:status, nil).nil?
+         )
+        return ActiveMerchant::Billing::Response.new(false,
+                     response.fetch(:error_message, ''),
+                     response,
+                     :test => homologation?)
+      end
       
       case order.payment_method_type?
       when :billet
@@ -15,11 +20,10 @@ module Braspag
         self.post(:info_credit_card, order)
       end
       
-      ActiveMerchant::Billing::Response.new(!response[:status].nil?,
+      ActiveMerchant::Billing::Response.new(true,
                    'OK',
                    response,
                    :test => homologation?)
-      
     end
   end
   
@@ -54,6 +58,8 @@ module Braspag
     attr_accessor :gateway_authorization, :gateway_id, :gateway_return_code, :gateway_status, :gateway_message, :gateway_amount
     attr_accessor :gateway_capture_return_code, :gateway_capture_status, :gateway_capture_message, :gateway_capture_amount
     attr_accessor :gateway_void_return_code, :gateway_void_status, :gateway_void_message, :gateway_void_amount
+    attr_accessor :authorization, :payment_method_name, :status, :gateway_cancelled_at, :gateway_paid_at
+    attr_accessor :gateway_created_at, :transaction_id, :gateway_id, :billet, :credit_card
     
     [:purchase, :generate, :authorize, :capture, :void, :recurrency].each do |check_on|
       validates :id, :presence => { :on => check_on }
@@ -94,19 +100,18 @@ module Braspag
       Converter.payment_method_type?(self.payment_method)
     end
     
-    private
-    def payment_for_cielo?
-      case payment_method
-      when Braspag::PAYMENT_METHOD[:cielo_noauth_visa],
-           Braspag::PAYMENT_METHOD[:cielo_preauth_visa],
-           Braspag::PAYMENT_METHOD[:cielo_noauth_mastercard],
-           Braspag::PAYMENT_METHOD[:cielo_preauth_mastercard],
-           Braspag::PAYMENT_METHOD[:cielo_noauth_elo],
-           Braspag::PAYMENT_METHOD[:cielo_noauth_diners]
-        true
-      end
+    def build_customer
+      self.customer = Customer.new
+    end
+
+    def build_billet
+      self.billet = Billet.new
     end
     
+    def build_credit_card
+      self.credit_card = CreditCard.new
+    end
+
     def self.to_info(connection, order)
       {
         "loja"          => connection.merchant_id,
@@ -114,8 +119,8 @@ module Braspag
       }
     end
     
-    def self.from_info(connection, order, response)
-      response = Conveter::hash_from_xml(response, {
+    def self.from_info(connection, order, params)
+      response = Braspag::Converter::hash_from_xml(params.body, {
         :authorization => "CodigoAutorizacao",
         :error_code => "CodigoErro",
         :error_message => "MensagemErro",
@@ -124,9 +129,27 @@ module Braspag
         :installments => "NumeroParcelas",
         :status => "Status",
         :amount => "Valor",
-        :cancelled_at => "DataCancelamento",
-        :paid_at => "DataPagamento",
-        :order_date => "DataPedido",
+        :cancelled_at => Proc.new { |document|
+          begin
+            Time.parse(document.search("DataCancelamento").first.to_s)
+          rescue
+            nil
+          end
+        },
+        :paid_at => Proc.new { |document|
+          begin
+            Time.parse(document.search("DataPagamento").first.to_s)
+          rescue
+            nil
+          end
+        },
+        :order_date => Proc.new { |document|
+          begin
+            Time.parse(document.search("DataPedido").first.to_s)
+          rescue
+            nil
+          end
+        },
         :transaction_id => "TransId",
         :tid => "BraspagTid"
       })
@@ -136,7 +159,7 @@ module Braspag
       order.payment_method = response[:payment_method]
       order.installments = response[:installments]
       order.status = response[:status]
-      order.amount = response[:amount]
+      order.amount = Braspag::Converter::string_to_decimal(response[:amount], :eua)
       order.gateway_cancelled_at = response[:cancelled_at]
       order.gateway_paid_at = response[:paid_at]
       order.gateway_created_at = response[:order_date]
@@ -153,8 +176,8 @@ module Braspag
       }
     end
     
-    def self.from_info_credit_card(connection, order, response)
-      response = Conveter::hash_from_xml(response, {
+    def self.from_info_credit_card(connection, order, params)
+      response = Braspag::Converter::hash_from_xml(params.body, {
           :checking_number => "NumeroComprovante",
           :certified => "Autenticada",
           :autorization_number => "NumeroAutorizacao",
@@ -171,7 +194,7 @@ module Braspag
       order.credit_card.checking_number = response[:checking_number]
       order.credit_card.avs = response[:certified]
       order.credit_card.autorization_number = response[:autorization_number]
-      order.credit_card.card_number = response[:card_number]
+      order.credit_card.number = response[:card_number]
       order.credit_card.transaction_number = response[:transaction_number]
       order.credit_card.avs_response = response[:avs_response]
       order.credit_card.issuing = response[:issuing]
@@ -187,14 +210,26 @@ module Braspag
       }
     end
     
-    def self.from_info_billet(connection, order, response)
-      response = Conveter::hash_from_xml(response, {
+    def self.from_info_billet(connection, order, params)
+      response = Braspag::Converter::hash_from_xml(params.body, {
           :document_number => "NumeroDocumento",
           :payer => "Sacado",
           :our_number => "NossoNumero",
           :bill_line => "LinhaDigitavel",
-          :document_date => "DataDocumento",
-          :expiration_date => "DataVencimento",
+          :document_date => Proc.new { |document|
+            begin
+              Date.parse(document.search("DataDocumento").first.to_s)
+            rescue
+              nil
+            end
+          },
+          :expiration_date => Proc.new { |document|
+            begin
+              Date.parse(document.search("DataVencimento").first.to_s)
+            rescue
+              nil
+            end
+          },
           :receiver => "Cedente",
           :bank => "Banco",
           :agency => "Agencia",
@@ -202,7 +237,13 @@ module Braspag
           :wallet => "Carteira",
           :amount => "ValorDocumento",
           :amount_invoice => "ValorPago",
-          :invoice_date => "DataCredito"
+          :invoice_date => Proc.new { |document|
+            begin
+              Date.parse(document.search("DataCredito").first.to_s)
+            rescue
+              nil
+            end
+          }
       })
       
       order.build_customer if order.customer.nil?
@@ -221,11 +262,25 @@ module Braspag
       order.billet.agency = response[:agency]
       order.billet.account = response[:account]
       order.billet.wallet = response[:wallet]
-      order.billet.amount = response[:amount]
-      order.billet.amount_paid = response[:amount_invoice]
+      order.billet.amount = Braspag::Converter::string_to_decimal(response[:amount])
+      order.billet.amount_paid = Braspag::Converter::string_to_decimal(response[:amount_invoice])
       order.billet.paid_at = response[:invoice_date]
     
       response
     end
+  
+    private
+    def payment_for_cielo?
+      case payment_method
+      when Braspag::PAYMENT_METHOD[:cielo_noauth_visa],
+           Braspag::PAYMENT_METHOD[:cielo_preauth_visa],
+           Braspag::PAYMENT_METHOD[:cielo_noauth_mastercard],
+           Braspag::PAYMENT_METHOD[:cielo_preauth_mastercard],
+           Braspag::PAYMENT_METHOD[:cielo_noauth_elo],
+           Braspag::PAYMENT_METHOD[:cielo_noauth_diners]
+        true
+      end
+    end
+    
   end
 end
