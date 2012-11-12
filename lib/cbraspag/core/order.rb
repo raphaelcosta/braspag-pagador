@@ -1,11 +1,11 @@
 module Braspag
   class Connection
-    def self.get(order)
+    def get(order)
       response = self.post(:info, order)
       
       if (  response.size == 0 || 
             !response.fetch(:error_code, nil).nil? || 
-            !response.fetch(:status, nil).nil?
+            response.fetch(:status, nil).nil?
          )
         return ActiveMerchant::Billing::Response.new(false,
                      response.fetch(:error_message, ''),

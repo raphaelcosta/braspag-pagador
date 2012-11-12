@@ -6,18 +6,72 @@ describe Braspag::Connection do
   let(:connection) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
   let(:order) { Braspag::Order.new(:id => "XPTO") }
   
-  context ".get" do
-    it "should return authorize when authroize response failed" do
-      auth = mock(:success? => false)
-      connection.stub(:authorize).and_return(auth)
-      connection.get(mock).should eq(auth)
+  describe ".get" do
+    context "when error" do
+      it "should return message for response blank" do
+        connection.stub(:post).and_return({})
+        response = connection.get(order)
+        
+        response.success?.should eq(false)
+        response.message.should eq('')
+        response.params.should eq({})
+        response.test.should eq(true)
+      end
+      
+      it "should return message for error code" do
+        order_response = {:error_code => 'bla', :error_message => 'xpto', :status => '223'}
+        connection.stub(:post).and_return(order_response)
+        response = connection.get(order)
+        
+        response.success?.should eq(false)
+        response.message.should eq(order_response[:error_message])
+        response.params.should eq({"error_code"=>"bla", "error_message"=>"xpto", "status" => '223'})
+        response.test.should eq(true)
+      end
+      
+      it "should return message for empty status" do
+        connection.stub(:post).and_return({:error_message => 'bla'})
+        response = connection.get(order)
+        
+        response.success?.should eq(false)
+        response.message.should eq('bla')
+        response.params.should eq({"error_message"=>"bla"})
+        response.test.should eq(true)
+      end
     end
     
-    it "should return capture when authorize response success" do
-      cap = mock(:success? => true)
-      connection.stub(:authorize).and_return(mock(:success? => true))
-      connection.stub(:capture).and_return(cap)
-      connection.get(mock).should eq(cap)
+    it "should return response ok" do
+      connection.stub(:post).and_return({:status => '1'})
+      response = connection.get(order)
+      
+      response.success?.should eq(true)
+      response.message.should eq('OK')
+      response.params.should eq({"status" => "1"})
+      response.test.should eq(true)
+    end
+    
+    it "should get more info for billet" do
+      connection.should_receive(:post).and_return({:status => '1'})
+      connection.should_receive(:post).with(:info_billet, order)
+      order.payment_method = 6 #BILLET BRADESCO
+      response = connection.get(order)
+      
+      response.success?.should eq(true)
+      response.message.should eq('OK')
+      response.params.should eq({"status" => "1"})
+      response.test.should eq(true)
+    end
+    
+    it "should get more info for credit_card" do
+      connection.should_receive(:post).and_return({:status => '1'})
+      connection.should_receive(:post).with(:info_credit_card, order)
+      order.payment_method = 18 #AMEX
+      response = connection.get(order)
+      
+      response.success?.should eq(true)
+      response.message.should eq('OK')
+      response.params.should eq({"status" => "1"})
+      response.test.should eq(true)
     end
   end
 end
