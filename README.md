@@ -113,20 +113,12 @@ cbraspag gem to use Braspag gateway
   	
   	#USING Braspag Webservice
   	eft = Braspag::EFT.new(
-  	  :crypto => Braspag::Crypto::Webservice
-  	)
-  	
-  	#USIGN CryptoJAR
-  	eft = Braspag::EFT.new(
-  	  :crypto => Braspag::Crypto::JarWebservice.new(
-  	    :url => "http://0.0.0.0:9292"
-  	    :key => "123456123456"
-  	  )
+  	  :crypto => Braspag::Crypto::Webservice.new
   	)
   	
   	#Without Crypto
   	eft = Braspag::EFT.new(
-  	  :crypto => Braspag::Crypto::NoCrypto
+  	  :crypto => Braspag::Crypto::NoCrypto.new
   	)
   	
   	customer = Braspag::Customer.new(

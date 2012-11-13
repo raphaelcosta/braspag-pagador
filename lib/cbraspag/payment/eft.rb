@@ -1,51 +1,43 @@
 module Braspag
   class Connection
-
-    MAPPING_EFT = {
-      :merchant_id => "Id_Loja",
-      :order_id => "VENDAID",
-      :customer_name => "nome",
-      :customer_id => "CPF",
-      :amount => "VALOR",
-      :payment_method => "CODPAGAMENTO",
-      :installments => "PARCELAS",
-      :has_interest => "TIPOPARCELADO"
-    }
-
-
-    def self.generate_eft(order, eft)
+    def generate_eft(order, eft)
       
-      params[:merchant_id] = connection.merchant_id
+      params = {
+        Id_Loja:      self.merchant_id,
+        VALOR:        Braspag::Converter::decimal_to_string(order.amount),
+        CODPAGAMENTO: order.payment_method,
+        VENDAID:      order.id,
+        NOME:         order.customer.name
+      }
 
+      html = "<form id='form_tef_#{order.id}' name='form_tef_#{order.id}' action='#{self.url_for(:generate_eft)}' method='post'>"
+      
 
-      data = {}
-
-      MAPPING.each do |k, v|
-        case k
-        when :payment_method
-          data[v] = PAYMENT_METHODS[params[:payment_method]]
-        when :amount
-          data[v] = Utils.convert_decimal_to_string(params[:amount])
+      begin
+        unless eft.crypto.respond_to?(:encrypt)
+          params.each do |key, value|
+            html << "<input type='text' name='#{key}' value='#{value}' />"
+          end
         else
-          data[v] = params[k] || ""
+          params.delete("Id_Loja")
+          html << "<input type='text' name='Id_Loja' value='#{self.merchant_id}' />"
+          html << "<input type='text' name='crypt' value='#{eft.crypto.encrypt(self, params)}' />"
         end
+
+        html << "</form><script type='text/javascript' charset='utf-8'>document.forms['form_tef_#{order.id}'].submit();</script>"
+
+        eft.code = html
+        status = true
+        message = 'OK'
+      rescue Exception => e
+        status = false
+        message = e.message
       end
-
-      html = "<form id=\"form_tef_#{params[:order_id]}\" name=\"form_tef_#{params[:order_id]}\" action=\"#{self.action_url}\" method=\"post\">"
-
-      if crypto_strategy.nil?
-        data.each do |key, value|
-          html << "<input type=\"text\" name=\"#{key}\" value=\"#{value}\" />"
-        end
-      else
-        data.delete("Id_Loja")
-        html << "<input type=\"text\" name=\"Id_Loja\" value=\"#{params[:merchant_id]}\" />"
-        html << "<input type=\"text\" name=\"crypt\" value=\"#{crypto_strategy.encrypt(data)}\" />"
-      end
-
-      html << "</form><script type=\"text/javascript\" charset=\"utf-8\">document.forms[\"form_tef_#{params[:order_id]}\"].submit();</script>"
-
-      html
+      
+      ActiveMerchant::Billing::Response.new(status,
+       message,
+       {},
+       :test => homologation?)
     end
   end
   
@@ -55,16 +47,15 @@ module Braspag
     class CryptoValidator < ActiveModel::EachValidator
       def validate_each(record, attribute, value)
         unless (
-          value.kind_of?(Braspag::Crypto::Webservice) ||
           value.kind_of?(Braspag::Crypto::NoCrypto) ||
-          value.kind_of?(Braspag::Crypto::JarWebservice)
-        )
+          value.respond_to?(:encrypt)
+          )
           record.errors.add attribute, "invalid crypto"
         end
       end
     end
 
-    attr_accessor :crypto
+    attr_accessor :crypto, :code
     
     validates :crypto, :presence => { :on => :generate }
     validates :crypto, :crypto => { :on => :generate }

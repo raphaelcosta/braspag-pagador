@@ -5,9 +5,12 @@ module Braspag
       @request = ::HTTPI::Request.new(url)
     end
 
-    def do_post(method, data)
+    def do_post(method, data, headers = {})
       @request.body = data
       @request.proxy = @connection.proxy_address if @connection.proxy_address
+      headers.each_pair do |k,v|
+        @request.headers[k] = v
+      end
 
       with_logger(method) do
         ::HTTPI.post @request

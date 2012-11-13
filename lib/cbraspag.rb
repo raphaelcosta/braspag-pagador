@@ -16,7 +16,6 @@ require 'cbraspag/core/customer'
 require 'cbraspag/core/order'
 
 require 'cbraspag/crypto/no_crypto'
-require 'cbraspag/crypto/jar_webservice'
 require 'cbraspag/crypto/webservice'
 
 require 'cbraspag/payment/billet'
