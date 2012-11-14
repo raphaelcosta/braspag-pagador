@@ -2,34 +2,17 @@ module Braspag
   module Crypto
     class Webservice
       def encrypt(connection, map)
-        fields = "\n"
-        map.each do |key, value|
-          fields.concat("        <tns:string>#{key}=#{value}</tns:string>\n")
-        end
+        data = ERB.new(File.read(Braspag::PATH + '/cbraspag/templates/crypto/encrypt.xml.erb'))
 
-        data = <<-STRING
-<?xml version="1.0" encoding="utf-8"?>
-<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
-  <env:Header />
-  <env:Body>
-    <tns:EncryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
-      <tns:merchantId>#{connection.merchant_id}</tns:merchantId>
-      <tns:request>
-        #{fields}
-      </tns:request>
-    </tns:EncryptRequest>
-  </env:Body>
-</env:Envelope>
-STRING
         response = Braspag::Poster.new(
           connection, 
           connection.url_for(:encrypt)
         ).do_post(
           :encrypt,
-          data,
+          data.result(binding),
           {"Content-Type" => "text/xml"}
         )
-
+        
         document = Nokogiri::XML(response.body)
 
         raise 'UnknownError' if document.children.empty?
@@ -44,29 +27,17 @@ STRING
       end
 
       def decrypt(connection, encripted_text)
-
-        data = <<-STRING
-<?xml version="1.0" encoding="utf-8"?>
-<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
-  <env:Header />
-  <env:Body>
-    <tns:DecryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
-      <tns:merchantId>#{connection.merchant_id}</tns:merchantId>
-      <tns:cryptString>#{encripted_text}</tns:cryptString>
-    </tns:DecryptRequest>
-  </env:Body>
-</env:Envelope>
-STRING
+        data = ERB.new(File.read(Braspag::PATH + '/cbraspag/templates/crypto/decrypt.xml.erb'))
         
         response = Braspag::Poster.new(
           connection, 
           connection.url_for(:decrypt)
         ).do_post(
           :decrypt,
-          data,
+          data.result(binding),
           {"Content-Type" => "text/xml"}
         )
-
+        
         document = Nokogiri::XML(response.body)
         raise 'UnknownError' if document.children.empty?
 

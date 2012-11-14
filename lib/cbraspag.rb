@@ -7,6 +7,7 @@ require 'nokogiri'
 require 'savon'
 require 'bigdecimal'
 require 'active_merchant'
+require 'erb'
 
 require "cbraspag/version"
 require 'cbraspag/core/converter'
@@ -24,6 +25,7 @@ require 'cbraspag/payment/eft'
 
 
 module Braspag
+  PATH = File.dirname(__FILE__)
   
   INTEREST = {
     :no            => 0,
