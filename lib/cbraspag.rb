@@ -68,7 +68,7 @@ module Braspag
     :cielo_preauth_mastercard => 122, # Cielo webservice preauth sem autenticação - Mastercard
     :cielo_noauth_elo         => 126, # Cielo webservice captura automática sem autenticação - ELO
     :cielo_noauth_diners      => 130, # Cielo webservice captura automática sem autenticação - Diners
-    :cielo                    => 182,
+    :cielo_noauth_amex        => 182, # Cielo webservice captura automática sem autenticaçãi - AMEX
     :redecard                 => 20,  # Redecard Mastercard/Diners/Visa
     :redecard_preauth         => 42,  # Redecard preauth Mastercard/Diners/Visa
     :cielo_sitef              => 57,  # Cielo SITEF
