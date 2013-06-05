@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    braspag-pagador (0.9.4)
+    braspag-pagador (0.9.5)
       active_attr (>= 0.6)
       activemerchant (>= 1.28.0)
       httpi (>= 0.9.6)

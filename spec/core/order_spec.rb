@@ -165,9 +165,9 @@ describe BraspagPagador::Order do
         :installments        => "1",
         :status              => "3",
         :amount              => "0.01",
-        :cancelled_at        => Time.parse('2011-08-07 13:19:38 -0300'),
-        :paid_at             => Time.parse('2011-08-07 13:19:38 -0300'),
-        :order_date          => Time.parse('2011-08-07 13:06:06 -0300'),
+        :cancelled_at        => Time.parse('2011-08-07 13:19:38'),
+        :paid_at             => Time.parse('2011-08-07 13:19:38'),
+        :order_date          => Time.parse('2011-08-07 13:06:06'),
         :transaction_id      => "398591",
         :tid                 => "5a1d4463-1d11-4571-a877-763aba0ef7ff"
       })
