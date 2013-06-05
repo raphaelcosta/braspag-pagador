@@ -5,15 +5,15 @@ Bundler.setup(:default, :test, :development)
 
 require 'simplecov'
 SimpleCov.start do
-  add_group "Core", "lib/braspag/core"
-  add_group "Crypto", "lib/braspag/crypto"
-  add_group "Payment", "lib/braspag/payment"
-  add_group "ActiveMerchant", "lib/braspag/active_mechant"
+  add_group "Core", "lib/braspag-pagador/core"
+  add_group "Crypto", "lib/braspag-pagador/crypto"
+  add_group "Payment", "lib/braspag-pagador/payment"
+  add_group "ActiveMerchant", "lib/braspag-pagador/active_mechant"
   add_group "Spec", "spec"
 end
 
 require 'pry'
-require 'braspag'
+require 'braspag-pagador'
 
 HTTPI.log = false
 

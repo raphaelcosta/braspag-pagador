@@ -1,13 +1,13 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
-require "braspag/version"
+require "braspag-pagador/version"
 
 Gem::Specification.new do |s|
   s.name        = "braspag-pagador"
-  s.version     = Braspag::VERSION
+  s.version     = BraspagPagador::VERSION
   s.authors     = ["CodeMiner42", "Renato Elias", "Cenize", "Raphael Costa"]
   s.email       = %w[contato@codeminer42.com renato.elias@gmail.com]
-  s.homepage    = "http://github.com/raphaelcosta/braspag"
+  s.homepage    = "http://github.com/raphaelcosta/braspag-pagador"
   s.summary     = "Braspag: brazilian gateway, agnostic, support all features in braspag"
   s.description = "Braspag: brazilian gateway, agnostic, support all features in braspag"
 
