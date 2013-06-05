@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+  <env:Header />
+  <env:Body>
+    <tns:DecryptRequest xmlns:tns="https://www.pagador.com.br/webservice/BraspagGeneralService">
+      <tns:merchantId><%= connection.merchant_id %></tns:merchantId>
+      <tns:cryptString><%= encripted_text %></tns:cryptString>
+    </tns:DecryptRequest>
+  </env:Body>
+</env:Envelope>
