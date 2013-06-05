@@ -1,73 +1,73 @@
 # encoding: utf-8
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Braspag::Connection do
+describe BraspagPagador::Connection do
   let(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
-  let(:connection) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
-  let(:order) { Braspag::Order.new(:id => "XPTO") }
-  
+  let(:connection) { BraspagPagador::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
+  let(:order) { BraspagPagador::Order.new(:id => "XPTO") }
+
   describe ".get" do
     context "when error" do
       it "should return message for response blank" do
         connection.stub(:post).and_return({})
         response = connection.get(order)
-        
+
         response.success?.should eq(false)
         response.message.should eq('')
         response.params.should eq({})
         response.test.should eq(true)
       end
-      
+
       it "should return message for error code" do
         order_response = {:error_code => 'bla', :error_message => 'xpto', :status => '223'}
         connection.stub(:post).and_return(order_response)
         response = connection.get(order)
-        
+
         response.success?.should eq(false)
         response.message.should eq(order_response[:error_message])
         response.params.should eq({"error_code"=>"bla", "error_message"=>"xpto", "status" => '223'})
         response.test.should eq(true)
       end
-      
+
       it "should return message for empty status" do
         connection.stub(:post).and_return({:error_message => 'bla'})
         response = connection.get(order)
-        
+
         response.success?.should eq(false)
         response.message.should eq('bla')
         response.params.should eq({"error_message"=>"bla"})
         response.test.should eq(true)
       end
     end
-    
+
     it "should return response ok" do
       connection.stub(:post).and_return({:status => '1'})
       response = connection.get(order)
-      
+
       response.success?.should eq(true)
       response.message.should eq('OK')
       response.params.should eq({"status" => "1"})
       response.test.should eq(true)
     end
-    
+
     it "should get more info for billet" do
       connection.should_receive(:post).and_return({:status => '1'})
       connection.should_receive(:post).with(:info_billet, order)
       order.payment_method = 6 #BILLET BRADESCO
       response = connection.get(order)
-      
+
       response.success?.should eq(true)
       response.message.should eq('OK')
       response.params.should eq({"status" => "1"})
       response.test.should eq(true)
     end
-    
+
     it "should get more info for credit_card" do
       connection.should_receive(:post).and_return({:status => '1'})
       connection.should_receive(:post).with(:info_credit_card, order)
       order.payment_method = 18 #AMEX
       response = connection.get(order)
-      
+
       response.success?.should eq(true)
       response.message.should eq('OK')
       response.params.should eq({"status" => "1"})
@@ -76,9 +76,9 @@ describe Braspag::Connection do
   end
 end
 
-describe Braspag::Order do
+describe BraspagPagador::Order do
   let(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
-  let(:connection) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
+  let(:connection) { BraspagPagador::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
 
   describe ".payment_method_type?" do
     it "should return payment method type" do
@@ -109,7 +109,7 @@ describe Braspag::Order do
       </DadosPedido>
       EOXML
     end
-    
+
     let(:invalid_xml) do
       <<-EOXML
       <?xml version="1.0" encoding="utf-8"?>
@@ -119,7 +119,7 @@ describe Braspag::Order do
                    xmlns="http://www.pagador.com.br/" />
       EOXML
     end
-    
+
     let(:error_xml) do
       <<-EOXML
       <?xml version="1.0" encoding="utf-8"?>
@@ -131,19 +131,19 @@ describe Braspag::Order do
       </DadosPedido>
       EOXML
     end
-    
-    let(:order) { Braspag::Order.new(:id => "XPTO") }
-    
+
+    let(:order) { BraspagPagador::Order.new(:id => "XPTO") }
+
     it "should convert objects to hash" do
-      Braspag::Order.to_info(connection, order).should eq({
-        "loja"          => "#{merchant_id}", 
+      BraspagPagador::Order.to_info(connection, order).should eq({
+        "loja"          => "#{merchant_id}",
         "numeroPedido"  => "#{order.id}"
       })
     end
-    
+
     it "should populate data" do
-      resp = Braspag::Order.from_info(connection, order, mock(:body => valid_xml))
-      
+      resp = BraspagPagador::Order.from_info(connection, order, mock(:body => valid_xml))
+
       order.authorization.should eq('885796')
       order.payment_method_name.should eq('American Express 2P')
       order.payment_method.should eq('18')
@@ -155,14 +155,14 @@ describe Braspag::Order do
       order.gateway_created_at.should eq(Time.parse('2011-08-07 13:06:06 -0300'))
       order.transaction_id.should eq('398591')
       order.gateway_id.should eq('5a1d4463-1d11-4571-a877-763aba0ef7ff')
-      
+
       resp.should eq({
         :authorization       => "885796",
         :error_code          => nil,
         :error_message       => nil,
         :payment_method      => "18",
         :payment_method_name => "American Express 2P",
-        :installments        => "1", 
+        :installments        => "1",
         :status              => "3",
         :amount              => "0.01",
         :cancelled_at        => Time.parse('2011-08-07 13:19:38 -0300'),
@@ -172,10 +172,10 @@ describe Braspag::Order do
         :tid                 => "5a1d4463-1d11-4571-a877-763aba0ef7ff"
       })
     end
-    
+
     it "should populate data accepts invalid xml" do
-      resp = Braspag::Order.from_info(connection, order, mock(:body => invalid_xml))
-      
+      resp = BraspagPagador::Order.from_info(connection, order, mock(:body => invalid_xml))
+
       resp.should eq({
         :authorization       => nil,
         :error_code          => nil,
@@ -192,10 +192,10 @@ describe Braspag::Order do
         :tid                 => nil
       })
     end
-    
+
     it "should populate data for error" do
-      resp = Braspag::Order.from_info(connection, order, mock(:body => error_xml))
-      
+      resp = BraspagPagador::Order.from_info(connection, order, mock(:body => error_xml))
+
       resp.should eq({
         :authorization       => nil,
         :error_code          => "885796",
@@ -213,7 +213,7 @@ describe Braspag::Order do
       })
     end
   end
-  
+
   context "on info for billet" do
     let(:valid_xml) do
       <<-EOXML
@@ -238,7 +238,7 @@ describe Braspag::Order do
       </DadosBoleto>
       EOXML
     end
-    
+
     let(:invalid_xml) do
       <<-EOXML
       <?xml version="1.0" encoding="utf-8"?>
@@ -248,29 +248,29 @@ describe Braspag::Order do
       </DadosBoleto>
       EOXML
     end
-    
-    let(:order) { Braspag::Order.new(:id => "XPTO") }
-    
+
+    let(:order) { BraspagPagador::Order.new(:id => "XPTO") }
+
     it "should convert objects to hash" do
-      Braspag::Order.to_info_billet(connection, order).should eq({
-        "loja"          => "#{merchant_id}", 
+      BraspagPagador::Order.to_info_billet(connection, order).should eq({
+        "loja"          => "#{merchant_id}",
         "numeroPedido"  => "#{order.id}"
       })
     end
-    
+
     it "should populate data" do
-      resp = Braspag::Order.from_info_billet(connection, order, mock(:body => valid_xml))
+      resp = BraspagPagador::Order.from_info_billet(connection, order, mock(:body => valid_xml))
 
       order.customer.name.should eq('XPTO')
 
       order.billet.id.should eq('999')
       order.billet.code.should eq('35690.00361 03962.070003 00000.009993 4 50160000001000')
-      
+
       order.billet.created_at.should eq(Date.parse('2011-06-22'))
       order.billet.due_date_on.should eq(Date.parse('2011-07-2'))
-      
+
       order.billet.receiver.should eq('Acessoria Empresarial Ltda')
-      
+
       order.billet.bank.should eq('356-5')
       order.billet.agency.should eq('0003')
       order.billet.account.should eq('6039620')
@@ -296,9 +296,9 @@ describe Braspag::Order do
         :invoice_date=> Date.parse('2011-07-02')
       })
     end
-    
+
     it "should not raise error for invalid xml" do
-      resp = Braspag::Order.from_info_billet(connection, order, mock(:body => invalid_xml))
+      resp = BraspagPagador::Order.from_info_billet(connection, order, mock(:body => invalid_xml))
 
       resp.should eq({
         :document_number => nil,
@@ -336,18 +336,18 @@ describe Braspag::Order do
       </DadosCartao>
       EOXML
     end
-    
-    let(:order) { Braspag::Order.new(:id => "XPTO") }
-    
+
+    let(:order) { BraspagPagador::Order.new(:id => "XPTO") }
+
     it "should convert objects to hash" do
-      Braspag::Order.to_info_credit_card(connection, order).should eq({
-        "loja"          => "#{merchant_id}", 
+      BraspagPagador::Order.to_info_credit_card(connection, order).should eq({
+        "loja"          => "#{merchant_id}",
         "numeroPedido"  => "#{order.id}"
       })
     end
-    
+
     it "should populate data" do
-      resp = Braspag::Order.from_info_credit_card(connection, order, mock(:body => valid_xml))
+      resp = BraspagPagador::Order.from_info_credit_card(connection, order, mock(:body => valid_xml))
 
       order.credit_card.checking_number.should eq('11111')
       order.credit_card.avs.should eq('false')
@@ -370,7 +370,7 @@ describe Braspag::Order do
       })
     end
   end
-  
+
   [:purchase, :generate, :authorize, :capture, :void, :recurrency].each do |context_type|
     context "on #{context_type}" do
       it "should validate minimum 1 length of id" do
@@ -390,24 +390,24 @@ describe Braspag::Order do
         subject.valid?(context_type)
         subject.errors.messages[:id].should eq(nil)
       end
-      
+
       [:cielo_noauth_visa, :cielo_preauth_visa, :cielo_noauth_mastercard, :cielo_preauth_mastercard, :cielo_noauth_elo, :cielo_noauth_diners ].each do |payment_method|
         context "when has payment method for #{payment_method}" do
           it "should not allow spaces" do
-            subject.payment_method = Braspag::PAYMENT_METHOD[payment_method]
+            subject.payment_method = BraspagPagador::PAYMENT_METHOD[payment_method]
             subject.id = '123 4'
             subject.valid?(context_type)
             subject.errors.messages[:id].should include("is invalid")
           end
           it "should not allow characters" do
-            subject.payment_method = Braspag::PAYMENT_METHOD[payment_method]
+            subject.payment_method = BraspagPagador::PAYMENT_METHOD[payment_method]
             subject.id = 'abcd'
             subject.valid?(context_type)
             subject.errors.messages[:id].should include("is invalid")
           end
 
           it "should not allow special characters" do
-            subject.payment_method = Braspag::PAYMENT_METHOD[payment_method]
+            subject.payment_method = BraspagPagador::PAYMENT_METHOD[payment_method]
             subject.id = '*-[]'
             subject.valid?(context_type)
             subject.errors.messages[:id].should include("is invalid")
@@ -416,7 +416,7 @@ describe Braspag::Order do
       end
     end
   end
-  
+
   [:purchase, :generate, :authorize, :recurrency].each do |context_type|
     context "on #{context_type}" do
       it "should not allow blank for payment_method" do
@@ -424,19 +424,19 @@ describe Braspag::Order do
         subject.valid?(context_type)
         subject.errors.messages[:payment_method].should include("can't be blank")
       end
-    
+
       it "should not allow blank for amount" do
         subject.amount = ''
         subject.valid?(context_type)
         subject.errors.messages[:amount].should include("can't be blank")
       end
-    
+
       it "should validate minimum 1 of amount" do
         subject.amount = 0
         subject.valid?(context_type)
         subject.errors.messages[:amount].should include("must be greater than 0")
       end
-    
+
       it "should not allow blank for customer" do
         subject.customer = ''
         subject.valid?(context_type)
@@ -444,11 +444,11 @@ describe Braspag::Order do
       end
 
       it "should not allow invalid customer" do
-        subject.customer = Braspag::Customer.new
+        subject.customer = BraspagPagador::Customer.new
         subject.valid?(context_type)
         subject.errors.messages[:customer].should include("invalid data")
       end
-    
+
       it "should accept only valid payment method" do
         subject.payment_method = 0
         subject.valid?(context_type)
@@ -464,36 +464,36 @@ describe Braspag::Order do
         subject.valid?(context_type)
         subject.errors.messages[:installments].should include("can't be blank")
       end
-    
+
       it "should validate minimum 1 of installments" do
         subject.installments = 0
         subject.valid?(context_type)
         subject.errors.messages[:installments].should include("must be greater than 0")
       end
-    
-    
+
+
       it "should validate maxium 99 of installments" do
         subject.installments = 100
         subject.valid?(context_type)
         subject.errors.messages[:installments].should include("must be less than 100")
       end
-    
+
       it "should not allow blank for installments_type" do
         subject.installments_type = ''
         subject.valid?(context_type)
         subject.errors.messages[:installments_type].should include("can't be blank")
       end
-    
+
       it "should accept only valid installments_type" do
         subject.installments_type = 100
         subject.valid?(context_type)
         subject.errors.messages[:installments_type].should include("invalid installments type")
       end
-    
-    
+
+
       context "when installments_type is NO_INTEREST" do
         it "should installments is one" do
-          subject.installments_type = Braspag::INTEREST[:no]
+          subject.installments_type = BraspagPagador::INTEREST[:no]
           subject.installments = 3
           subject.valid?(context_type)
           subject.errors.messages[:installments].should include("is invalid")

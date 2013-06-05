@@ -2,9 +2,9 @@ module BraspagPagador
   module Crypto
     class Webservice
       def encrypt(connection, map)
-        data = ERB.new(File.read(Braspag::PATH + '/braspag/templates/crypto/encrypt.xml.erb'))
+        data = ERB.new(File.read(BraspagPagador::PATH + '/braspag-pagador/templates/crypto/encrypt.xml.erb'))
 
-        response = Braspag::Poster.new(
+        response = BraspagPagador::Poster.new(
           connection,
           connection.url_for(:encrypt)
         ).do_post(
@@ -27,9 +27,9 @@ module BraspagPagador
       end
 
       def decrypt(connection, encripted_text)
-        data = ERB.new(File.read(Braspag::PATH + '/braspag/templates/crypto/decrypt.xml.erb'))
+        data = ERB.new(File.read(BraspagPagador::PATH + '/braspag-pagador/templates/crypto/decrypt.xml.erb'))
 
-        response = Braspag::Poster.new(
+        response = BraspagPagador::Poster.new(
           connection,
           connection.url_for(:decrypt)
         ).do_post(

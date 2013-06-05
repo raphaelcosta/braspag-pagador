@@ -1,18 +1,18 @@
 #encoding: utf-8
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Braspag::Crypto::Webservice do
+describe BraspagPagador::Crypto::Webservice do
 
   let(:merchant_id) { "merchant_id" }
   let(:connection) do
-    conn = double(Braspag::Connection)
+    conn = double(BraspagPagador::Connection)
     conn.stub(:merchant_id => merchant_id)
     conn.stub(:url_for => 'fakeurl')
     conn
   end
-  
+
   let(:poster) { mock }
-  
+
   describe "encrypt" do
     let(:key) {"XXXXX"}
 
@@ -21,10 +21,10 @@ describe Braspag::Crypto::Webservice do
 SERVER was unable to process
 EOXML
       poster.stub(:do_post => mock(:body => body_invalid))
-      Braspag::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
+      BraspagPagador::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
 
       expect {
-        Braspag::Crypto::Webservice.new.encrypt(connection, {key: key})
+        BraspagPagador::Crypto::Webservice.new.encrypt(connection, {key: key})
       }.to raise_error(RuntimeError, 'UnknownError')
     end
 
@@ -36,12 +36,12 @@ EOXML
 <EncryptRequestResult>Erro BP 011</EncryptRequestResult></EncryptRequestResponse>
 </soap:Body></soap:Envelope>
 EOXML
-      
+
       poster.stub(:do_post => mock(:body => body_invalid))
-      Braspag::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
+      BraspagPagador::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
 
       expect {
-        Braspag::Crypto::Webservice.new.encrypt(connection, {key: key})
+        BraspagPagador::Crypto::Webservice.new.encrypt(connection, {key: key})
       }.to raise_error(RuntimeError, 'InvalidMerchantId')
     end
 
@@ -54,12 +54,12 @@ EOXML
 </soap:Body></soap:Envelope>
 EOXML
       poster.stub(:do_post => mock(:body => body_invalid))
-      Braspag::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
+      BraspagPagador::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
 
       expect {
-        Braspag::Crypto::Webservice.new.encrypt(connection, {key: key})
+        BraspagPagador::Crypto::Webservice.new.encrypt(connection, {key: key})
       }.to raise_error(RuntimeError, 'InvalidIP')
-      
+
     end
 
     it "should return a string" do
@@ -72,11 +72,11 @@ EOXML
 </EncryptRequestResponse>
 </soap:Body></soap:Envelope>
               EOXML
-        
-        poster.stub(:do_post => mock(:body => valid_body))
-        Braspag::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
 
-        resp = Braspag::Crypto::Webservice.new.encrypt(connection, {key: key})
+        poster.stub(:do_post => mock(:body => valid_body))
+        BraspagPagador::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
+
+        resp = BraspagPagador::Crypto::Webservice.new.encrypt(connection, {key: key})
         resp.should eq(key)
     end
   end
@@ -88,12 +88,12 @@ EOXML
 SERVER was unable to process
 EOXML
       poster.stub(:do_post => mock(:body => body_invalid))
-      Braspag::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
+      BraspagPagador::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
 
       expect {
-        Braspag::Crypto::Webservice.new.decrypt(connection, crypt_string)
+        BraspagPagador::Crypto::Webservice.new.decrypt(connection, crypt_string)
       }.to raise_error(RuntimeError, 'UnknownError')
-      
+
     end
 
     it "should return error with invalid ip" do
@@ -105,10 +105,10 @@ EOXML
 </DecryptRequestResponse></soap:Body></soap:Envelope>
 EOXML
      poster.stub(:do_post => mock(:body => body_invalid))
-     Braspag::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
+     BraspagPagador::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
 
      expect {
-       Braspag::Crypto::Webservice.new.decrypt(connection, crypt_string)
+       BraspagPagador::Crypto::Webservice.new.decrypt(connection, crypt_string)
      }.to raise_error(RuntimeError, 'InvalidIP')
     end
 
@@ -127,9 +127,9 @@ EOXML
               EOXML
 
         poster.stub(:do_post => mock(:body => valid_body))
-        Braspag::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
+        BraspagPagador::Poster.should_receive(:new).with(connection, 'fakeurl').and_return(poster)
 
-        resp = Braspag::Crypto::Webservice.new.decrypt(connection, crypt_string)
+        resp = BraspagPagador::Crypto::Webservice.new.decrypt(connection, crypt_string)
         resp.should eq({:codpagamento=>"18", :vendaid=>"teste123", :valor=>"100", :parcelas=>"1", :nome=>"comprador"})
     end
   end

@@ -18,13 +18,13 @@ braspag-pagador gem to use Braspag gateway
   	require 'rubygems'
   	require 'braspag-pagador'
 
-  	gateway = Braspag::Connection.new(
+  	gateway = BraspagPagador::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
   	  :environment => :homologation
   	)
 
   	# The card verification value is also known as CVV2, CVC2, or CID
-  	credit_card = Braspag::CreditCard.new(
+  	credit_card = BraspagPagador::CreditCard.new(
   	  :holder_name        => 'Bob Bobsen',
   	  :number             => '4242424242424242',
   	  :month              => '8',
@@ -32,17 +32,17 @@ braspag-pagador gem to use Braspag gateway
   	  :verification_value => '123'
   	)
 
-  	customer = Braspag::Customer.new(
+  	customer = BraspagPagador::Customer.new(
   	  :name => 'Bob Dela Bobsen'
   	)
 
-  	order = Braspag::Order.new(
-  	  :payment_method    => Braspag::PAYMENT_METHOD[:redecard],
+  	order = BraspagPagador::Order.new(
+  	  :payment_method    => BraspagPagador::PAYMENT_METHOD[:redecard],
   	  :id                => 11,
   	  :amount            => 10.00, # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer          => customer,
   	  :installments      => 1,
-  	  :installments_type => Braspag::INTEREST[:no]
+  	  :installments_type => BraspagPagador::INTEREST[:no]
   	)
 
   	# Validating the card automatically detects the card type
@@ -64,25 +64,25 @@ braspag-pagador gem to use Braspag gateway
   	require 'rubygems'
   	require 'braspag-pagador'
 
-  	gateway = Braspag::Connection.new(
+  	gateway = BraspagPagador::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
   	  :environment => :homologation
   	)
 
-  	billet = Braspag::Billet.new(
+  	billet = BraspagPagador::Billet.new(
   	  :id           => '123456', # (optional if configured in gateway)
   	  :instructions => 'does not accepted after due date', # (optional)
   	  :due_date_on  => Date.parse('2012-01-01')
   	)
 
-  	customer = Braspag::Customer.new(
+  	customer = BraspagPagador::Customer.new(
   	  :document     => '21473696240', # (OPTIONAL)
   	  :name   => 'Bob Dela Bobsen',
   	  :email  => 'bob@mailinator.com' # send email to consumer (OPTIONAL)
   	)
 
-  	order = Braspag::Order.new(
-  	  :payment_method  => Braspag::PAYMENT_METHOD[:billet_bradesco],
+  	order = BraspagPagador::Order.new(
+  	  :payment_method  => BraspagPagador::PAYMENT_METHOD[:billet_bradesco],
   	  :id              => 11,
   	  :amount          => 10.00, # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer        => customer
@@ -106,27 +106,27 @@ braspag-pagador gem to use Braspag gateway
   	require 'rubygems'
   	require 'braspag-pagador'
 
-  	gateway = Braspag::Connection.new(
+  	gateway = BraspagPagador::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
   	  :environment => :homologation
   	)
 
   	#USING Braspag Webservice
-  	eft = Braspag::EFT.new(
-  	  :crypto => Braspag::Crypto::Webservice.new
+  	eft = BraspagPagador::EFT.new(
+  	  :crypto => BraspagPagador::Crypto::Webservice.new
   	)
 
   	#Without Crypto
-  	eft = Braspag::EFT.new(
-  	  :crypto => Braspag::Crypto::NoCrypto.new
+  	eft = BraspagPagador::EFT.new(
+  	  :crypto => BraspagPagador::Crypto::NoCrypto.new
   	)
 
-  	customer = Braspag::Customer.new(
+  	customer = BraspagPagador::Customer.new(
   	  :name   => 'Bob Dela Bobsen'
   	)
 
-  	order = Braspag::Order.new(
-  	  :payment_method  => Braspag::PAYMENT_METHOD[:eft_itau],
+  	order = BraspagPagador::Order.new(
+  	  :payment_method  => BraspagPagador::PAYMENT_METHOD[:eft_itau],
   	  :id              => 1234,
   	  :amount          => '1000', # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer        => customer
@@ -151,13 +151,13 @@ braspag-pagador gem to use Braspag gateway
   	require 'rubygems'
   	require 'braspag-pagador'
 
-  	gateway = Braspag::Connection.new(
+  	gateway = BraspagPagador::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
   	  :environment => :homologation
   	)
 
   	# The card verification value is also known as CVV2, CVC2, or CID
-  	credit_card = Braspag::CreditCard.new(
+  	credit_card = BraspagPagador::CreditCard.new(
   	  :holder_name        => 'Bob Bobsen',
   	  :number             => '4242424242424242',
   	  :month              => '8',
@@ -165,17 +165,17 @@ braspag-pagador gem to use Braspag gateway
   	  :verification_value => '123'
   	)
 
-  	customer = Braspag::Customer.new(
+  	customer = BraspagPagador::Customer.new(
   	  :name => 'Bob Dela Bobsen'
   	)
 
-  	order = Braspag::Order.new(
-  	  :payment_method    => Braspag::PAYMENT_METHOD[:redecard],
+  	order = BraspagPagador::Order.new(
+  	  :payment_method    => BraspagPagador::PAYMENT_METHOD[:redecard],
   	  :id                => 11,
   	  :amount            => '1000', # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer          => customer,
   	  :installments      => 1,
-  	  :installments_type => Braspag::INTEREST[:no]
+  	  :installments_type => BraspagPagador::INTEREST[:no]
   	)
 
   	# Validating the card automatically detects the card type
@@ -197,12 +197,12 @@ braspag-pagador gem to use Braspag gateway
   	require 'rubygems'
   	require 'braspag-pagador'
 
-  	gateway = Braspag::Connection.new(
+  	gateway = BraspagPagador::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
   	  :environment => :homologation
   	)
 
-  	order = Braspag::Order.new(
+  	order = BraspagPagador::Order.new(
   	  :id => 11
   	)
 
@@ -222,12 +222,12 @@ braspag-pagador gem to use Braspag gateway
   	require 'rubygems'
   	require 'braspag-pagador'
 
-  	gateway = Braspag::Connection.new(
+  	gateway = BraspagPagador::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
   	  :environment => :homologation
   	)
 
-  	order = Braspag::Order.new(
+  	order = BraspagPagador::Order.new(
   	  :id => 11
   	)
 
@@ -265,7 +265,7 @@ braspag-pagador gem to use Braspag gateway
   	>   puts order.payment_method
   	>   "06"
 
-  	>   puts Braspag::Converter.payment_method_name?(order.payment_method)
+  	>   puts BraspagPagador::Converter.payment_method_name?(order.payment_method)
   	>   :billet_bradesco
 
   	>   puts order.installments
@@ -274,7 +274,7 @@ braspag-pagador gem to use Braspag gateway
   	>   puts order.status
   	>   4
 
-  	>   puts Braspag::Converter.status_name?(order.status)
+  	>   puts BraspagPagador::Converter.status_name?(order.status)
   	>   :cancelled
 
   	>   puts order.amount
@@ -396,13 +396,13 @@ braspag-pagador gem to use Braspag gateway
   	require 'rubygems'
   	require 'braspag-pagador'
 
-  	gateway = Braspag::Connection.new(
+  	gateway = BraspagPagador::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
   	  :environment => :homologation
   	)
 
   	# The card verification value is also known as CVV2, CVC2, or CID
-  	credit_card = Braspag::CreditCard.new(
+  	credit_card = BraspagPagador::CreditCard.new(
   	  :holder_name        => 'Bob Bobsen',
   	  :number             => '4242424242424242',
   	  :month              => '8',
@@ -410,7 +410,7 @@ braspag-pagador gem to use Braspag gateway
   	  :alias              => 'Card Visa' #(OPTIONAL)
   	)
 
-  	customer = Braspag::Customer.new(
+  	customer = BraspagPagador::Customer.new(
   	  :name => 'Bob Dela Bobsen'
   	  :document => '21473696240' #(OPTIONAL)
   	)
@@ -433,13 +433,13 @@ braspag-pagador gem to use Braspag gateway
   	require 'rubygems'
   	require 'braspag-pagador'
 
-  	gateway = Braspag::Connection.new(
+  	gateway = BraspagPagador::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
   	  :environment => :homologation
   	)
 
   	# The card verification value is also known as CVV2, CVC2, or CID
-  	credit_card = Braspag::CreditCard.new(
+  	credit_card = BraspagPagador::CreditCard.new(
   	  :id        => '123123123123123',
   	  :alias     => 'Card Visa' #(OPTIONAL)
   	)
@@ -467,29 +467,29 @@ braspag-pagador gem to use Braspag gateway
   	require 'rubygems'
   	require 'braspag-pagador'
 
-  	gateway = Braspag::Connection.new(
+  	gateway = BraspagPagador::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
   	  :environment => :homologation
   	)
 
   	# The card verification value is also known as CVV2, CVC2, or CID
-  	credit_card = Braspag::CreditCard.new(
+  	credit_card = BraspagPagador::CreditCard.new(
   	  :id => '123415',
   	  :verification_value => '123',
   	  :alias     => 'Card Visa' #(OPTIONAL)
   	)
 
-  	customer = Braspag::Customer.new(
+  	customer = BraspagPagador::Customer.new(
   	  :name => 'Bob Dela Bobsen'
   	)
 
-  	order = Braspag::Order.new(
-  	  :payment_method    => Braspag::PAYMENT_METHOD[:redecard],
+  	order = BraspagPagador::Order.new(
+  	  :payment_method    => BraspagPagador::PAYMENT_METHOD[:redecard],
   	  :id                => 11,
   	  :amount            => 10.00, # $10.00 (accepts all amounts as Integer values in cents)
   	  :customer          => customer,
   	  :installments      => 1,
-  	  :installments_type => Braspag::INTEREST[:no]
+  	  :installments_type => BraspagPagador::INTEREST[:no]
   	)
 
   	# Validating the card automatically detects the card type

@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Braspag::Customer do
+describe BraspagPagador::Customer do
   [:purchase, :generate, :authorize, :archive, :recurrency ].each do |context_type|
     context "on #{context_type}" do
       it "should validate minimum 1 length of name" do

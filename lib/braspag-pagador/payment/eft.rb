@@ -4,7 +4,7 @@ module BraspagPagador
 
       params = {
         Id_Loja:      self.merchant_id,
-        VALOR:        Braspag::Converter::decimal_to_string(order.amount),
+        VALOR:        BraspagPagador::Converter::decimal_to_string(order.amount),
         CODPAGAMENTO: order.payment_method,
         VENDAID:      order.id,
         NOME:         order.customer.name
@@ -47,7 +47,7 @@ module BraspagPagador
     class CryptoValidator < ActiveModel::EachValidator
       def validate_each(record, attribute, value)
         unless (
-          value.kind_of?(Braspag::Crypto::NoCrypto) ||
+          value.kind_of?(BraspagPagador::Crypto::NoCrypto) ||
           value.respond_to?(:encrypt)
           )
           record.errors.add attribute, "invalid crypto"

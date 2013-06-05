@@ -41,11 +41,11 @@ module BraspagPagador
     end
 
     def self.payment_method_name?(code)
-      Braspag::PAYMENT_METHOD.key(code.to_s.to_i)
+      BraspagPagador::PAYMENT_METHOD.key(code.to_s.to_i)
     end
 
     def self.payment_method_type?(code)
-      key = Braspag::PAYMENT_METHOD.key(code.to_s.to_i)
+      key = BraspagPagador::PAYMENT_METHOD.key(code.to_s.to_i)
       return nil if key.nil?
       if key.match(/billet_/)
         :billet
@@ -57,7 +57,7 @@ module BraspagPagador
     end
 
     def self.status_name?(code)
-      Braspag::STATUS_PAYMENT.key(code.to_s.to_i)
+      BraspagPagador::STATUS_PAYMENT.key(code.to_s.to_i)
     end
   end
 end

@@ -40,7 +40,7 @@ module BraspagPagador
 
     class PaymentMethodValidator < ActiveModel::EachValidator
       def validate_each(record, attribute, value)
-        if Braspag::PAYMENT_METHOD.key(value).nil?
+        if BraspagPagador::PAYMENT_METHOD.key(value).nil?
           record.errors.add attribute, "invalid payment code"
         end
       end
@@ -48,7 +48,7 @@ module BraspagPagador
 
     class InstallmentsTypeValidator < ActiveModel::EachValidator
       def validate_each(record, attribute, value)
-        if Braspag::INTEREST.key(value).nil?
+        if BraspagPagador::INTEREST.key(value).nil?
           record.errors.add attribute, "invalid installments type"
         end
       end
@@ -88,8 +88,8 @@ module BraspagPagador
 
     def no_interest?
       case installments_type
-      when Braspag::INTEREST[:no],
-           Braspag::INTEREST[:no_iata]
+      when BraspagPagador::INTEREST[:no],
+           BraspagPagador::INTEREST[:no_iata]
         true
       else
         false
@@ -120,7 +120,7 @@ module BraspagPagador
     end
 
     def self.from_info(connection, order, params)
-      response = Braspag::Converter::hash_from_xml(params.body, {
+      response = BraspagPagador::Converter::hash_from_xml(params.body, {
         :authorization => "CodigoAutorizacao",
         :error_code => "CodigoErro",
         :error_message => "MensagemErro",
@@ -159,7 +159,7 @@ module BraspagPagador
       order.payment_method = response[:payment_method]
       order.installments = response[:installments]
       order.status = response[:status]
-      order.amount = Braspag::Converter::string_to_decimal(response[:amount], :eua)
+      order.amount = BraspagPagador::Converter::string_to_decimal(response[:amount], :eua)
       order.gateway_cancelled_at = response[:cancelled_at]
       order.gateway_paid_at = response[:paid_at]
       order.gateway_created_at = response[:order_date]
@@ -177,7 +177,7 @@ module BraspagPagador
     end
 
     def self.from_info_credit_card(connection, order, params)
-      response = Braspag::Converter::hash_from_xml(params.body, {
+      response = BraspagPagador::Converter::hash_from_xml(params.body, {
           :checking_number => "NumeroComprovante",
           :certified => "Autenticada",
           :autorization_number => "NumeroAutorizacao",
@@ -211,7 +211,7 @@ module BraspagPagador
     end
 
     def self.from_info_billet(connection, order, params)
-      response = Braspag::Converter::hash_from_xml(params.body, {
+      response = BraspagPagador::Converter::hash_from_xml(params.body, {
           :document_number => "NumeroDocumento",
           :payer => "Sacado",
           :our_number => "NossoNumero",
@@ -262,8 +262,8 @@ module BraspagPagador
       order.billet.agency = response[:agency]
       order.billet.account = response[:account]
       order.billet.wallet = response[:wallet]
-      order.billet.amount = Braspag::Converter::string_to_decimal(response[:amount])
-      order.billet.amount_paid = Braspag::Converter::string_to_decimal(response[:amount_invoice])
+      order.billet.amount = BraspagPagador::Converter::string_to_decimal(response[:amount])
+      order.billet.amount_paid = BraspagPagador::Converter::string_to_decimal(response[:amount_invoice])
       order.billet.paid_at = response[:invoice_date]
 
       response
@@ -272,12 +272,12 @@ module BraspagPagador
     private
     def payment_for_cielo?
       case payment_method
-      when Braspag::PAYMENT_METHOD[:cielo_noauth_visa],
-           Braspag::PAYMENT_METHOD[:cielo_preauth_visa],
-           Braspag::PAYMENT_METHOD[:cielo_noauth_mastercard],
-           Braspag::PAYMENT_METHOD[:cielo_preauth_mastercard],
-           Braspag::PAYMENT_METHOD[:cielo_noauth_elo],
-           Braspag::PAYMENT_METHOD[:cielo_noauth_diners]
+      when BraspagPagador::PAYMENT_METHOD[:cielo_noauth_visa],
+           BraspagPagador::PAYMENT_METHOD[:cielo_preauth_visa],
+           BraspagPagador::PAYMENT_METHOD[:cielo_noauth_mastercard],
+           BraspagPagador::PAYMENT_METHOD[:cielo_preauth_mastercard],
+           BraspagPagador::PAYMENT_METHOD[:cielo_noauth_elo],
+           BraspagPagador::PAYMENT_METHOD[:cielo_noauth_diners]
         true
       end
     end

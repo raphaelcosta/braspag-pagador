@@ -107,7 +107,7 @@ module BraspagPagador
         "securityCode"   => credit_card.verification_value.to_s,
         "customerName"   => order.customer.name.to_s,
         "orderId"        => order.id.to_s,
-        "amount"         => Braspag::Converter::decimal_to_string(order.amount),
+        "amount"         => BraspagPagador::Converter::decimal_to_string(order.amount),
         "paymentMethod"  => order.payment_method,
         "numberPayments" => order.installments,
         "typePayment"    => order.installments_type
@@ -115,7 +115,7 @@ module BraspagPagador
     end
 
     def self.from_authorize(connection, order, credit_card, params)
-      response = Braspag::Converter::hash_from_xml(params.body, {
+      response = BraspagPagador::Converter::hash_from_xml(params.body, {
               :amount         => nil,
               :number         => "authorisationNumber",
               :message        => nil,
@@ -129,7 +129,7 @@ module BraspagPagador
       order.gateway_return_code = response[:return_code]
       order.gateway_status = response[:status]
       order.gateway_message = response[:message]
-      order.gateway_amount = Braspag::Converter::string_to_decimal(response[:amount])
+      order.gateway_amount = BraspagPagador::Converter::string_to_decimal(response[:amount])
 
       response
     end
@@ -142,7 +142,7 @@ module BraspagPagador
     end
 
     def self.from_capture(connection, order, params)
-      response = Braspag::Converter::hash_from_xml(params.body, {
+      response = BraspagPagador::Converter::hash_from_xml(params.body, {
               :amount => nil,
               :message => 'message',
               :return_code => 'returnCode',
@@ -155,7 +155,7 @@ module BraspagPagador
       order.gateway_capture_return_code = response[:return_code]
       order.gateway_capture_status = response[:status]
       order.gateway_capture_message = response[:message]
-      order.gateway_capture_amount = Braspag::Converter::string_to_decimal(response[:amount])
+      order.gateway_capture_amount = BraspagPagador::Converter::string_to_decimal(response[:amount])
 
       response
     end
@@ -168,7 +168,7 @@ module BraspagPagador
     end
 
     def self.from_void(connection, order, params)
-      response = Braspag::Converter::hash_from_xml(params.body, {
+      response = BraspagPagador::Converter::hash_from_xml(params.body, {
               :order_id => "orderId",
               :amount => nil,
               :message => 'message',
@@ -182,7 +182,7 @@ module BraspagPagador
       order.gateway_void_return_code = response[:return_code]
       order.gateway_void_status = response[:status]
       order.gateway_void_message = response[:message]
-      order.gateway_void_amount = Braspag::Converter::string_to_decimal(response[:amount])
+      order.gateway_void_amount = BraspagPagador::Converter::string_to_decimal(response[:amount])
 
       response
     end

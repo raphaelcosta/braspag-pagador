@@ -1,14 +1,14 @@
 require 'spec_helper'
 require 'ostruct'
 
-describe Braspag::Poster do
+describe BraspagPagador::Poster do
   let(:request) { OpenStruct.new(:url => 'http://foo/bar') }
   let(:response) { mock(:body => 'success') }
   let(:logger) { mock(:info => nil) }
   let(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
-  let(:connection) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
-  let(:connection_logger) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation, :logger => logger)}
-  let(:connection_proxy) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation, :proxy_address => 'http://proxy.com')}
+  let(:connection) { BraspagPagador::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
+  let(:connection_logger) { BraspagPagador::Connection.new(:merchant_id => merchant_id, :environment => :homologation, :logger => logger)}
+  let(:connection_proxy) { BraspagPagador::Connection.new(:merchant_id => merchant_id, :environment => :homologation, :proxy_address => 'http://proxy.com')}
 
   describe "#do_post" do
     before do
@@ -23,18 +23,18 @@ describe Braspag::Poster do
         request.should_not_receive(:proxy=)
         subject.do_post(:foo, {})
       end
-      
+
       it "should not raise an error if logger is not defined" do
         expect {
           subject.do_post(:doe, { :foo => :bar, :egg => :span })
         }.to_not raise_error
       end
-      
+
     end
 
     context "with logger" do
       subject { described_class.new(connection_logger, 'http://foo/bar') }
-      
+
       it "should log the request info" do
         logger.should_receive(:info).with('[Braspag] #doe: http://foo/bar, data: {:foo=>:bar, :egg=>:span}')
         subject.do_post(:doe, { :foo => :bar, :egg => :span })
@@ -53,7 +53,7 @@ describe Braspag::Poster do
 
     context "with proxy" do
       subject { described_class.new(connection_proxy, 'http://foo/bar') }
-      
+
       it "should set the proxy if the proxy_address is set" do
         request.should_receive(:proxy=).with('http://proxy.com')
         subject.do_post(:foo, {})

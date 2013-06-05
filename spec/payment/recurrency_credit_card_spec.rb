@@ -1,18 +1,18 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Braspag::Connection do
+describe BraspagPagador::Connection do
   let(:merchant_id) { "{12345678-1234-1234-1234-123456789000}" }
-  let(:connection) { Braspag::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
-  
+  let(:connection) { BraspagPagador::Connection.new(:merchant_id => merchant_id, :environment => :homologation)}
+
   pending 'archive'
-  
+
   pending 'get_recurrency'
-  
+
   pending 'recurrency'
 end
 
-describe Braspag::CreditCard do
-  
+describe BraspagPagador::CreditCard do
+
   [:purchase, :authorize, :archive].each do |context_type|
     context "on #{context_type}" do
       it "should validate minimum 1 length of holder_name" do
@@ -44,7 +44,7 @@ describe Braspag::CreditCard do
         subject.valid?(context_type)
         subject.errors.messages[:year].should include("can't be blank")
       end
-      
+
       it "should not allow invalid date for month & year" do
         subject.month = "14"
         subject.year = "2012"
@@ -70,7 +70,7 @@ describe Braspag::CreditCard do
       end
     end
   end
-  
+
   [:purchase, :authorize, :recurrency].each do |context_type|
     context "on #{context_type}" do
       it "should validate minimum 1 length of verification_value" do
@@ -86,7 +86,7 @@ describe Braspag::CreditCard do
       end
     end
   end
-  
+
   [:get_recurrency, :recurrency].each do |context_type|
     context "on #{context_type}" do
       it "should validate length of id" do
@@ -96,5 +96,5 @@ describe Braspag::CreditCard do
       end
     end
   end
-  
+
 end

@@ -1,7 +1,7 @@
 {
   "RSpec": {
     "coverage": {
-      "/Volumes/RenatoElias/codeminer/braspag/lib/cbraspag.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/lib/braspag-pagador.rb": [
         1,
         1,
         1,
@@ -26,6 +26,7 @@
         1,
         1,
         1,
+        1,
         null,
         null,
         1,
@@ -48,6 +49,7 @@
         null,
         null,
         1,
+        null,
         null,
         null,
         null,
@@ -97,7 +99,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/lib/cbraspag/core/converter.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/lib/braspag-pagador/core/converter.rb": [
         1,
         1,
         1,
@@ -162,7 +164,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/lib/cbraspag/core/connection.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/lib/braspag-pagador/core/connection.rb": [
         1,
         1,
         null,
@@ -172,6 +174,8 @@
         1,
         1,
         1,
+        null,
+        null,
         1,
         null,
         1,
@@ -189,7 +193,7 @@
         null,
         null,
         1,
-        89,
+        71,
         null,
         null,
         1,
@@ -197,16 +201,16 @@
         null,
         null,
         1,
-        29,
-        29,
+        23,
+        23,
         null,
-        29,
-        12,
+        23,
+        9,
         null,
-        17,
+        14,
         null,
         null,
-        29,
+        23,
         null,
         2,
         null,
@@ -226,30 +230,41 @@
         null,
         2,
         null,
-        2,
+        0,
         null,
-        2,
+        0,
         null,
-        2,
-        null,
-        null,
-        null,
-        1,
-        1,
-        null,
-        null,
-        null,
-        null,
+        0,
         null,
         null,
         null,
         1,
+        1,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        1,
+        null,
+        null,
+        1,
+        0,
+        0,
+        null,
+        0,
+        null,
+        0,
+        null,
+        0,
         null,
         null,
         1,
         12,
         null,
-        6,
+        5,
         null,
         1,
         null,
@@ -265,7 +280,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/lib/cbraspag/core/poster.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/lib/braspag-pagador/core/poster.rb": [
         1,
         1,
         1,
@@ -307,7 +322,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/lib/cbraspag/core/customer.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/lib/braspag-pagador/core/customer.rb": [
         1,
         1,
         1,
@@ -322,7 +337,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/lib/cbraspag/core/order.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/lib/braspag-pagador/core/order.rb": [
         1,
         1,
         1,
@@ -610,7 +625,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/lib/cbraspag/crypto/no_crypto.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/lib/braspag-pagador/crypto/no_crypto.rb": [
         1,
         1,
         1,
@@ -618,7 +633,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/lib/cbraspag/crypto/webservice.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/lib/braspag-pagador/crypto/webservice.rb": [
         1,
         1,
         1,
@@ -633,8 +648,6 @@
         null,
         null,
         null,
-        null,
-        4,
         null,
         4,
         null,
@@ -685,7 +698,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/lib/cbraspag/payment/billet.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/lib/braspag-pagador/payment/billet.rb": [
         1,
         null,
         1,
@@ -766,7 +779,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/lib/cbraspag/payment/credit_card.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/lib/braspag-pagador/payment/credit_card.rb": [
         1,
         1,
         1,
@@ -854,6 +867,19 @@
         null,
         null,
         1,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        0,
+        null,
+        null,
+        1,
         1,
         null,
         null,
@@ -945,7 +971,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/lib/cbraspag/payment/eft.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/lib/braspag-pagador/payment/eft.rb": [
         1,
         1,
         1,
@@ -1012,7 +1038,24 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/spec/core/converter_spec.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/lib/braspag-pagador/payment/recurrency_credit_card.rb": [
+        1,
+        1,
+        1,
+        0,
+        null,
+        null,
+        1,
+        null,
+        null,
+        null,
+        1,
+        null,
+        null,
+        null,
+        null
+      ],
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/spec/core/converter_spec.rb": [
         1,
         null,
         1,
@@ -1137,7 +1180,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/spec/core/customer_spec.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/spec/core/customer_spec.rb": [
         1,
         null,
         1,
@@ -1188,7 +1231,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/spec/core/order_spec.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/spec/core/order_spec.rb": [
         null,
         1,
         null,
@@ -1694,7 +1737,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/spec/core/poster_spec.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/spec/core/poster_spec.rb": [
         1,
         1,
         null,
@@ -1759,7 +1802,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/spec/crypto/webservice_spec.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/spec/crypto/webservice_spec.rb": [
         null,
         1,
         null,
@@ -1897,7 +1940,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/spec/integration/billet_spec.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/spec/integration/billet_spec.rb": [
         null,
         1,
         null,
@@ -1937,10 +1980,10 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/spec/integration/credit_card_spec.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/spec/integration/credit_card_spec.rb": [
 
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/spec/payment/billet_spec.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/spec/payment/billet_spec.rb": [
         null,
         1,
         null,
@@ -2147,7 +2190,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/spec/payment/credit_card_spec.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/spec/payment/credit_card_spec.rb": [
         1,
         null,
         1,
@@ -2534,7 +2577,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/spec/payment/eft_spec.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/spec/payment/eft_spec.rb": [
         1,
         null,
         1,
@@ -2611,9 +2654,9 @@
         1,
         null,
         null,
+        null,
+        null,
         1,
-        null,
-        null,
         2,
         2,
         2,
@@ -2624,7 +2667,7 @@
         null,
         null
       ],
-      "/Volumes/RenatoElias/codeminer/braspag/spec/payment/recurrency_credit_card_spec.rb": [
+      "/Users/raphaelcosta/github/Cenize/braspag-pagador/spec/payment/recurrency_credit_card_spec.rb": [
         1,
         null,
         1,
@@ -2727,6 +2770,6 @@
         null
       ]
     },
-    "timestamp": 1352924674
+    "timestamp": 1370464533
   }
 }

@@ -6,10 +6,8 @@ module BraspagPagador
 
     PRODUCTION_URL = "https://transaction.pagador.com.br"
     HOMOLOGATION_URL = "https://homologacao.pagador.com.br"
-    PROTECTED_CARD_PRODUCTION_URL = "https://cartaoprotegido.braspag.com.br/Services"
-    # https://cartaoprotegido.braspag.com.br/Services/V2 /CartaoProtegido.asmx 
-    # PROTECTED_CARD_HOMOLOGATION_URL = "https://homologacao.braspag.com.br/services/testenvironment"
     PROTECTED_CARD_HOMOLOGATION_URL = "https://cartaoprotegido.braspag.com.br/Services/V2"
+    PROTECTED_CARD_PRODUCTION_URL = "https://homologacao.braspag.com.br/services/testenvironment"
 
     attr_reader :merchant_id, :env, :logger, :proxy_address
 
@@ -72,7 +70,7 @@ module BraspagPagador
     end
 
     def post(method_name, *args)
-      response = Braspag::Poster.new(
+      response = BraspagPagador::Poster.new(
         self,
         self.url_for(method_name)
       ).do_post(
