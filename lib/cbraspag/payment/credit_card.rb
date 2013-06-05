@@ -8,7 +8,7 @@ module Braspag
 
     def authorize(order, credit_card)
       response = self.post(:authorize, order, credit_card)
-      
+
       status = (response[:status] == "0" || response[:status] == "1")
 
       ActiveMerchant::Billing::Response.new(status,
@@ -20,9 +20,9 @@ module Braspag
 
     def capture(order)
       response = self.post(:capture, order)
-      
+
       status = (response[:status] == "0")
-      
+
       ActiveMerchant::Billing::Response.new(status,
                    response[:message],
                    response,
@@ -32,16 +32,16 @@ module Braspag
 
     def void(order, partial=nil)
       response = self.post(:void, order)
-      
+
       status = (response[:status] == "0")
-      
+
       ActiveMerchant::Billing::Response.new(status,
                    response[:message],
                    response,
                    :test => homologation?)
     end
   end
-  
+
   class CreditCard
     include ::ActiveAttr::Model
 
@@ -69,7 +69,7 @@ module Braspag
       validates :holder_name, :length => {:minimum => 1, :maximum => 100, :on => check_on}
 
       validates :number, :presence => { :on => check_on }
-      
+
       validates :month, :presence => { :on => check_on }
       validates :month, :expirator => { :on => check_on }
       validates :year, :presence => { :on => check_on }
@@ -83,7 +83,20 @@ module Braspag
     [:get_recurrency, :recurrency].each do |check_on|
       validates :id, :length => {:is => 36, :on => check_on}
     end
-        
+
+    def self.to_save_credit_card(connection,credit_card,customer,request_id)
+      {
+        'saveCreditCardRequestWS'  => {
+          'MerchantKey'    => connection.merchant_id,
+          'CustomerName'   => customer.name.to_s,
+          'CardHolder'     => credit_card.holder_name.to_s,
+          'CardNumber'     => credit_card.number.to_s,
+          'CardExpiration' => "#{credit_card.month}/#{credit_card.year}",
+          'RequestId'      => request_id
+        }
+      }
+    end
+
     def self.to_authorize(connection, order, credit_card)
       year_normalize = credit_card.year.to_s[-2, 2]
       {
@@ -100,7 +113,7 @@ module Braspag
         "typePayment"    => order.installments_type
       }
     end
-    
+
     def self.from_authorize(connection, order, credit_card, params)
       response = Braspag::Converter::hash_from_xml(params.body, {
               :amount         => nil,
@@ -110,24 +123,24 @@ module Braspag
               :status         => nil,
               :transaction_id => "transactionId"
       })
-      
+
       order.gateway_authorization = response[:number]
       order.gateway_id = response[:transaction_id]
       order.gateway_return_code = response[:return_code]
       order.gateway_status = response[:status]
       order.gateway_message = response[:message]
       order.gateway_amount = Braspag::Converter::string_to_decimal(response[:amount])
-      
+
       response
     end
-    
+
     def self.to_capture(connection, order)
       {
         "merchantId"  => connection.merchant_id,
         "orderId"     => order.id.to_s
       }
     end
-    
+
     def self.from_capture(connection, order, params)
       response = Braspag::Converter::hash_from_xml(params.body, {
               :amount => nil,
@@ -136,24 +149,24 @@ module Braspag
               :status => 'status',
               :transaction_id => "transactionId"
       })
-      
+
       #TODO: CHECK IF IS NECESSARY
       # order.gateway_capture_id = response[:transaction_id]
       order.gateway_capture_return_code = response[:return_code]
       order.gateway_capture_status = response[:status]
       order.gateway_capture_message = response[:message]
       order.gateway_capture_amount = Braspag::Converter::string_to_decimal(response[:amount])
-      
+
       response
     end
-    
+
     def self.to_void(connection, order)
       {
         "merchantId" => connection.merchant_id,
         "order"      => order.id.to_s
       }
     end
-    
+
     def self.from_void(connection, order, params)
       response = Braspag::Converter::hash_from_xml(params.body, {
               :order_id => "orderId",
@@ -163,14 +176,14 @@ module Braspag
               :status => 'status',
               :transaction_id => "transactionId"
       })
-      
+
       #TODO: CHECK IF IS NECESSARY
       # order.gateway_void_id = response[:transaction_id]
       order.gateway_void_return_code = response[:return_code]
       order.gateway_void_status = response[:status]
       order.gateway_void_message = response[:message]
       order.gateway_void_amount = Braspag::Converter::string_to_decimal(response[:amount])
-      
+
       response
     end
   end

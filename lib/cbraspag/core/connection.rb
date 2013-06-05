@@ -3,7 +3,7 @@ module Braspag
 
     class InvalidMerchantId < Exception ; end
     class InvalidEnvironment < Exception ; end
-    
+
     PRODUCTION_URL = "https://transaction.pagador.com.br"
     HOMOLOGATION_URL = "https://homologacao.pagador.com.br"
     PROTECTED_CARD_PRODUCTION_URL = "https://cartaoprotegido.braspag.com.br/Services"
@@ -16,7 +16,7 @@ module Braspag
       env = params[:environment]
       raise InvalidMerchantId unless merchant_id =~ /\{[a-z0-9]{8}-([a-z0-9]{4}-){3}[a-z0-9]{12}\}/i
       raise InvalidEnvironment unless (env == :homologation || env == :production)
-      
+
       @merchant_id = merchant_id
       @env = env
       @logger = params[:logger]
@@ -30,7 +30,7 @@ module Braspag
     def homologation?
       @env == :homologation
     end
-    
+
     def url_for(method_name)
       braspag_url = production? ? PRODUCTION_URL : HOMOLOGATION_URL
       protected_card_url = production? ? PROTECTED_CARD_PRODUCTION_URL : PROTECTED_CARD_HOMOLOGATION_URL
@@ -40,7 +40,7 @@ module Braspag
       else
         braspag_url + "/pagador/webservice/pedido.asmx"
       end
-      
+
       case method_name
       when :authorize
         braspag_url + "/webservices/pagador/Pagador.asmx/Authorize"
@@ -60,7 +60,7 @@ module Braspag
         braspag_info_url + "/GetDadosPedido"
       when :encrypt
         braspag_url + "/BraspagGeneralService/BraspagGeneralService.asmx"
-      when :archive_card
+      when :save_credit_card
         protected_card_url + "/CartaoProtegido.asmx?wsdl"
       when :get_card
         protected_card_url + "/CartaoProtegido.asmx/GetCreditCard"
@@ -68,22 +68,33 @@ module Braspag
         protected_card_url + "/CartaoProtegido.asmx?wsdl"
       end
     end
-    
+
     def post(method_name, *args)
       response = Braspag::Poster.new(
-        self, 
+        self,
         self.url_for(method_name)
       ).do_post(
-        method_name, 
+        method_name,
         self.convert(method_name, :to, args)
       )
-      
+
       self.convert(method_name, :from, args + [response] )
     end
-    
+
+    def soap_request(method_name, *args)
+      url = url_for(method_name)
+      client = Savon.client(wsdl: url)
+
+      binding.pry
+
+      response = client.call method_name, message: self.convert(method_name, :to, args)
+
+      self.convert(method_name, :from, args + [response] )
+    end
+
     def convert(method_name, direction, args)
       target = case method_name
-      when :authorize, :void, :capture, :archive_card, :get_card, :recurrency
+      when :authorize, :void, :capture, :save_credit_card, :get_card, :recurrency
         CreditCard
       when :generate_billet
         Billet
@@ -94,8 +105,8 @@ module Braspag
       when :encrypt
         Crypto::Webservice
       end
-      
+
       target.send("#{direction}_#{method_name}", *([self] + args))
-    end    
+    end
   end
 end

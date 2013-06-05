@@ -4,7 +4,7 @@ module Braspag
       #TODO: CHANGE ANOTHER FOR CONVERSION
       ("%.2f" % value.to_f).gsub('.', ',')
     end
-    
+
     def self.string_to_decimal(value, mode = :br)
       case mode
       when :br
@@ -13,7 +13,7 @@ module Braspag
         BigDecimal.new(value.to_s.gsub(",",""))
       end
     end
-    
+
 
     def self.hash_from_xml(document, map = {})
       document = Nokogiri::XML(document)
@@ -39,7 +39,7 @@ module Braspag
 
       map
     end
-    
+
     def self.payment_method_name?(code)
       Braspag::PAYMENT_METHOD.key(code.to_s.to_i)
     end
@@ -55,7 +55,7 @@ module Braspag
         :credit_card
       end
     end
-    
+
     def self.status_name?(code)
       Braspag::STATUS_PAYMENT.key(code.to_s.to_i)
     end

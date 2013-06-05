@@ -1,6 +1,6 @@
-# cbraspag
+# braspag-pagador
 
-cbraspag gem to use Braspag gateway
+braspag-pagador gem to use Braspag gateway
   
   - Support most operations in gateway
   - Compatible with Active Merchant response object
@@ -16,7 +16,7 @@ cbraspag gem to use Braspag gateway
   credit card details.
 
   	require 'rubygems'
-  	require 'cbraspag'
+  	require 'braspag'
   	
   	gateway = Braspag::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
@@ -62,7 +62,7 @@ cbraspag gem to use Braspag gateway
   This simple example demonstrates how create billet to a person.
 
   	require 'rubygems'
-  	require 'cbraspag'
+  	require 'braspag'
 
   	gateway = Braspag::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
@@ -104,7 +104,7 @@ cbraspag gem to use Braspag gateway
   This simple example demonstrates how create eft to a person.
 
   	require 'rubygems'
-  	require 'cbraspag'
+  	require 'braspag'
   	
   	gateway = Braspag::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
@@ -149,7 +149,7 @@ cbraspag gem to use Braspag gateway
   credit card details.
 
   	require 'rubygems'
-  	require 'cbraspag'
+  	require 'braspag'
   	
   	gateway = Braspag::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
@@ -195,7 +195,7 @@ cbraspag gem to use Braspag gateway
   This simple example demonstrates how a capture can be made, after authorize.
 
   	require 'rubygems'
-  	require 'cbraspag'
+  	require 'braspag'
   	
   	gateway = Braspag::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
@@ -220,7 +220,7 @@ cbraspag gem to use Braspag gateway
   This simple example demonstrates how a void transaction can be made.
 
   	require 'rubygems'
-  	require 'cbraspag'
+  	require 'braspag'
   	
   	gateway = Braspag::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
@@ -394,7 +394,7 @@ cbraspag gem to use Braspag gateway
   Save credit card in Braspag PCI Compliant 
 
   	require 'rubygems'
-  	require 'cbraspag'
+  	require 'braspag'
   		
   	gateway = Braspag::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
@@ -431,7 +431,7 @@ cbraspag gem to use Braspag gateway
   Request the credit card info in Braspag PCI Compliant
   
   	require 'rubygems'
-  	require 'cbraspag'
+  	require 'braspag'
   		
   	gateway = Braspag::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
@@ -465,7 +465,7 @@ cbraspag gem to use Braspag gateway
   Purchase order using recurrence
   
   	require 'rubygems'
-  	require 'cbraspag'
+  	require 'braspag'
   		
   	gateway = Braspag::Connection.new(
   	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',

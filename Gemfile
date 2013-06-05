@@ -1,4 +1,4 @@
 source "http://rubygems.org"
 
-# Specify your gem's dependencies in cbraspag.gemspec
+# Specify your gem's dependencies in braspag.gemspec
 gemspec

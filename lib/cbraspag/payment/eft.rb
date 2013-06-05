@@ -1,7 +1,7 @@
 module Braspag
   class Connection
     def generate_eft(order, eft)
-      
+
       params = {
         Id_Loja:      self.merchant_id,
         VALOR:        Braspag::Converter::decimal_to_string(order.amount),
@@ -11,7 +11,7 @@ module Braspag
       }
 
       html = "<form id='form_tef_#{order.id}' name='form_tef_#{order.id}' action='#{self.url_for(:generate_eft)}' method='post'>"
-      
+
 
       begin
         unless eft.crypto.respond_to?(:encrypt)
@@ -33,17 +33,17 @@ module Braspag
         status = false
         message = e.message
       end
-      
+
       ActiveMerchant::Billing::Response.new(status,
        message,
        {},
        :test => homologation?)
     end
   end
-  
+
   class EFT
     include ::ActiveAttr::Model
-    
+
     class CryptoValidator < ActiveModel::EachValidator
       def validate_each(record, attribute, value)
         unless (
@@ -56,10 +56,10 @@ module Braspag
     end
 
     attr_accessor :crypto, :code
-    
+
     validates :crypto, :presence => { :on => :generate }
     validates :crypto, :crypto => { :on => :generate }
 
   end
-  
+
 end
