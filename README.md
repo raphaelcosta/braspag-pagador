@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/raphaelcosta/braspag-pagador.png?branch=master)](https://travis-ci.org/raphaelcosta/braspag-pagador)
+
 # braspag-pagador
 
 braspag-pagador gem to use Braspag gateway
