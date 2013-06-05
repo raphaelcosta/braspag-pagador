@@ -58,7 +58,7 @@ describe BraspagPagador::Connection do
     let(:braspag_homologation_url) { "https://homologacao.pagador.com.br" }
     let(:braspag_production_url) { "https://transaction.pagador.com.br" }
     let(:braspag_homologation_protected_card_url) { "https://homologacao.braspag.com.br/services/testenvironment" }
-    let(:braspag_production_protected_card_url) { "https://cartaoprotegido.braspag.com.br/Services" }
+    let(:braspag_production_protected_card_url) { "https://cartaoprotegido.braspag.com.br/Services/V2" }
 
     it "should return the correct credit card creation url when connection environment is homologation" do
       connection = BraspagPagador::Connection.new(:merchant_id => merchant_id, :environment => :homologation)
@@ -70,8 +70,8 @@ describe BraspagPagador::Connection do
       connection.url_for(:info_billet).should == "#{braspag_homologation_url}/pagador/webservice/pedido.asmx/GetDadosBoleto"
       connection.url_for(:info_credit_card).should == "#{braspag_homologation_url}/pagador/webservice/pedido.asmx/GetDadosCartao"
       connection.url_for(:info).should == "#{braspag_homologation_url}/pagador/webservice/pedido.asmx/GetDadosPedido"
-      connection.url_for(:encrypt).should == "#{braspag_homologation_url}/BraspagPagadorGeneralService/BraspagPagadorGeneralService.asmx"
-      connection.url_for(:archive_card).should == "#{braspag_homologation_protected_card_url}/CartaoProtegido.asmx?wsdl"
+      connection.url_for(:encrypt).should == "#{braspag_homologation_url}/BraspagGeneralService/BraspagGeneralService.asmx"
+      connection.url_for(:save_credit_card).should == "#{braspag_homologation_protected_card_url}/CartaoProtegido.asmx?wsdl"
       connection.url_for(:get_card).should == "#{braspag_homologation_protected_card_url}/CartaoProtegido.asmx/GetCreditCard"
       connection.url_for(:recurrency).should == "#{braspag_homologation_protected_card_url}/CartaoProtegido.asmx?wsdl"
     end
@@ -86,8 +86,8 @@ describe BraspagPagador::Connection do
       connection.url_for(:info_billet).should == "#{braspag_production_url}/webservices/pagador/pedido.asmx/GetDadosBoleto"
       connection.url_for(:info_credit_card).should == "#{braspag_production_url}/webservices/pagador/pedido.asmx/GetDadosCartao"
       connection.url_for(:info).should == "#{braspag_production_url}/webservices/pagador/pedido.asmx/GetDadosPedido"
-      connection.url_for(:encrypt).should == "#{braspag_production_url}/BraspagPagadorGeneralService/BraspagPagadorGeneralService.asmx"
-      connection.url_for(:archive_card).should == "#{braspag_production_protected_card_url}/CartaoProtegido.asmx?wsdl"
+      connection.url_for(:encrypt).should == "#{braspag_production_url}/BraspagGeneralService/BraspagGeneralService.asmx"
+      connection.url_for(:save_credit_card).should == "#{braspag_production_protected_card_url}/CartaoProtegido.asmx?wsdl"
       connection.url_for(:get_card).should == "#{braspag_production_protected_card_url}/CartaoProtegido.asmx/GetCreditCard"
       connection.url_for(:recurrency).should == "#{braspag_production_protected_card_url}/CartaoProtegido.asmx?wsdl"
     end
@@ -129,7 +129,7 @@ describe BraspagPagador::Connection do
       :authorize => BraspagPagador::CreditCard,
       :void => BraspagPagador::CreditCard,
       :capture => BraspagPagador::CreditCard,
-      :archive_card => BraspagPagador::CreditCard,
+      :save_credit_card => BraspagPagador::CreditCard,
       :get_card => BraspagPagador::CreditCard,
       :recurrency => BraspagPagador::CreditCard,
       :generate_billet => BraspagPagador::Billet,

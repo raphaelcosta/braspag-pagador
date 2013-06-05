@@ -6,8 +6,10 @@ module BraspagPagador
 
     PRODUCTION_URL = "https://transaction.pagador.com.br"
     HOMOLOGATION_URL = "https://homologacao.pagador.com.br"
-    PROTECTED_CARD_HOMOLOGATION_URL = "https://cartaoprotegido.braspag.com.br/Services/V2"
-    PROTECTED_CARD_PRODUCTION_URL = "https://homologacao.braspag.com.br/services/testenvironment"
+    # PROTECTED_CARD_HOMOLOGATION_URL = "https://cartaoprotegido.braspag.com.br/Services/V2"
+    # PROTECTED_CARD_PRODUCTION_URL = "https://homologacao.braspag.com.br/services/testenvironment"
+    PROTECTED_CARD_PRODUCTION_URL = "https://cartaoprotegido.braspag.com.br/Services/V2"
+    PROTECTED_CARD_HOMOLOGATION_URL = "https://homologacao.braspag.com.br/services/testenvironment"
 
     attr_reader :merchant_id, :env, :logger, :proxy_address
 
@@ -61,7 +63,7 @@ module BraspagPagador
       when :encrypt
         braspag_url + "/BraspagGeneralService/BraspagGeneralService.asmx"
       when :save_credit_card
-        protected_card_url + "/CartaoProtegido.asmx"
+        protected_card_url + "/CartaoProtegido.asmx?wsdl"
       when :get_card
         protected_card_url + "/CartaoProtegido.asmx/GetCreditCard"
       when :recurrency

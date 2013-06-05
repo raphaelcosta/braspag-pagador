@@ -23,18 +23,18 @@
       <img src="./assets/0.5.3/loading.gif" alt="loading"/>
     </div>
     <div id="wrapper" style="display:none;">
-      <div class="timestamp">Generated <abbr class="timeago" title="2013-06-05T17:35:33-03:00">2013-06-05T17:35:33-03:00</abbr></div>
+      <div class="timestamp">Generated <abbr class="timeago" title="2013-06-05T18:05:31-03:00">2013-06-05T18:05:31-03:00</abbr></div>
       <ul class="group_tabs"></ul>
 
       <div id="content">
         <div class="file_list_container" id="AllFiles">
   <h2>
     <span class="group_name">All Files</span>
-    (<span class="covered_percent"><span class="green">98.38%</span></span>
+    (<span class="covered_percent"><span class="green">98.62%</span></span>
      covered at
      <span class="covered_strength">
        <span class="green">
-         4.11
+         4.15
        </span>
     </span> hits/line)
   </h2>
@@ -42,8 +42,8 @@
   <div>
     <b>23</b> files in total.
     <b>1236</b> relevant lines. 
-    <span class="green"><b>1216</b> lines covered</span> and
-    <span class="red"><b>20</b> lines missed </span>
+    <span class="green"><b>1219</b> lines covered</span> and
+    <span class="red"><b>17</b> lines missed </span>
   </div>
   <table class="file_list">
     <thead>
@@ -71,12 +71,12 @@
       
       <tr>
         <td class="strong"><a href="#fe111a9012c02ed344b29bd17f9a0183627cb0db" class="src_link" title="lib/braspag-pagador/core/connection.rb">lib/braspag-pagador/core/connection.rb</a></td>
-        <td class="yellow strong">86.21 %</td>
+        <td class="green strong">91.38 %</td>
         <td>114</td>
         <td>58</td>
-        <td>50</td>
-        <td>8</td>
-        <td>14.2</td>
+        <td>53</td>
+        <td>5</td>
+        <td>15.1</td>
       </tr>
       
       <tr>
@@ -298,11 +298,11 @@
           <div class="file_list_container" id="Core">
   <h2>
     <span class="group_name">Core</span>
-    (<span class="covered_percent"><span class="green">96.47%</span></span>
+    (<span class="covered_percent"><span class="green">97.65%</span></span>
      covered at
      <span class="covered_strength">
        <span class="green">
-         10.86
+         11.04
        </span>
     </span> hits/line)
   </h2>
@@ -310,8 +310,8 @@
   <div>
     <b>5</b> files in total.
     <b>255</b> relevant lines. 
-    <span class="green"><b>246</b> lines covered</span> and
-    <span class="red"><b>9</b> lines missed </span>
+    <span class="green"><b>249</b> lines covered</span> and
+    <span class="red"><b>6</b> lines missed </span>
   </div>
   <table class="file_list">
     <thead>
@@ -329,12 +329,12 @@
       
       <tr>
         <td class="strong"><a href="#fe111a9012c02ed344b29bd17f9a0183627cb0db" class="src_link" title="lib/braspag-pagador/core/connection.rb">lib/braspag-pagador/core/connection.rb</a></td>
-        <td class="yellow strong">86.21 %</td>
+        <td class="green strong">91.38 %</td>
         <td>114</td>
         <td>58</td>
-        <td>50</td>
-        <td>8</td>
-        <td>14.2</td>
+        <td>53</td>
+        <td>5</td>
+        <td>15.1</td>
       </tr>
       
       <tr>
@@ -1354,11 +1354,11 @@
         <div class="source_table" id="fe111a9012c02ed344b29bd17f9a0183627cb0db">
   <div class="header">
     <h3>lib/braspag-pagador/core/connection.rb</h3>
-    <h4><span class="yellow">86.21 %</span> covered</h4>
+    <h4><span class="green">91.38 %</span> covered</h4>
     <div>
       <b>58</b> relevant lines. 
-      <span class="green"><b>50</b> lines covered</span> and
-      <span class="red"><b>8</b> lines missed.</span>
+      <span class="green"><b>53</b> lines covered</span> and
+      <span class="red"><b>5</b> lines missed.</span>
     </div>
   </div>
   
@@ -1413,28 +1413,28 @@
           <code class="ruby">    HOMOLOGATION_URL = &quot;https://homologacao.pagador.com.br&quot;</code>
         </li>
       
-        <li class="covered" data-hits="1" data-linenumber="9">
-          <span class="hits">1</span>
+        <li class="never" data-hits="" data-linenumber="9">
           
-          <code class="ruby">    PROTECTED_CARD_PRODUCTION_URL = &quot;https://cartaoprotegido.braspag.com.br/Services&quot;</code>
+          
+          <code class="ruby">    # PROTECTED_CARD_HOMOLOGATION_URL = &quot;https://cartaoprotegido.braspag.com.br/Services/V2&quot;</code>
         </li>
       
         <li class="never" data-hits="" data-linenumber="10">
           
           
-          <code class="ruby">    # https://cartaoprotegido.braspag.com.br/Services/V2 /CartaoProtegido.asmx </code>
+          <code class="ruby">    # PROTECTED_CARD_PRODUCTION_URL = &quot;https://homologacao.braspag.com.br/services/testenvironment&quot;</code>
         </li>
       
-        <li class="never" data-hits="" data-linenumber="11">
+        <li class="covered" data-hits="1" data-linenumber="11">
+          <span class="hits">1</span>
           
-          
-          <code class="ruby">    # PROTECTED_CARD_HOMOLOGATION_URL = &quot;https://homologacao.braspag.com.br/services/testenvironment&quot;</code>
+          <code class="ruby">    PROTECTED_CARD_PRODUCTION_URL = &quot;https://cartaoprotegido.braspag.com.br/Services/V2&quot;</code>
         </li>
       
         <li class="covered" data-hits="1" data-linenumber="12">
           <span class="hits">1</span>
           
-          <code class="ruby">    PROTECTED_CARD_HOMOLOGATION_URL = &quot;https://cartaoprotegido.braspag.com.br/Services/V2&quot;</code>
+          <code class="ruby">    PROTECTED_CARD_HOMOLOGATION_URL = &quot;https://homologacao.braspag.com.br/services/testenvironment&quot;</code>
         </li>
       
         <li class="never" data-hits="" data-linenumber="13">
@@ -1533,8 +1533,8 @@
           <code class="ruby">    def production?</code>
         </li>
       
-        <li class="covered" data-hits="71" data-linenumber="29">
-          <span class="hits">71</span>
+        <li class="covered" data-hits="89" data-linenumber="29">
+          <span class="hits">89</span>
           
           <code class="ruby">      @env == :production</code>
         </li>
@@ -1581,14 +1581,14 @@
           <code class="ruby">    def url_for(method_name)</code>
         </li>
       
-        <li class="covered" data-hits="23" data-linenumber="37">
-          <span class="hits">23</span>
+        <li class="covered" data-hits="29" data-linenumber="37">
+          <span class="hits">29</span>
           
           <code class="ruby">      braspag_url = production? ? PRODUCTION_URL : HOMOLOGATION_URL</code>
         </li>
       
-        <li class="covered" data-hits="23" data-linenumber="38">
-          <span class="hits">23</span>
+        <li class="covered" data-hits="29" data-linenumber="38">
+          <span class="hits">29</span>
           
           <code class="ruby">      protected_card_url = production? ? PROTECTED_CARD_PRODUCTION_URL : PROTECTED_CARD_HOMOLOGATION_URL</code>
         </li>
@@ -1599,14 +1599,14 @@
           <code class="ruby"></code>
         </li>
       
-        <li class="covered" data-hits="23" data-linenumber="40">
-          <span class="hits">23</span>
+        <li class="covered" data-hits="29" data-linenumber="40">
+          <span class="hits">29</span>
           
           <code class="ruby">      braspag_info_url = if production?</code>
         </li>
       
-        <li class="covered" data-hits="9" data-linenumber="41">
-          <span class="hits">9</span>
+        <li class="covered" data-hits="12" data-linenumber="41">
+          <span class="hits">12</span>
           
           <code class="ruby">        braspag_url + &quot;/webservices/pagador/pedido.asmx&quot;</code>
         </li>
@@ -1617,8 +1617,8 @@
           <code class="ruby">      else</code>
         </li>
       
-        <li class="covered" data-hits="14" data-linenumber="43">
-          <span class="hits">14</span>
+        <li class="covered" data-hits="17" data-linenumber="43">
+          <span class="hits">17</span>
           
           <code class="ruby">        braspag_url + &quot;/pagador/webservice/pedido.asmx&quot;</code>
         </li>
@@ -1635,8 +1635,8 @@
           <code class="ruby"></code>
         </li>
       
-        <li class="covered" data-hits="23" data-linenumber="46">
-          <span class="hits">23</span>
+        <li class="covered" data-hits="29" data-linenumber="46">
+          <span class="hits">29</span>
           
           <code class="ruby">      case method_name</code>
         </li>
@@ -1755,10 +1755,10 @@
           <code class="ruby">      when :save_credit_card</code>
         </li>
       
-        <li class="missed" data-hits="0" data-linenumber="66">
+        <li class="covered" data-hits="2" data-linenumber="66">
+          <span class="hits">2</span>
           
-          
-          <code class="ruby">        protected_card_url + &quot;/CartaoProtegido.asmx&quot;</code>
+          <code class="ruby">        protected_card_url + &quot;/CartaoProtegido.asmx?wsdl&quot;</code>
         </li>
       
         <li class="never" data-hits="" data-linenumber="67">
@@ -1767,8 +1767,8 @@
           <code class="ruby">      when :get_card</code>
         </li>
       
-        <li class="missed" data-hits="0" data-linenumber="68">
-          
+        <li class="covered" data-hits="2" data-linenumber="68">
+          <span class="hits">2</span>
           
           <code class="ruby">        protected_card_url + &quot;/CartaoProtegido.asmx/GetCreditCard&quot;</code>
         </li>
@@ -1779,8 +1779,8 @@
           <code class="ruby">      when :recurrency</code>
         </li>
       
-        <li class="missed" data-hits="0" data-linenumber="70">
-          
+        <li class="covered" data-hits="2" data-linenumber="70">
+          <span class="hits">2</span>
           
           <code class="ruby">        protected_card_url + &quot;/CartaoProtegido.asmx?wsdl&quot;</code>
         </li>
@@ -1959,8 +1959,8 @@
           <code class="ruby">      when :authorize, :void, :capture, :save_credit_card, :get_card, :recurrency</code>
         </li>
       
-        <li class="covered" data-hits="5" data-linenumber="100">
-          <span class="hits">5</span>
+        <li class="covered" data-hits="6" data-linenumber="100">
+          <span class="hits">6</span>
           
           <code class="ruby">        CreditCard</code>
         </li>
@@ -9150,19 +9150,19 @@
         <li class="covered" data-hits="1" data-linenumber="153">
           <span class="hits">1</span>
           
-          <code class="ruby">      order.gateway_cancelled_at.should eq(Time.parse(&#39;2011-08-07 13:19:38 -0300&#39;))</code>
+          <code class="ruby">      order.gateway_cancelled_at.should eq(Time.parse(&#39;2011-08-07 13:19:38&#39;))</code>
         </li>
       
         <li class="covered" data-hits="1" data-linenumber="154">
           <span class="hits">1</span>
           
-          <code class="ruby">      order.gateway_paid_at.should eq(Time.parse(&#39;2011-08-07 13:19:38 -0300&#39;))</code>
+          <code class="ruby">      order.gateway_paid_at.should eq(Time.parse(&#39;2011-08-07 13:19:38&#39;))</code>
         </li>
       
         <li class="covered" data-hits="1" data-linenumber="155">
           <span class="hits">1</span>
           
-          <code class="ruby">      order.gateway_created_at.should eq(Time.parse(&#39;2011-08-07 13:06:06 -0300&#39;))</code>
+          <code class="ruby">      order.gateway_created_at.should eq(Time.parse(&#39;2011-08-07 13:06:06&#39;))</code>
         </li>
       
         <li class="covered" data-hits="1" data-linenumber="156">

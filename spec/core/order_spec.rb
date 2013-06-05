@@ -150,9 +150,9 @@ describe BraspagPagador::Order do
       order.installments.should eq('1')
       order.status.should eq('3')
       order.amount.should eq(0.01)
-      order.gateway_cancelled_at.should eq(Time.parse('2011-08-07 13:19:38 -0300'))
-      order.gateway_paid_at.should eq(Time.parse('2011-08-07 13:19:38 -0300'))
-      order.gateway_created_at.should eq(Time.parse('2011-08-07 13:06:06 -0300'))
+      order.gateway_cancelled_at.should eq(Time.parse('2011-08-07 13:19:38'))
+      order.gateway_paid_at.should eq(Time.parse('2011-08-07 13:19:38'))
+      order.gateway_created_at.should eq(Time.parse('2011-08-07 13:06:06'))
       order.transaction_id.should eq('398591')
       order.gateway_id.should eq('5a1d4463-1d11-4571-a877-763aba0ef7ff')
 
