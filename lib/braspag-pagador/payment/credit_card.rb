@@ -65,7 +65,7 @@ module BraspagPagador
     end
 
 
-    [:purchase, :authorize, :archive].each do |check_on|
+    [:purchase, :authorize, :save_credit_card].each do |check_on|
       validates :holder_name, :length => {:minimum => 1, :maximum => 100, :on => check_on}
 
       validates :number, :presence => { :on => check_on }
@@ -95,6 +95,11 @@ module BraspagPagador
           'RequestId'      => request_id
         }
       }
+    end
+
+    def self.from_save_credit_card(connection,credit_card, customer, request_id, params)
+      params = params.body
+      params[:save_credit_card_response][:save_credit_card_result]
     end
 
     def self.to_authorize(connection, order, credit_card)

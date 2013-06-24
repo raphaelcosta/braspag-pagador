@@ -87,8 +87,6 @@ module BraspagPagador
       url = url_for(method_name)
       client = Savon.client(wsdl: url)
 
-      binding.pry
-
       response = client.call method_name, message: self.convert(method_name, :to, args)
 
       self.convert(method_name, :from, args + [response] )
