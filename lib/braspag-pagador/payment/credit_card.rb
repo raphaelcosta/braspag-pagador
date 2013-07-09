@@ -77,7 +77,7 @@ module BraspagPagador
     end
 
     [:purchase, :authorize].each do |check_on|
-      validates :verification_value, :length => {:minimum => 1, :maximum => 4, :on => check_on}
+      # validates :verification_value, :length => {:minimum => 1, :maximum => 4, :on => check_on}
     end
 
     [:get_recurrency, :recurrency].each do |check_on|
