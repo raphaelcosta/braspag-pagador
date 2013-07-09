@@ -76,7 +76,7 @@ module BraspagPagador
       validates :year, :expirator => { :on => check_on }
     end
 
-    [:purchase, :authorize, :recurrency].each do |check_on|
+    [:purchase, :authorize].each do |check_on|
       validates :verification_value, :length => {:minimum => 1, :maximum => 4, :on => check_on}
     end
 
@@ -91,7 +91,7 @@ module BraspagPagador
           'CustomerName'   => customer.name.to_s,
           'CardHolder'     => credit_card.holder_name.to_s,
           'CardNumber'     => credit_card.number.to_s,
-          'CardExpiration' => "#{credit_card.month}/#{credit_card.year}",
+          'CardExpiration' => "#{format('%02d', credit_card.month)}/#{credit_card.year}",
           'RequestId'      => request_id
         }
       }
@@ -100,6 +100,20 @@ module BraspagPagador
     def self.from_save_credit_card(connection,credit_card, customer, request_id, params)
       params = params.body
       params[:save_credit_card_response][:save_credit_card_result]
+    end
+
+    def self.to_get_credit_card(connection,just_click_key)
+      {
+        'getCreditCardRequestWS'  => {
+          'MerchantKey'    => connection.merchant_id,
+          'JustClickKey'   => just_click_key
+        }
+      }
+    end
+
+    def self.from_get_credit_card(connection,just_click_key,params)
+      params = params.body
+      params[:get_credit_card_response][:get_credit_card_result]
     end
 
     def self.to_authorize(connection, order, credit_card)

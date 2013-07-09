@@ -7,13 +7,36 @@ module BraspagPagador
       ActiveMerchant::Billing::Response.new(status,nil,response,:test => homologation?)
     end
 
-    # request the credit card info in Braspag PCI Compliant
-    def get_recurrency(credit_card)
+    def get_credit_card(just_click_key)
+      response = self.soap_request(:get_credit_card, just_click_key)
+      status = response[:success]
 
+      if status
+        expire_month, expire_year = response[:card_expiration].split('/')
+        response = BraspagPagador::CreditCard.new(
+           holder_name:        response[:card_holder],
+           number:             response[:card_number],
+           month:              expire_month,
+           year:               expire_year
+         )
+      else
+        ActiveMerchant::Billing::Response.new(status,nil,response,:test => homologation?)
+      end
     end
 
-    def recurrency(order, credit_card, request_id)
+    def authorize_saved_credit_card(order,just_click_key)
+      credit_card = get_credit_card(just_click_key)
 
+      response = self.post(:authorize, order, credit_card)
+
+      status = (response[:status] == "0" || response[:status] == "1")
+
+      ActiveMerchant::Billing::Response.new(status,
+                                            response[:message],
+                                            response,
+                                            :test => homologation?,
+                                            :authorization => response[:number])
     end
+
   end
 end

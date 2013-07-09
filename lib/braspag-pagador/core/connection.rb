@@ -64,9 +64,7 @@ module BraspagPagador
         braspag_url + "/BraspagGeneralService/BraspagGeneralService.asmx"
       when :save_credit_card
         protected_card_url + "/CartaoProtegido.asmx?wsdl"
-      when :get_card
-        protected_card_url + "/CartaoProtegido.asmx/GetCreditCard"
-      when :recurrency
+      when :get_credit_card
         protected_card_url + "/CartaoProtegido.asmx?wsdl"
       end
     end
@@ -94,7 +92,7 @@ module BraspagPagador
 
     def convert(method_name, direction, args)
       target = case method_name
-      when :authorize, :void, :capture, :save_credit_card, :get_card, :recurrency
+      when :authorize, :void, :capture, :save_credit_card, :get_credit_card, :authorize_saved_credit_card
         CreditCard
       when :generate_billet
         Billet
