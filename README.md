@@ -1,9 +1,9 @@
 
-
 # braspag-pagador [![Build Status](https://travis-ci.org/raphaelcosta/braspag-pagador.png?branch=master)](https://travis-ci.org/raphaelcosta/braspag-pagador)
 
 braspag-pagador gem to use Braspag gateway
 
+  - Based on gem cbraspag from Codeminer42
   - Support most operations in gateway
   - Compatible with Active Merchant response object
   - Support multiple connections easy
@@ -419,7 +419,7 @@ braspag-pagador gem to use Braspag gateway
 
   	# Validating the card automatically detects the card type
   	if credit_card.valid?(:archive) && customer.valid?(:archive)
-  	  response = gateway.archive(credit_card, customer, "00000000-0000-0000-0000-000000000044")
+  	  response = gateway.save_credit_card(credit_card, customer, "00000000-0000-0000-0000-000000000044")
 
   	  if response.success?
   	    puts "Successfully saved credit_card! The just key #{credit_card.id}"
@@ -440,15 +440,9 @@ braspag-pagador gem to use Braspag gateway
   	  :environment => :homologation
   	)
 
-  	# The card verification value is also known as CVV2, CVC2, or CID
-  	credit_card = BraspagPagador::CreditCard.new(
-  	  :id        => '123123123123123',
-  	  :alias     => 'Card Visa' #(OPTIONAL)
-  	)
 
-  	# Validating the card automatically detects the card type
-  	if credit_card.valid?(:get_recurrency)
-  	  response = gateway.get_recurrency(credit_card)
+    just_click_key = '231231288as-asdassad23423asd-324234'
+    credit_card = gateway.get_credit_card(just_click_key)
 
   	  if response.success?
   	    puts "Successfully get credit!"
@@ -462,56 +456,13 @@ braspag-pagador gem to use Braspag gateway
   	end
 
 
-## CREDITCARD RECURRING PURCHASE
-
-  Purchase order using recurrence
-
-  	require 'rubygems'
-  	require 'braspag-pagador'
-
-  	gateway = BraspagPagador::Connection.new(
-  	  :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
-  	  :environment => :homologation
-  	)
-
-  	# The card verification value is also known as CVV2, CVC2, or CID
-  	credit_card = BraspagPagador::CreditCard.new(
-  	  :id => '123415',
-  	  :verification_value => '123',
-  	  :alias     => 'Card Visa' #(OPTIONAL)
-  	)
-
-  	customer = BraspagPagador::Customer.new(
-  	  :name => 'Bob Dela Bobsen'
-  	)
-
-  	order = BraspagPagador::Order.new(
-  	  :payment_method    => BraspagPagador::PAYMENT_METHOD[:redecard],
-  	  :id                => 11,
-  	  :amount            => 10.00, # $10.00 (accepts all amounts as Integer values in cents)
-  	  :customer          => customer,
-  	  :installments      => 1,
-  	  :installments_type => BraspagPagador::INTEREST[:no]
-  	)
-
-  	# Validating the card automatically detects the card type
-  	if credit_card.valid?(:recurrency) && customer.valid?(:recurrency) && order.valid?(:recurrency)
-  	  # Capture $10 from the credit card
-  	  response = gateway.recurrency(order, credit_card, "00000000-0000-0000-0000-000000000044")
-
-  	  if response.success?
-  	    puts "Successfully charged $#{sprintf("%.2f", order.amount / 100)} to the credit card #{credit_card.id}"
-  	  else
-  	    raise StandardError, response.message
-  	  end
-  	en
-
 
 # License
 
 (The MIT License)
 
-Copyright (c) 2012 - Codeminer42 contato(at)codeminer42.com
+Copyright (c) 2013 - Raphael Costa raphael(at)raphaelcosta.net
+Copyright (c) 2013 - Codeminer42 contato(at)codeminer42.com
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
