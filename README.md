@@ -11,6 +11,7 @@ braspag-pagador gem to use Braspag gateway
 Many people contributed on this project to generate this release, thanks to all these people:
 
 @gonow
+@renatoelias
 @drec18
 @ricardoalmeida
 @lenonmarcel
