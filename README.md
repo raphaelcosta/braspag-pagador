@@ -2,7 +2,7 @@
 
 braspag-pagador gem to use Braspag gateway
 
-  - Based on gem cbraspag from Codeminer42
+  - Based on gem cbraspag from Codeminer42 and other forks
   - Support most operations in gateway
   - Compatible with Active Merchant response object
   - Support multiple connections easy
