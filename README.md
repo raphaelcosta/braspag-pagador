@@ -1,4 +1,3 @@
-
 # braspag-pagador [![Build Status](https://travis-ci.org/raphaelcosta/braspag-pagador.png?branch=master)](https://travis-ci.org/raphaelcosta/braspag-pagador)
 
 braspag-pagador gem to use Braspag gateway
@@ -7,6 +6,20 @@ braspag-pagador gem to use Braspag gateway
   - Support most operations in gateway
   - Compatible with Active Merchant response object
   - Support multiple connections easy
+  - Support just click key ( Save creditcard)
+
+Many people contributed on this project to generate this release, thanks to all these people:
+
+@gonow
+@drec18
+@ricardoalmeida
+@lenonmarcel
+@tinogomes
+@madsoncardo
+@lucabastos
+@cassiomarques
+@codeminer42
+@vinibaggio
 
 ## RUN INTEGRATION TEST
 
