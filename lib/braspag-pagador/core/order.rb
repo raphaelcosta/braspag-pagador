@@ -64,7 +64,7 @@ module BraspagPagador
     [:purchase, :generate, :authorize, :capture, :void, :recurrency].each do |check_on|
       validates :id, :presence => { :on => check_on }
       validates :id, :length => {:minimum => 1, :maximum => 20, :on => check_on }
-      validates :id, :format => { :with => /^[0-9]+$/, :on => check_on, :if => :payment_for_cielo? }
+      validates :id, :format => { :with => /\A[0-9]+\z/, :on => check_on, :if => :payment_for_cielo? }
     end
 
     [:purchase, :generate, :authorize, :recurrency].each do |check_on|
