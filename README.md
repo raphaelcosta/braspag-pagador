@@ -469,7 +469,28 @@ Many people contributed on this project to generate this release, thanks to all 
   	  end
   	end
 
+## JUST CLICK KEY GET
 
+  Request the just_click_key info in Braspag PCI Compliant
+
+    require 'rubygems'
+    require 'braspag-pagador'
+
+    gateway = BraspagPagador::Connection.new(
+      :merchant_id => '{84BE7E7F-698A-6C74-F820-AE359C2A07C2}',
+      :environment => :homologation
+    )
+
+
+    request_id = '231231288as-asdassad23423asd-324234'
+    just_click_key = gateway.get_just_click_key(request_id)
+
+      if response.success?
+        puts "Successfully get just click key #{just_click_key}!"
+      else
+        raise StandardError, response.message
+      end
+    end
 
 # License
 
