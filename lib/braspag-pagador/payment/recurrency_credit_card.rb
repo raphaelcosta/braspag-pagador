@@ -7,6 +7,13 @@ module BraspagPagador
       ActiveMerchant::Billing::Response.new(status,nil,response,:test => homologation?)
     end
 
+    def get_just_click_key(request_id)
+      response = self.soap_request(:get_just_click_key, request_id)
+      status = response[:success]
+
+      ActiveMerchant::Billing::Response.new(status,nil,response,:test => homologation?)
+    end
+
     def get_credit_card(just_click_key)
       response = self.soap_request(:get_credit_card, just_click_key)
       status = response[:success]

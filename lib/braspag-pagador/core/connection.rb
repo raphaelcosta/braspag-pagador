@@ -66,6 +66,8 @@ module BraspagPagador
         protected_card_url + "/CartaoProtegido.asmx?wsdl"
       when :get_credit_card
         protected_card_url + "/CartaoProtegido.asmx?wsdl"
+      when :get_just_click_key
+        protected_card_url + "/CartaoProtegido.asmx?wsdl"
       end
     end
 
